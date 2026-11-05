@@ -1,0 +1,26 @@
+import type { Look } from "./look";
+
+/** A dojo under siege. The ally master defends it; the invader wants to take it. Each duo looks different. */
+export interface Rescue {
+  dojo: string;
+  ally: string;
+  allyColor: string;
+  allyLook: Look;
+  invaderLook: Look;
+  /** Index into TOWER_POOL for the invader's style. */
+  invader: number;
+  story: string;
+  coins: number;
+  gems: number;
+}
+
+const L = (body: number, head: number, hair: number, hairColor: number, eye: number, eyeColor: number, skin: number, pattern: number, outfit: number): Look => ({ body, head, hair, hairColor, eye, eyeColor, skin, pattern, outfit });
+
+export const RESCUES: readonly Rescue[] = [
+  { dojo: "Bamboo Grove Dojo", ally: "Sensei Take", allyColor: "#1e8449", allyLook: L(0, 2, 3, 3, 2, 3, 2, 0, 8), invaderLook: L(0, 3, 1, 0, 1, 2, 3, 1, 6), invader: 0, story: "Brick Fist Bao is smashing the gates. Hold the grove!", coins: 60, gems: 1 },
+  { dojo: "Lotus Pond Dojo", ally: "Sensei Hana", allyColor: "#c0392b", allyLook: L(1, 0, 9, 14, 8, 6, 1, 2, 18), invaderLook: L(0, 5, 11, 2, 3, 8, 6, 4, 11), invader: 1, story: "Fox Jun wants the pond dojo. Her tells are lies!", coins: 80, gems: 1 },
+  { dojo: "Iron Mountain Dojo", ally: "Sensei Dorin", allyColor: "#5d6d7e", allyLook: L(0, 6, 14, 5, 5, 4, 8, 3, 2), invaderLook: L(1, 1, 7, 20, 9, 13, 0, 7, 22), invader: 2, story: "Mirage Mei marches on the mountain. Stand firm!", coins: 100, gems: 2 },
+  { dojo: "Crane Temple Dojo", ally: "Sensei Yuki", allyColor: "#2980b9", allyLook: L(1, 4, 12, 8, 7, 9, 5, 5, 25), invaderLook: L(0, 7, 18, 16, 6, 15, 9, 6, 13), invader: 3, story: "Echo Kai copies every move. Do not repeat yourself!", coins: 120, gems: 2 },
+  { dojo: "Thunder Peak Dojo", ally: "Sensei Raiko", allyColor: "#d4ac0d", allyLook: L(0, 8, 21, 11, 10, 7, 4, 8, 17), invaderLook: L(1, 9, 5, 18, 11, 17, 2, 9, 30), invader: 5, story: "Storm Rin wants the peak. Beat her storm!", coins: 150, gems: 3 },
+  { dojo: "Moon Gate Dojo", ally: "Sensei Tsuki", allyColor: "#7d3c98", allyLook: L(1, 3, 16, 19, 3, 12, 7, 10, 28), invaderLook: L(0, 0, 20, 10, 4, 11, 10, 9, 3), invader: 7, story: "Void Sage claims the last dojo. Save the moon gate!", coins: 200, gems: 4 },
+];

@@ -1,0 +1,22 @@
+{
+  "name": "Dojo of the Three Hands",
+  "description": "Read eccentric martial arts masters' tells and patterns to fight your way up a dojo tournament ladder.",
+  "hosting": "ephemeral",
+  "supportedDevices": [
+    "desktop",
+    "mobile-landscape"
+  ],
+  "tags": [
+    "strategy",
+    "fighting",
+    "funny"
+  ],
+  "tips": [
+    "Each master has a habit. Watch which throw they repeat.",
+    "Masters go off-script. Never trust one pattern.",
+    "Peek once per match. Guard turns a loss into a draw.",
+    "Climb the Endless Tower. Try the Daily Challenge!",
+    "Master Ren studies your favourite throw. Mix it up!"
+  ],
+  "maximumPlayers": 1
+}

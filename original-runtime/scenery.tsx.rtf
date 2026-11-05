@@ -1,0 +1,83 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red19\green17\blue16;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cssrgb\c9804\c8627\c7843;\csgray\c100000;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs24 \cf2 \cb3 \expnd0\expndtw0\kerning0
+import type \{ ReactNode \} from "react";\
+\
+/** Themed backdrops for the rescue dojos, drawn over the dojo wall. Index matches RESCUES. */\
+const bamboo = (x: number, h: number, s: number): ReactNode => (\
+  <g key=\{x\}>\
+    <rect x=\{x\} y=\{435 - h\} width=\{s\} height=\{h\} fill="#3f8f3a" stroke="#1d5a1f" strokeWidth="2" />\
+    \{Array.from(\{ length: Math.floor(h / 60) \}, (_, i) => <rect key=\{i\} x=\{x - 2\} y=\{435 - 60 * (i + 1)\} width=\{s + 4\} height="6" fill="#2a6e2b" />)\}\
+    <path d=\{`M$\{x + s\} $\{435 - h * 0.6\} q60 -20 90 10 q-50 0 -90 -4 M$\{x\} $\{435 - h * 0.8\} q-60 -20 -90 10 q50 0 90 -4`\} fill="#6cc04a" stroke="#2a6e2b" />\
+  </g>\
+);\
+\
+export function ScenicWall(\{ i \}: \{ i: number \}): ReactNode \{\
+  switch (i) \{\
+    case 0:\
+      return <>\
+        <rect width="1280" height="435" fill="#cfe8b0" />\
+        \{[40, 170, 310, 470, 640, 800, 960, 1100, 1220].map((x, k) => bamboo(x, 300 + (k % 3) * 50, 22 + (k % 2) * 6))\}\
+        <rect y="0" width="1280" height="60" fill="#2a6e2b" opacity="0.5" />\
+      </>;\
+    case 1:\
+      return <>\
+        <rect width="1280" height="435" fill="#f7c8d8" />\
+        <circle cx="640" cy="170" r="70" fill="#ffe9b8" />\
+        <rect y="260" width="1280" height="175" fill="#4a90b8" />\
+        \{[100, 330, 560, 760, 980, 1180].map((x, k) => <g key=\{x\}><ellipse cx=\{x\} cy=\{310 + (k % 3) * 35\} rx="60" ry="14" fill="#3f9a4a" /><path d=\{`M$\{x\} $\{300 + (k % 3) * 35\} l-12 -26 l12 10 l12 -10 z`\} fill="#ff8fb8" stroke="#c2527f" /></g>)\}\
+        <path d="M0 435 L0 360 Q300 330 640 360 T1280 350 L1280 435Z" fill="#7a5a3a" />\
+      </>;\
+    case 2:\
+      return <>\
+        <rect width="1280" height="435" fill="#9fb4c8" />\
+        <path d="M0 435 L220 120 L330 240 L470 80 L700 435Z M500 435 L760 110 L900 260 L1040 60 L1280 435Z" fill="#5d6d7e" stroke="#2c3e50" strokeWidth="3" />\
+        <path d="M470 80 L430 140 L470 125 L500 150Z M1040 60 L1000 125 L1040 110 L1070 135Z M220 120 L190 170 L225 155 L250 175Z" fill="#fff" />\
+        <rect x="0" y="330" width="1280" height="105" fill="#34495e" />\
+        \{Array.from(\{ length: 16 \}, (_, k) => <rect key=\{k\} x=\{k * 80 + 6\} y="340" width="68" height="40" fill="#566573" stroke="#212f3c" strokeWidth="2" />)\}\
+      </>;\
+    case 3:\
+      return <>\
+        <rect width="1280" height="435" fill="#cfe6f5" />\
+        <g fill="#c0392b" stroke="#641e16" strokeWidth="3">\
+          <rect x="520" y="230" width="240" height="205" />\
+          <path d="M470 240 Q640 210 810 240 L770 215 L510 215Z M500 175 Q640 150 780 175 L750 150 L530 150Z M540 120 Q640 90 740 120 L700 80 L580 80Z" fill="#7b241c" />\
+        </g>\
+        \{[[120, 90], [250, 150], [980, 100], [1120, 170]].map(([x, y]) => <path key=\{`$\{x\}`\} d=\{`M$\{x\} $\{y\} q30 -30 60 0 q30 -30 60 0 q-30 10 -60 14 q-30 -4 -60 -14z M$\{x! + 60\} $\{y! + 14\} l0 28`\} fill="#fff" stroke="#34495e" strokeWidth="2" />)\}\
+        <rect y="400" width="1280" height="35" fill="#a8c8a0" />\
+      </>;\
+    case 4:\
+      return <>\
+        <rect width="1280" height="435" fill="#2b2f45" />\
+        <path d="M0 435 L180 160 L300 280 L460 120 L640 435Z M600 435 L820 140 L960 270 L1100 100 L1280 435Z" fill="#1a1c2c" stroke="#0b0c14" strokeWidth="3" />\
+        <path d="M330 0 L290 120 L340 120 L280 260 L400 100 L350 100 L390 0Z M900 0 L870 90 L915 90 L860 200 L960 70 L920 70 L950 0Z" fill="#fff23a" stroke="#fff" strokeWidth="2" />\
+        <rect width="1280" height="435" fill="#6c3483" opacity="0.2" />\
+      </>;\
+    default:\
+      return <>\
+        <rect width="1280" height="435" fill="#141b3a" />\
+        \{Array.from(\{ length: 40 \}, (_, k) => <circle key=\{k\} cx=\{(k * 197) % 1280\} cy=\{(k * 83) % 250\} r=\{1 + (k % 3)\} fill="#fff" />)\}\
+        <circle cx="640" cy="200" r="150" fill="#fdf5d0" />\
+        <circle cx="600" cy="170" r="22" fill="#e6dca8" /><circle cx="690" cy="240" r="30" fill="#e6dca8" />\
+        <path d="M440 435 L440 250 Q640 90 840 250 L840 435 L800 435 L800 260 Q640 130 480 260 L480 435Z" fill="#8e44ad" stroke="#3b1a4a" strokeWidth="4" />\
+      </>;\
+  \}a\
+\}a\
+\
+export const SCENE_FLOOR = ["#2f6a2a", "#2f6a8a", "#555e68", "#c9b88a", "#3b2f5a", "#3a2a5a"];\
+\
+export function RescueScenery(\{ i \}: \{ i: number \}): ReactNode \{\
+  const k = Math.max(0, Math.min(5, i));\
+  return (\
+    <div style=\{\{ position: "absolute", inset: 0, pointerEvents: "none" \}\}>\
+      <svg viewBox="0 0 1280 435" preserveAspectRatio="none" style=\{\{ position: "absolute", left: 0, top: 0, width: "100%", height: "60.4%" \}\}><ScenicWall i=\{k\} /></svg>\
+      <div style=\{\{ position: "absolute", left: 0, right: 0, top: "60.4%", bottom: 0, background: `linear-gradient(#0000, #0006), $\{SCENE_FLOOR[k]\}`, opacity: 0.55, mixBlendMode: "multiply" \}\} />\
+    </div>\
+  );\
+\}}

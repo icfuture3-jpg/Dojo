@@ -1,0 +1,170 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red19\green17\blue16;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cssrgb\c9804\c8627\c7843;\csgray\c100000;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs24 \cf2 \cb3 \expnd0\expndtw0\kerning0
+import \{ defineServer, type Player \} from "@trhs/wildwood/server";\
+import \{ createDataService \} from "@trhs/wildwood/platform";\
+import \{ z \} from "zod";\
+import \{\
+  applyLogin,\
+  applyMatch,\
+  applyMode,\
+  buyItem,\
+  buyUpgrade,\
+  equipItem,\
+  setLook,\
+  setName,\
+  openBox,\
+  parseProfile,\
+  type Profile,\
+\} from "./economy";\
+import \{ DojoProtocol, game \} from "./game";\
+\
+const BOARD_SIZE = 20;\
+const entrySchema = z.object(\{ id: z.string(), name: z.string(), rp: z.number(), wins: z.number() \});\
+const boardDoc = z.object(\{ board: z.array(entrySchema).default(() => []) \});\
+type Entry = z.infer<typeof entrySchema>;\
+\
+function readBoard(doc: unknown): Entry[] \{\
+  const r = boardDoc.safeParse(doc);\
+  return r.success ? r.data.board : [];\
+\}\
+\
+/** Per-player session: guests keep their profile here; every action runs in order on `queue`. */\
+type Session = \{ id: string; guestProfile: Profile; queue: Promise<unknown>; profile: Profile | null; board: Entry[] \};\
+\
+export default defineServer(game, (ctx) => \{\
+  const data = createDataService(ctx.platform);\
+  const sessions = new Map<Player["id"], Session>();\
+  let randomState = ctx.seed >>> 0;\
+  const random = () => \{\
+    // mulberry32, seeded from the server run\
+    randomState = (randomState + 0x6d2b79f5) >>> 0;\
+    let t = randomState;\
+    t = Math.imul(t ^ (t >>> 15), t | 1);\
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);\
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;\
+  \};\
+\
+  const pushProfile = (player: Player, s: Session) => \{\
+    if (s.profile) ctx.send(player, DojoProtocol.toClient.profile, \{ data: JSON.stringify(s.profile) \});\
+  \};\
+  const pushBoard = (player: Player, s: Session, board: Entry[]) => \{\
+    s.board = board;\
+    ctx.send(player, DojoProtocol.toClient.board, \{ data: JSON.stringify(board), id: s.id \});\
+  \};\
+\
+  /** Saves this fighter on the shared board (guests included) and returns the standings. */\
+  async function saveEntry(entry: Entry): Promise<Entry[]> \{\
+    let board: Entry[] = [];\
+    await data.game.update((doc) => \{\
+      const others = readBoard(doc).filter((e) => e.id !== entry.id);\
+      board = [...others, entry].sort((a, b) => b.rp - a.rp || b.wins - a.wins).slice(0, BOARD_SIZE);\
+      return \{ board \};\
+    \});\
+    return board;\
+  \}\
+\
+  /** Lists the player on the board once they have rank points. */\
+  async function listPlayer(player: Player, s: Session, p: Profile): Promise<void> \{\
+    if (s.id === "" || p.rp <= 0) return;\
+    const name = p.name || `Fighter $\{s.id.slice(-4)\}`;\
+    pushBoard(player, s, await saveEntry(\{ id: s.id, name, rp: p.rp, wins: p.stats.won \}));\
+  \}\
+\
+  /** Applies a profile change, saving it for signed-in players first. */\
+  async function mutate(player: Player, s: Session, change: (profile: Profile) => Profile | null): Promise<Profile | null> \{\
+    let next: Profile | null = null;\
+    if (player.userId !== null) \{\
+      await data.user(player.userId).update((doc) => \{\
+        const current = parseProfile(doc);\
+        next = change(current);\
+        return (next ?? current) as never;\
+      \});\
+    \} else \{\
+      next = change(s.guestProfile);\
+      if (next !== null) s.guestProfile = next;\
+    \}\
+    if (next !== null) \{\
+      s.profile = next;\
+      pushProfile(player, s);\
+    \}\
+    return next;\
+  \}\
+\
+  /** Runs an action after the player's earlier ones (including loading), reporting nothing on failure. */\
+  const act = (player: Player, run: (s: Session) => Promise<unknown>) => \{\
+    const s = sessions.get(player.id);\
+    if (!s) return;\
+    s.queue = s.queue.then(() => run(s)).catch((error) => console.error("dojo action failed", error));\
+  \};\
+\
+  ctx.onPlayerJoin((player) => \{\
+    const s: Session = \{\
+      id: player.userId !== null ? String(player.userId) : `guest-$\{player.id\}`,\
+      guestProfile: applyLogin(parseProfile(\{\}), Date.now()),\
+      queue: Promise.resolve(),\
+      profile: null,\
+      board: [],\
+    \};\
+    sessions.set(player.id, s);\
+    act(player, async () => \{\
+      const standings = readBoard(await data.game.read());\
+      if (player.userId !== null) \{\
+        let profile = parseProfile(\{\});\
+        await data.user(player.userId).update((doc) => \{\
+          profile = applyLogin(parseProfile(doc), Date.now());\
+          return profile as never;\
+        \});\
+        s.profile = profile;\
+      \} else \{\
+        s.profile = s.guestProfile;\
+      \}\
+      pushProfile(player, s);\
+      pushBoard(player, s, standings);\
+    \});\
+  \});\
+\
+  ctx.onPlayerConnection((player, connected) => \{\
+    const s = sessions.get(player.id);\
+    if (!connected || !s) return;\
+    pushProfile(player, s);\
+    ctx.send(player, DojoProtocol.toClient.board, \{ data: JSON.stringify(s.board), id: s.id \});\
+  \});\
+\
+  ctx.onPlayerLeave((player) => \{\
+    const s = sessions.get(player.id);\
+    sessions.delete(player.id);\
+    return s?.queue;\
+  \});\
+\
+  const to = DojoProtocol.toServer;\
+  ctx.onMessage(to.matchDone, (player, m) =>\
+    act(player, async (s) => \{\
+      const next = await mutate(player, s, (p) => applyMatch(p, m, Date.now()));\
+      if (next !== null) await listPlayer(player, s, next);\
+    \}),\
+  );\
+  ctx.onMessage(to.modeDone, (player, m) => act(player, (s) => mutate(player, s, (p) => applyMode(p, m, Date.now()))));\
+  ctx.onMessage(to.buyItem, (player, m) => act(player, (s) => mutate(player, s, (p) => buyItem(p, m.id))));\
+  ctx.onMessage(to.equip, (player, m) => act(player, (s) => mutate(player, s, (p) => equipItem(p, m.id))));\
+  ctx.onMessage(to.setLook, (player, m) => act(player, (s) => mutate(player, s, (p) => setLook(p, m))));\
+  ctx.onMessage(to.buyUpgrade, (player, m) => act(player, (s) => mutate(player, s, (p) => buyUpgrade(p, m.id))));\
+  ctx.onMessage(to.openBox, (player, m) => act(player, (s) => mutate(player, s, (p) => openBox(p, m.currency, random))));\
+  ctx.onMessage(to.setName, (player, m) =>\
+    act(player, async (s) => \{\
+      const next = await mutate(player, s, (p) => setName(p, m.name));\
+      if (next !== null) await listPlayer(player, s, next);\
+    \}),\
+  );\
+  ctx.onMessage(to.refreshBoard, (player) =>\
+    act(player, async (s) => pushBoard(player, s, readBoard(await data.game.read()))),\
+  );\
+\
+  ctx.onStep(() => \{\});\
+\});}

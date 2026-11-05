@@ -1,0 +1,137 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red19\green17\blue16;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cssrgb\c9804\c8627\c7843;\csgray\c100000;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs24 \cf2 \cb3 \expnd0\expndtw0\kerning0
+// SVG art for the character creator: head shapes, hair, eyes and outfit patterns.\
+import type \{ ReactNode \} from "react";\
+\
+/** Head shapes: half width, half height, corner radius. Head centre is (100, 68). */\
+export const HEAD_SHAPES: \{ rx: number; ry: number; r: number \}[] = [\
+  \{ rx: 38, ry: 38, r: 38 \},\
+  \{ rx: 34, ry: 42, r: 34 \},\
+  \{ rx: 43, ry: 35, r: 30 \},\
+  \{ rx: 38, ry: 38, r: 10 \},\
+  \{ rx: 32, ry: 45, r: 28 \},\
+  \{ rx: 35, ry: 43, r: 35 \},\
+  \{ rx: 44, ry: 40, r: 40 \},\
+  \{ rx: 30, ry: 32, r: 30 \},\
+  \{ rx: 40, ry: 40, r: 5 \},\
+  \{ rx: 36, ry: 42, r: 18 \},\
+];\
+\
+/** Eye styles: half width, half height, brow tilt, lid droop (0..1). */\
+export const EYE_SHAPES: \{ rx: number; ry: number; tilt: number; lid: number \}[] = [\
+  \{ rx: 5, ry: 5, tilt: 0, lid: 0 \},\
+  \{ rx: 6, ry: 4, tilt: 5, lid: 0.2 \},\
+  \{ rx: 7, ry: 7, tilt: -2, lid: 0 \},\
+  \{ rx: 7, ry: 4, tilt: 2, lid: 0 \},\
+  \{ rx: 6, ry: 5, tilt: -3, lid: 0.5 \},\
+  \{ rx: 6, ry: 3, tilt: -4, lid: 0 \},\
+  \{ rx: 7, ry: 3.5, tilt: 7, lid: 0.15 \},\
+  \{ rx: 8, ry: 8, tilt: -3, lid: 0 \},\
+  \{ rx: 3, ry: 3, tilt: 0, lid: 0 \},\
+  \{ rx: 6, ry: 5, tilt: 6, lid: 0.1 \},\
+  \{ rx: 6, ry: 5, tilt: -5, lid: 0.6 \},\
+  \{ rx: 6, ry: 6, tilt: -2, lid: 0.1 \},\
+];\
+\
+export function Eyes(\{ i, color, panda \}: \{ i: number; color: string; panda: boolean \}) \{\
+  const e = EYE_SHAPES[i % EYE_SHAPES.length]!;\
+  return (\
+    <>\
+      \{[-1, 1].map((s) => \{\
+        const cx = 100 + s * 14;\
+        const ir = Math.min(e.rx, e.ry * 1.15) * 0.85;\
+        return (\
+          <g key=\{s\}>\
+            <ellipse cx=\{cx\} cy=\{76\} rx=\{e.rx\} ry=\{e.ry\} fill="#fff" stroke="#0006" strokeWidth="1" />\
+            <circle cx=\{cx\} cy=\{76\} r=\{ir\} fill=\{color\} />\
+            <circle cx=\{cx\} cy=\{76\} r=\{ir * 0.5\} fill="#111" />\
+            <circle cx=\{cx - ir * 0.3\} cy=\{76 - ir * 0.3\} r=\{Math.max(1, ir * 0.25)\} fill="#fff" />\
+            \{e.lid > 0 && <path d=\{`M$\{cx - e.rx - 1\} $\{76 - e.ry - 1\} H$\{cx + e.rx + 1\} V$\{76 - e.ry + e.ry * 2 * e.lid\} H$\{cx - e.rx - 1\} Z`\} fill=\{panda ? "#111" : "#0003"\} />\}\
+            <path d=\{`M$\{cx - s * 11\} $\{66 + (s * e.tilt * -0.5)\} L$\{cx + s * 9\} $\{68 + s * e.tilt * 0.4\}`\} stroke="#222" strokeWidth="3" strokeLinecap="round" />\
+          </g>\
+        );\
+      \})\}\
+    </>\
+  );\
+\}\
+\
+/** Hair drawn behind the head. */\
+export function HairBack(\{ i, c \}: \{ i: number; c: string \}): ReactNode \{\
+  switch (i) \{\
+    case 6: return <path d="M126 52 Q158 70 150 120 Q140 100 130 90 Z" fill=\{c\} />;\
+    case 7: return <path d="M60 50 Q44 120 60 150 L140 150 Q156 120 140 50 Z" fill=\{c\} />;\
+    case 8: return <path d="M58 55 Q50 100 66 102 L134 102 Q150 100 142 55 Z" fill=\{c\} />;\
+    case 9: return <circle cx="100" cy="46" r="52" fill=\{c\} />;\
+    case 10: return <><circle cx="58" cy="30" r="15" fill=\{c\} /><circle cx="142" cy="30" r="15" fill=\{c\} /></>;\
+    case 12: return <path d="M62 60 L56 130 M70 62 L66 140 M138 60 L144 130 M130 62 L134 140" stroke=\{c\} strokeWidth="9" strokeLinecap="round" />;\
+    case 17: return <><path d="M62 52 Q40 80 46 128" stroke=\{c\} strokeWidth="14" fill="none" strokeLinecap="round" /><path d="M138 52 Q160 80 154 128" stroke=\{c\} strokeWidth="14" fill="none" strokeLinecap="round" /></>;\
+    case 19: return <path d="M54 56 Q30 110 52 140 L68 100 L100 150 L132 100 L148 140 Q170 110 146 56 Z" fill=\{c\} />;\
+    case 21: return <path d="M60 50 L50 140 M68 54 L64 148 M76 56 L78 132 M140 50 L150 140 M132 54 L136 148 M124 56 L122 132" stroke=\{c\} strokeWidth="8" strokeLinecap="round" />;\
+    case 5: return <circle cx="100" cy="14" r="14" fill=\{c\} />;\
+    case 16: return <><path d="M92 28 L100 4 L108 28 Z" fill=\{c\} /><rect x="94" y="14" width="12" height="6" fill="#0005" /></>;\
+    default: return null;\
+  \}\
+\}\
+\
+/** Hair drawn over the head's top. */\
+export function HairFront(\{ i, c \}: \{ i: number; c: string \}): ReactNode \{\
+  const cap = <path d="M62 56 Q62 24 100 24 Q138 24 138 56 Q120 40 100 40 Q80 40 62 56 Z" fill=\{c\} />;\
+  switch (i) \{\
+    case 0: return null;\
+    case 1: return <path d="M64 50 Q66 28 100 28 Q134 28 136 50 Q100 36 64 50 Z" fill=\{c\} opacity="0.85" />;\
+    case 2: return cap;\
+    case 3: return <path d="M62 52 L58 22 L76 38 L84 10 L98 34 L112 8 L120 36 L138 20 L138 52 Q100 34 62 52 Z" fill=\{c\} />;\
+    case 4: return <path d="M90 36 L92 6 L108 6 L110 36 Q100 30 90 36 Z" fill=\{c\} />;\
+    case 5: return cap;\
+    case 6: return cap;\
+    case 7: return <path d="M60 56 Q58 22 100 22 Q142 22 140 56 L128 44 Q100 30 72 44 Z" fill=\{c\} />;\
+    case 8: return <path d="M58 60 Q56 22 100 22 Q144 22 142 60 L130 44 Q100 36 70 44 Z" fill=\{c\} />;\
+    case 9: return null;\
+    case 10: return cap;\
+    case 11: return <path d="M60 58 Q60 24 100 24 Q140 24 140 52 Q110 34 76 58 Z" fill=\{c\} />;\
+    case 12: return cap;\
+    case 13: return <path d="M64 50 Q56 14 100 14 Q144 14 136 50 Q100 30 64 50 Z" fill=\{c\} />;\
+    case 14: return <path d="M60 54 L48 28 L70 36 L66 6 L88 28 L100 0 L112 28 L134 6 L130 36 L152 28 L140 54 Q100 34 60 54 Z" fill=\{c\} />;\
+    case 15: return <><circle cx="70" cy="38" r="12" fill=\{c\} /><circle cx="88" cy="28" r="13" fill=\{c\} /><circle cx="112" cy="28" r="13" fill=\{c\} /><circle cx="130" cy="38" r="12" fill=\{c\} /></>;\
+    case 16: return cap;\
+    case 17: return cap;\
+    case 18: return <path d="M100 26 Q134 26 138 56 Q120 40 100 40 Z" fill=\{c\} />;\
+    case 19: return cap;\
+    case 20: return <path d="M62 58 Q62 24 100 24 Q138 24 138 58 Q122 42 100 52 Q78 42 62 58 Z" fill=\{c\} />;\
+    case 21: return cap;\
+    case 22: return <path d="M62 56 Q62 24 100 24 Q138 24 138 56 L132 52 L124 60 L116 50 L106 60 L96 50 L86 60 L76 50 L68 58 Z" fill=\{c\} />;\
+    case 23: return <path d="M62 54 Q60 30 76 30 Q72 12 88 4 Q90 22 100 14 Q112 24 118 8 Q126 28 124 30 Q142 32 138 54 Q100 34 62 54 Z" fill=\{c\} />;\
+    default: return null;\
+  \}\
+\}\
+\
+/** Overlay pattern on the torso (x 50..150, y 100..220), clipped by the caller. */\
+export function Pattern(\{ i \}: \{ i: number \}): ReactNode \{\
+  const light = "#ffffffee";\
+  const dark = "#000000b0";\
+  switch (i) \{\
+    case 1: return <>\{[112, 132, 152, 172, 192, 212].map((y) => <rect key=\{y\} x="50" y=\{y\} width="100" height="11" fill=\{dark\} />)\}</>;\
+    case 2: return <>\{[0, 1, 2, 3, 4, 5].map((r) => [0, 1, 2, 3, 4].map((c) => (r + c) % 2 === 0 ? <rect key=\{`$\{r\}$\{c\}`\} x=\{50 + c * 20\} y=\{100 + r * 20\} width="20" height="20" fill=\{dark\} /> : null))\}</>;\
+    case 3: return <path d="M50 120 L100 150 L150 120 M50 150 L100 180 L150 150 M50 180 L100 210 L150 180" stroke=\{light\} strokeWidth="9" fill="none" />;\
+    case 4: return <>\{[0, 1, 2, 3, 4].map((r) => [0, 1, 2, 3, 4].map((c) => <circle key=\{`$\{r\}$\{c\}`\} cx=\{60 + c * 20 + (r % 2) * 10\} cy=\{112 + r * 22\} r="6" fill=\{light\} />))\}</>;\
+    case 5: return <path d="M50 108 L150 200 L150 220 L50 130 Z" fill=\{dark\} />;\
+    case 6: return <path d="M50 220 Q60 190 70 205 Q76 170 92 200 Q100 160 112 200 Q124 176 130 205 Q142 190 150 220 Z" fill="#ffb01f" />;\
+    case 7: return <path d="M50 120 Q62 112 75 120 T100 120 T125 120 T150 120 M50 145 Q62 137 75 145 T100 145 T125 145 T150 145 M50 170 Q62 162 75 170 T100 170 T125 170 T150 170" stroke=\{light\} strokeWidth="7" fill="none" />;\
+    case 8: return <>\{[[70, 125], [125, 120], [96, 150], [68, 180], [130, 178], [100, 205]].map(([x, y]) => <path key=\{`$\{x\}$\{y\}`\} d=\{`M$\{x\} $\{y! - 8\} L$\{x! + 3\} $\{y! - 2\} L$\{x! + 9\} $\{y!\} L$\{x! + 3\} $\{y! + 3\} L$\{x\} $\{y! + 9\} L$\{x! - 3\} $\{y! + 3\} L$\{x! - 9\} $\{y!\} L$\{x! - 3\} $\{y! - 2\} Z`\} fill="#ffe14a" stroke="#00000066" strokeWidth="1.5" />)\}</>;\
+    case 9: return <path d="M100 104 L128 140 L100 176 L72 140 Z M100 150 L124 180 L100 210 L76 180 Z" fill="none" stroke=\{light\} strokeWidth="7" />;\
+    case 10: return <text x="100" y="170" textAnchor="middle" fontSize="70" fill=\{dark\} fontFamily="serif">\uc0\u36947 </text>;\
+    case 11: return <rect x="50" y="160" width="100" height="60" fill=\{dark\} />;\
+    case 12: return <>\{[118, 146, 174, 202].map((y) => <rect key=\{y\} x="50" y=\{y\} width="100" height="14" fill=\{y % 56 === 6 ? light : dark\} />)\}</>;\
+    case 13: return <>\{[[64, 120, 18], [112, 130, 22], [80, 170, 20], [124, 184, 18], [60, 205, 14]].map(([x, y, r]) => <ellipse key=\{`$\{x\}$\{y\}`\} cx=\{x\} cy=\{y\} rx=\{r\} ry=\{r! * 0.7\} fill="#2f5a1fdd" />)\}</>;\
+    case 14: return <>\{[0, 1, 2, 3, 4].map((r) => [0, 1, 2, 3, 4].map((c) => <path key=\{`$\{r\}$\{c\}`\} d=\{`M$\{52 + c * 20 + (r % 2) * 10\} $\{120 + r * 20\} q10 -14 20 0`\} stroke=\{dark\} strokeWidth="5" fill="none" />))\}</>;\
+    case 15: return <path d="M112 104 L84 150 L102 150 L88 210 L124 140 L104 140 Z" fill="#fff23a" />;\
+    default: return null;\
+  \}\
+\}}

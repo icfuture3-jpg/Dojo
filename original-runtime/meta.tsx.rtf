@@ -1,0 +1,420 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red19\green17\blue16;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cssrgb\c9804\c8627\c7843;\csgray\c100000;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs24 \cf2 \cb3 \expnd0\expndtw0\kerning0
+import \{ useEffect, useState \} from "react";\
+import type \{ CSSProperties \} from "react";\
+import \{\
+  BOX_COST,\
+  BOX_GEM_COST,\
+  DAILY_POOL,\
+  ITEMS,\
+  RANKS,\
+  TROPHIES,\
+  UPGRADES,\
+  activeMissions,\
+  findItem,\
+  levelInfo,\
+  missionKey,\
+  rankIndex,\
+  type Item,\
+  type Profile,\
+  type Slot,\
+\} from "./economy";\
+import \{ MASTER_LOOKS, BODY_NAMES, EYE_COLORS, EYE_NAMES, HAIR_COLORS, HAIR_NAMES, HEAD_NAMES, LOOK_COUNTS, OUTFIT_COLORS, OUTFIT_COUNT, PATTERN_NAMES, SKINS, patternMinLevel, type Look \} from "./look";\
+import \{ type DojoEvent, setLookMsg, buyItemMsg, buyUpgradeMsg, equipItemMsg, openBoxMsg, refreshBoardMsg, setNameMsg \} from "./net";\
+\
+export type Screen = "create" | "shop" | "missions" | "trophies" | "ranks";\
+\
+const GOLD = "#f1c40f";\
+const RARITY_COLOR = \{ common: "#bdc3c7", rare: "#5dade2", epic: "#a569bd", legendary: "#f39c12" \};\
+const serif = "Georgia, serif";\
+\
+export const menuButton: CSSProperties = \{\
+  pointerEvents: "auto",\
+  cursor: "pointer",\
+  border: `3px solid $\{GOLD\}`,\
+  background: "#7a1f14",\
+  color: "#fff6dc",\
+  fontFamily: serif,\
+  fontSize: 20,\
+  padding: "8px 20px",\
+  borderRadius: 6,\
+  letterSpacing: 1,\
+\};\
+const small: CSSProperties = \{ ...menuButton, fontSize: 15, padding: "5px 12px", borderWidth: 2 \};\
+const disabledBtn: CSSProperties = \{ ...small, opacity: 0.45, cursor: "default" \};\
+\
+function Bar(\{ value, max, color \}: \{ value: number; max: number; color: string \}) \{\
+  return (\
+    <div style=\{\{ height: 10, borderRadius: 5, background: "#0007", border: "1px solid #fff4", overflow: "hidden", minWidth: 80 \}\}>\
+      <div style=\{\{ width: `$\{Math.min(100, (100 * value) / Math.max(1, max))\}%`, height: "100%", background: color \}\} />\
+    </div>\
+  );\
+\}\
+\
+export function ProfileBar(\{ p \}: \{ p: Profile \}) \{\
+  const lv = levelInfo(p.xp);\
+  const rank = RANKS[rankIndex(p.rp)] ?? RANKS[0];\
+  return (\
+    <div style=\{\{ display: "flex", gap: 18, alignItems: "center", background: "#000a", border: `2px solid $\{GOLD\}`, borderRadius: 10, padding: "8px 16px", fontFamily: serif, color: "#fff6dc" \}\}>\
+      <div style=\{\{ width: 150 \}\}>\
+        <div style=\{\{ fontSize: 15 \}\}>LEVEL \{lv.level\}</div>\
+        <Bar value=\{lv.into\} max=\{lv.need\} color="#2ecc71" />\
+        <div style=\{\{ fontSize: 11, opacity: 0.7 \}\}>\{lv.into\}/\{lv.need\} XP</div>\
+      </div>\
+      <div style=\{\{ fontSize: 20 \}\}>\uc0\u55358 \u56985  \{p.coins\}</div>\
+      <div style=\{\{ fontSize: 20 \}\}>\uc0\u55357 \u56462  \{p.gems\}</div>\
+      <div style=\{\{ fontSize: 16, color: rank?.color \}\}>\uc0\u9670  \{rank?.name\} <span style=\{\{ opacity: 0.7, fontSize: 13 \}\}>(\{p.rp\} RP)</span></div>\
+    </div>\
+  );\
+\}\
+\
+export function MenuRow(\{ onOpen \}: \{ onOpen(screen: Screen): void \}) \{\
+  const entries: [Screen, string][] = [\
+    ["create", "\uc0\u55356 \u57256  CREATE"],\
+    ["shop", "\uc0\u55357 \u57037  SHOP"],\
+    ["missions", "\uc0\u55357 \u56540  MISSIONS"],\
+    ["trophies", "\uc0\u55356 \u57286  TROPHIES"],\
+    ["ranks", "\uc0\u9670  RANKS"],\
+  ];\
+  return (\
+    <div style=\{\{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" \}\}>\
+      \{entries.map(([id, label]) => (\
+        <button key=\{id\} type="button" style=\{menuButton\} onClick=\{() => onOpen(id)\}>\
+          \{label\}\
+        </button>\
+      ))\}\
+    </div>\
+  );\
+\}\
+\
+function Frame(\{ title, onClose, p, children \}: \{ title: string; onClose(): void; p: Profile; children: React.ReactNode \}) \{\
+  return (\
+    <div style=\{\{ position: "absolute", inset: 0, zIndex: 60, background: "#140c06f2", color: "#fff6dc", fontFamily: serif, pointerEvents: "auto", display: "flex", flexDirection: "column", padding: "18px 40px", gap: 12 \}\}>\
+      <div style=\{\{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 \}\}>\
+        <div style=\{\{ fontSize: 34, color: GOLD \}\}>\{title\}</div>\
+        <ProfileBar p=\{p\} />\
+        <button type="button" style=\{menuButton\} onClick=\{onClose\}>\uc0\u10005  BACK</button>\
+      </div>\
+      <div style=\{\{ flex: 1, overflowY: "auto", paddingRight: 8 \}\}>\{children\}</div>\
+    </div>\
+  );\
+\}\
+\
+const SLOT_TABS: \{ id: Slot | "upgrades" | "boxes"; label: string \}[] = [\
+  \{ id: "gi", label: "Outfits" \},\
+  \{ id: "band", label: "Headbands" \},\
+  \{ id: "aura", label: "Auras" \},\
+  \{ id: "skin", label: "Characters" \},\
+  \{ id: "upgrades", label: "Upgrades" \},\
+  \{ id: "boxes", label: "Mystery boxes" \},\
+];\
+\
+function ItemCard(\{ it, p, dispatch \}: \{ it: Item; p: Profile; dispatch(e: DojoEvent): void \}) \{\
+  const owned = p.owned.includes(it.id);\
+  const equipped = p.equip[it.slot] === it.id;\
+  const level = levelInfo(p.xp).level;\
+  const rIdx = rankIndex(p.rp);\
+  const rankLocked = rIdx < it.minRank;\
+  const locked = level < it.minLevel || rankLocked;\
+  const affordable = p.coins >= it.coins && p.gems >= it.gems;\
+  const price = it.gems > 0 ? `\uc0\u55357 \u56462  $\{it.gems\}` : it.coins > 0 ? `\u55358 \u56985  $\{it.coins\}` : "Free";\
+  return (\
+    <div style=\{\{ width: 190, padding: 10, borderRadius: 8, background: "#2a1a0e", border: `2px solid $\{equipped ? "#2ecc71" : RARITY_COLOR[it.rarity]\}`, display: "flex", flexDirection: "column", gap: 6, alignItems: "center" \}\}>\
+      <div style=\{\{ width: 64, height: 64, borderRadius: it.slot === "aura" ? 32 : 10, background: it.slot === "aura" ? `radial-gradient($\{it.color\}, #0000 70%)` : it.color, border: "2px solid #fff6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 \}\}>\
+        \{it.slot === "skin" ? (it.id === "skin-ninja" ? "\uc0\u55358 \u56695 " : it.id === "skin-oni" ? "\u55357 \u56441 " : it.id === "skin-panda" ? "\u55357 \u56380 " : "\u55358 \u56651 ") : ""\}\
+      </div>\
+      <div style=\{\{ fontSize: 15, textAlign: "center" \}\}>\{it.name\}</div>\
+      <div style=\{\{ fontSize: 11, letterSpacing: 2, color: RARITY_COLOR[it.rarity] \}\}>\{it.rarity.toUpperCase()\}</div>\
+      \{owned ? (\
+        <button type="button" disabled=\{equipped\} style=\{equipped ? \{ ...small, background: "#1e8449" \} : small\} onClick=\{() => dispatch(\{ type: "dojo.send", message: equipItemMsg(\{ id: it.id \}) \})\}>\
+          \{equipped ? "EQUIPPED" : "EQUIP"\}\
+        </button>\
+      ) : locked ? (\
+        <div style=\{\{ ...disabledBtn, background: "#333", border: "2px solid #666" \}\}>\{rankLocked ? `\uc0\u55357 \u56594  $\{RANKS[it.minRank]?.name\} rank` : `\u55357 \u56594  Level $\{it.minLevel\}`\}</div>\
+      ) : (\
+        <button type="button" disabled=\{!affordable\} style=\{affordable ? small : disabledBtn\} onClick=\{() => dispatch(\{ type: "dojo.send", message: buyItemMsg(\{ id: it.id \}) \})\}>\
+          BUY \{price\}\
+        </button>\
+      )\}\
+    </div>\
+  );\
+\}\
+\
+export function ShopPanel(\{ p, dispatch, onClose \}: \{ p: Profile; dispatch(e: DojoEvent): void; onClose(): void \}) \{\
+  const [tab, setTab] = useState<(typeof SLOT_TABS)[number]["id"]>("gi");\
+  return (\
+    <Frame title="Dojo Shop" onClose=\{onClose\} p=\{p\}>\
+      <div style=\{\{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" \}\}>\
+        \{SLOT_TABS.map((t) => (\
+          <button key=\{t.id\} type="button" style=\{\{ ...small, background: tab === t.id ? "#c0392b" : "#3a2210" \}\} onClick=\{() => setTab(t.id)\}>\
+            \{t.label\}\
+          </button>\
+        ))\}\
+      </div>\
+      \{tab === "upgrades" ? (\
+        <div style=\{\{ display: "flex", flexDirection: "column", gap: 10 \}\}>\
+          \{UPGRADES.map((u) => \{\
+            const lv = p.up[u.id];\
+            const cost = u.costs[lv];\
+            return (\
+              <div key=\{u.id\} style=\{\{ display: "flex", alignItems: "center", gap: 16, background: "#2a1a0e", padding: 12, borderRadius: 8, border: "2px solid #5a3820" \}\}>\
+                <div style=\{\{ flex: 1 \}\}>\
+                  <div style=\{\{ fontSize: 20 \}\}>\{u.name\} <span style=\{\{ color: GOLD \}\}>Lv \{lv\}/\{u.costs.length\}</span></div>\
+                  <div style=\{\{ opacity: 0.75, fontSize: 14 \}\}>\{u.blurb\}</div>\
+                </div>\
+                \{cost === undefined ? (\
+                  <div style=\{\{ color: "#2ecc71" \}\}>MAXED</div>\
+                ) : (\
+                  <button type="button" disabled=\{p.coins < cost\} style=\{p.coins >= cost ? small : disabledBtn\} onClick=\{() => dispatch(\{ type: "dojo.send", message: buyUpgradeMsg(\{ id: u.id \}) \})\}>\
+                    UPGRADE \uc0\u55358 \u56985  \{cost\}\
+                  </button>\
+                )\}\
+              </div>\
+            );\
+          \})\}\
+        </div>\
+      ) : tab === "boxes" ? (\
+        <div style=\{\{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" \}\}>\
+          <div style=\{\{ width: 240, textAlign: "center", background: "#2a1a0e", padding: 18, borderRadius: 10, border: "2px solid #a569bd" \}\}>\
+            <div style=\{\{ fontSize: 72 \}\}>\uc0\u55356 \u57217 </div>\
+            <div style=\{\{ fontSize: 20 \}\}>Mystery Box</div>\
+            <div style=\{\{ fontSize: 13, opacity: 0.75, margin: "6px 0 10px" \}\}>A random outfit, headband, aura or character. Duplicates refund coins.</div>\
+            <div style=\{\{ display: "flex", gap: 8, justifyContent: "center" \}\}>\
+              <button type="button" disabled=\{p.coins < BOX_COST\} style=\{p.coins >= BOX_COST ? small : disabledBtn\} onClick=\{() => dispatch(\{ type: "dojo.send", message: openBoxMsg(\{ currency: "coins" \}) \})\}>\uc0\u55358 \u56985  \{BOX_COST\}</button>\
+              <button type="button" disabled=\{p.gems < BOX_GEM_COST\} style=\{p.gems >= BOX_GEM_COST ? small : disabledBtn\} onClick=\{() => dispatch(\{ type: "dojo.send", message: openBoxMsg(\{ currency: "gems" \}) \})\}>\uc0\u55357 \u56462  \{BOX_GEM_COST\}</button>\
+            </div>\
+          </div>\
+          <div style=\{\{ fontSize: 14, lineHeight: 1.8 \}\}>\
+            Odds: Common 60% \'b7 Rare 28% \'b7 Epic 10% \'b7 Legendary 2%. Items above your rank cannot drop.\
+            <br />\
+            You have opened \{p.stats.boxes\} boxes.\
+          </div>\
+        </div>\
+      ) : (\
+        <div style=\{\{ display: "flex", gap: 14, flexWrap: "wrap" \}\}>\
+          \{ITEMS.filter((i) => i.slot === tab).map((it) => (\
+            <ItemCard key=\{it.id\} it=\{it\} p=\{p\} dispatch=\{dispatch\} />\
+          ))\}\
+        </div>\
+      )\}\
+    </Frame>\
+  );\
+\}\
+\
+export function MissionsPanel(\{ p, onClose \}: \{ p: Profile; onClose(): void \}) \{\
+  const list = activeMissions(p);\
+  const group = (kind: "daily" | "weekly" | "special", label: string, note: string) => (\
+    <div style=\{\{ marginBottom: 18 \}\}>\
+      <div style=\{\{ fontSize: 22, color: GOLD \}\}>\{label\} <span style=\{\{ fontSize: 13, opacity: 0.6 \}\}>\{note\}</span></div>\
+      <div style=\{\{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 \}\}>\
+        \{list.filter((ms) => ms.kind === kind).map((ms) => \{\
+          const key = missionKey(p, ms);\
+          const done = p.done.includes(key);\
+          const val = Math.min(ms.target, p.prog[key] ?? 0);\
+          return (\
+            <div key=\{ms.id\} style=\{\{ display: "flex", alignItems: "center", gap: 16, background: done ? "#16341f" : "#2a1a0e", border: `2px solid $\{done ? "#2ecc71" : "#5a3820"\}`, padding: "8px 14px", borderRadius: 8 \}\}>\
+              <div style=\{\{ flex: 1 \}\}>\
+                <div style=\{\{ fontSize: 17 \}\}>\{done ? "\uc0\u10004  " : ""\}\{ms.name\}</div>\
+                <Bar value=\{done ? ms.target : val\} max=\{ms.target\} color="#f1c40f" />\
+              </div>\
+              <div style=\{\{ fontSize: 13, opacity: 0.8, width: 60, textAlign: "right" \}\}>\{done ? ms.target : val\}/\{ms.target\}</div>\
+              <div style=\{\{ fontSize: 15, width: 200, textAlign: "right" \}\}>\
+                \uc0\u55358 \u56985  \{ms.reward.coins\} \{ms.reward.gems > 0 ? `\u55357 \u56462  $\{ms.reward.gems\} ` : ""\}\u10022  \{ms.reward.xp\} XP\
+              </div>\
+            </div>\
+          );\
+        \})\}\
+      </div>\
+    </div>\
+  );\
+  return (\
+    <Frame title="Missions" onClose=\{onClose\} p=\{p\}>\
+      <div style=\{\{ fontSize: 14, opacity: 0.75, marginBottom: 12 \}\}>Rewards are paid out the moment a mission is completed. Daily missions refresh each day (UTC), weekly ones each week. Login streak: \{p.streak\} day\{p.streak === 1 ? "" : "s"\}.</div>\
+      \{group("daily", "Daily", `$\{DAILY_POOL.length\} possible, 3 per day`)\}\
+      \{group("weekly", "Weekly", "bonus gems")\}\
+      \{group("special", "Special challenges", "one-time")\}\
+    </Frame>\
+  );\
+\}\
+\
+export function TrophiesPanel(\{ p, onClose \}: \{ p: Profile; onClose(): void \}) \{\
+  return (\
+    <Frame title=\{`Trophies $\{p.trophies.length\}/$\{TROPHIES.length\}`\} onClose=\{onClose\} p=\{p\}>\
+      <div style=\{\{ display: "flex", flexWrap: "wrap", gap: 12 \}\}>\
+        \{TROPHIES.map((tr) => \{\
+          const got = p.trophies.includes(tr.id);\
+          return (\
+            <div key=\{tr.id\} style=\{\{ width: 250, padding: 12, borderRadius: 8, background: got ? "#3a2a08" : "#1d140c", border: `2px solid $\{got ? GOLD : "#4a3a2a"\}`, opacity: got ? 1 : 0.6 \}\}>\
+              <div style=\{\{ fontSize: 30 \}\}>\{got ? "\uc0\u55356 \u57286 " : "\u55357 \u56594 "\}</div>\
+              <div style=\{\{ fontSize: 18, color: got ? GOLD : "#fff6dc" \}\}>\{tr.name\}</div>\
+              <div style=\{\{ fontSize: 13, opacity: 0.8 \}\}>\{tr.blurb\}</div>\
+              <div style=\{\{ fontSize: 13, marginTop: 4 \}\}>\uc0\u55358 \u56985  \{tr.reward.coins\}\{tr.reward.gems ? ` \u55357 \u56462  $\{tr.reward.gems\}` : ""\}</div>\
+            </div>\
+          );\
+        \})\}\
+      </div>\
+    </Frame>\
+  );\
+\}\
+\
+interface BoardRow \{ id: string; name: string; rp: number; wins: number \}\
+export function RanksPanel(\{ p, boardData, boardId, dispatch, onClose \}: \{ p: Profile; boardData: string; boardId: string; dispatch(e: DojoEvent): void; onClose(): void \}) \{\
+  const [draft, setDraft] = useState(p.name);\
+  useEffect(() => \{ dispatch(\{ type: "dojo.send", message: refreshBoardMsg(\{ at: Date.now() \}) \}); \}, [dispatch]);\
+  let standings: BoardRow[] = [];\
+  try \{ standings = JSON.parse(boardData || "[]") as BoardRow[]; \} catch \{ standings = []; \}\
+  const idx = rankIndex(p.rp);\
+  const next = RANKS[idx + 1];\
+  return (\
+    <Frame title="Ranks and leaderboard" onClose=\{onClose\} p=\{p\}>\
+      <div style=\{\{ display: "flex", gap: 30, flexWrap: "wrap" \}\}>\
+        <div style=\{\{ flex: 1, minWidth: 320 \}\}>\
+          <div style=\{\{ fontSize: 14, opacity: 0.75, marginBottom: 10 \}\}>Win matches to earn rank points; a loss costs a few. Seasons last a month: rank rewards are paid when a season ends and points are halved.</div>\
+          \{RANKS.map((r, i) => (\
+            <div key=\{r.name\} style=\{\{ display: "flex", justifyContent: "space-between", padding: "8px 14px", marginBottom: 6, borderRadius: 8, background: i === idx ? "#3a2a08" : "#2a1a0e", border: `2px solid $\{i === idx ? r.color : "#4a3a2a"\}`, color: r.color, opacity: i <= idx ? 1 : 0.55 \}\}>\
+              <span style=\{\{ fontSize: 20 \}\}>\uc0\u9670  \{r.name\}</span>\
+              <span style=\{\{ fontSize: 14 \}\}>\{r.at\} RP\{i > 0 ? ` \'b7 season reward \uc0\u55358 \u56985 $\{100 * i\} \u55357 \u56462 $\{4 * i\}` : ""\}</span>\
+            </div>\
+          ))\}\
+          \{next && (\
+            <div style=\{\{ marginTop: 8 \}\}>\
+              <div style=\{\{ fontSize: 13 \}\}>\{next.at - p.rp\} RP to \{next.name\}</div>\
+              <Bar value=\{p.rp - (RANKS[idx]?.at ?? 0)\} max=\{next.at - (RANKS[idx]?.at ?? 0)\} color=\{next.color\} />\
+            </div>\
+          )\}\
+        </div>\
+        <div style=\{\{ flex: 1, minWidth: 320 \}\}>\
+          <div style=\{\{ fontSize: 22, color: GOLD, marginBottom: 8 \}\}>Top fighters</div>\
+          \{standings.length === 0 && <div style=\{\{ opacity: 0.7 \}\}>No one on the board yet. Win a match to claim the first spot.</div>\}\
+          \{standings.map((s, i) => (\
+            <div key=\{s.id\} style=\{\{ display: "flex", gap: 12, padding: "6px 12px", marginBottom: 4, borderRadius: 6, background: s.id === boardId ? "#3a2a08" : "#2a1a0e", border: `2px solid $\{s.id === boardId ? GOLD : "#4a3a2a"\}` \}\}>\
+              <span style=\{\{ width: 28 \}\}>#\{i + 1\}</span>\
+              <span style=\{\{ flex: 1 \}\}>\{s.name\}\{s.id === boardId ? " (you)" : ""\}</span>\
+              <span style=\{\{ color: RANKS[rankIndex(s.rp)]?.color \}\}>\{s.rp\} RP</span>\
+              <span style=\{\{ opacity: 0.7 \}\}>\{s.wins\} wins</span>\
+            </div>\
+          ))\}\
+          <div style=\{\{ marginTop: 12 \}\}>\
+            <div style=\{\{ fontSize: 14, opacity: 0.8, marginBottom: 6 \}\}>Your name on the board (no sign-in needed):</div>\
+            <div style=\{\{ display: "flex", gap: 8 \}\}>\
+              <input value=\{draft\} maxLength=\{14\} placeholder="Fighter name" onChange=\{(e) => setDraft(e.target.value)\} onKeyDown=\{(e) => e.stopPropagation()\} style=\{\{ pointerEvents: "auto", flex: 1, fontFamily: serif, fontSize: 18, padding: "6px 10px", borderRadius: 6, border: `2px solid $\{GOLD\}`, background: "#1a0e07", color: "#fff6dc" \}\} />\
+              <button type="button" className="dojo-save" onClick=\{() => dispatch(\{ type: "dojo.send", message: setNameMsg(\{ name: draft \}) \})\}>SAVE NAME</button>\
+            </div>\
+            <div style=\{\{ fontSize: 12, opacity: 0.6, marginTop: 6 \}\}>You appear once you have rank points. Guests are listed for this visit; signed-in players keep their place.</div>\
+          </div>\
+        </div>\
+      </div>\
+    </Frame>\
+  );\
+\}\
+\
+export function RewardPopup(\{ p, onClose \}: \{ p: Profile; onClose(): void \}) \{\
+  const box = p.last.box ? findItem(p.last.box) : undefined;\
+  return (\
+    <div style=\{\{ position: "absolute", inset: 0, zIndex: 80, background: "#000b", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "auto", fontFamily: serif, color: "#fff6dc" \}\}>\
+      <div style=\{\{ minWidth: 420, maxWidth: 560, background: "#2a1a0e", border: `4px solid $\{GOLD\}`, borderRadius: 12, padding: "22px 30px", textAlign: "center", display: "flex", flexDirection: "column", gap: 8, animation: "pop 0.35s ease-out" \}\}>\
+        <div style=\{\{ fontSize: 32, color: GOLD \}\}>\{p.last.title\}</div>\
+        \{box && <div style=\{\{ fontSize: 64 \}\}>\uc0\u55356 \u57217 </div>\}\
+        \{p.last.lines.map((l, i) => (\
+          <div key=\{i\} style=\{\{ fontSize: /LEVEL UP|TROPHY|RANK UP|MISSION|SEASON/.test(l) ? 19 : 16, color: /LEVEL UP|RANK UP/.test(l) ? "#2ecc71" : /TROPHY/.test(l) ? GOLD : /MISSION/.test(l) ? "#5dade2" : "#fff6dc" \}\}>\
+            \{/TROPHY/.test(l) ? "\uc0\u55356 \u57286  " : ""\}\{l\}\
+          </div>\
+        ))\}\
+        <button type="button" style=\{\{ ...menuButton, marginTop: 10 \}\} onClick=\{onClose\}>NICE!</button>\
+      </div>\
+    </div>\
+  );\
+\}\
+\
+const LOOK_TABS: \{ id: keyof Look; label: string \}[] = [\
+  \{ id: "body", label: "Character" \},\
+  \{ id: "head", label: "Head" \},\
+  \{ id: "hair", label: "Hair style" \},\
+  \{ id: "hairColor", label: "Hair colour" \},\
+  \{ id: "eye", label: "Eye shape" \},\
+  \{ id: "eyeColor", label: "Eye colour" \},\
+  \{ id: "skin", label: "Skin" \},\
+  \{ id: "pattern", label: "Outfit style" \},\
+  \{ id: "outfit", label: "Outfit colour" \},\
+];\
+\
+const NAMES: Partial<Record<keyof Look, string[]>> = \{ body: BODY_NAMES, head: HEAD_NAMES, hair: HAIR_NAMES, eye: EYE_NAMES, pattern: PATTERN_NAMES \};\
+const SWATCHES: Partial<Record<keyof Look, string[]>> = \{ hairColor: HAIR_COLORS, eyeColor: EYE_COLORS, skin: SKINS, outfit: OUTFIT_COLORS \};\
+\
+export function CreatorPanel(\{ p, dispatch, onClose, preview \}: \{ p: Profile; dispatch(e: DojoEvent): void; onClose(): void; preview(look: Look): React.ReactNode \}) \{\
+  const [tab, setTab] = useState<keyof Look>("body");\
+  const [look, setLook] = useState<Look>(p.look);\
+  const level = levelInfo(p.xp).level;\
+  const choose = (k: keyof Look, v: number) => \{\
+    const next = \{ ...look, [k]: v \};\
+    setLook(next);\
+    dispatch(\{ type: "dojo.send", message: setLookMsg(next) \});\
+  \};\
+  const randomize = () => \{\
+    const pick = (n: number) => Math.floor(Math.random() * n);\
+    const unlocked = PATTERN_NAMES.map((_, i) => i).filter((i) => patternMinLevel(i) <= level);\
+    const next: Look = \{\
+      body: pick(LOOK_COUNTS.body), head: pick(LOOK_COUNTS.head), hair: pick(LOOK_COUNTS.hair), hairColor: pick(LOOK_COUNTS.hairColor), eye: pick(LOOK_COUNTS.eye),\
+      eyeColor: pick(LOOK_COUNTS.eyeColor), skin: pick(LOOK_COUNTS.skin), pattern: unlocked[pick(unlocked.length)] ?? 0, outfit: pick(LOOK_COUNTS.outfit),\
+    \};\
+    setLook(next);\
+    dispatch(\{ type: "dojo.send", message: setLookMsg(next) \});\
+  \};\
+  const names = NAMES[tab];\
+  const sw = SWATCHES[tab];\
+  const total = LOOK_COUNTS.head * LOOK_COUNTS.hair * LOOK_COUNTS.eye;\
+  return (\
+    <Frame title="Create your fighter" onClose=\{onClose\} p=\{p\}>\
+      <div style=\{\{ display: "flex", gap: 24, flexWrap: "wrap" \}\}>\
+        <div style=\{\{ width: 230, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 \}\}>\
+          <div style=\{\{ transform: "scale(0.85)", transformOrigin: "top center", height: 270 \}\}>\{preview(look)\}</div>\
+          <button type="button" style=\{small\} onClick=\{randomize\}>\uc0\u55356 \u57266  SURPRISE ME</button>\
+          <div style=\{\{ fontSize: 12, opacity: 0.7, textAlign: "center" \}\}>\
+            \{OUTFIT_COUNT\} outfits \'b7 \{LOOK_COUNTS.hair\} hairstyles \'b7 \{LOOK_COUNTS.hairColor\} hair colours \'b7 \{LOOK_COUNTS.eye\} eye shapes \'b7 \{LOOK_COUNTS.eyeColor\} eye colours \'b7 \{LOOK_COUNTS.head\} head shapes \'b7 \{total.toLocaleString()\}+ faces\
+          </div>\
+        </div>\
+        <div style=\{\{ flex: 1, minWidth: 300 \}\}>\
+          <div style=\{\{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" \}\}>\
+            \{LOOK_TABS.map((t) => (\
+              <button key=\{t.id\} type="button" style=\{\{ ...small, background: tab === t.id ? "#c0392b" : "#3a2210" \}\} onClick=\{() => setTab(t.id)\}>\{t.label\}</button>\
+            ))\}\
+          </div>\
+          <div style=\{\{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 \}\}>\
+            <span style=\{\{ fontSize: 14, opacity: 0.8 \}\}>Master looks (beat them to unlock):</span>\
+            \{MASTER_LOOKS.map((m, i) => \{\
+              const open = p.beaten.includes(i);\
+              return (\
+                <button key=\{m.name\} type="button" disabled=\{!open\} style=\{open ? small : disabledBtn\} onClick=\{() => \{ const next = \{ ...m.look, pattern: patternMinLevel(m.look.pattern) <= level ? m.look.pattern : 0 \}; setLook(next); dispatch(\{ type: "dojo.send", message: setLookMsg(next) \}); \}\}>\
+                  \{open ? m.name : `\uc0\u55357 \u56594  $\{m.name\}`\}\
+                </button>\
+              );\
+            \})\}\
+          </div>\
+          <div style=\{\{ display: "flex", gap: 8, flexWrap: "wrap" \}\}>\
+            \{tab === "outfit" && (\
+              <button type="button" style=\{\{ ...small, background: look.outfit === -1 ? "#1e8449" : "#3a2210" \}\} onClick=\{() => choose("outfit", -1)\}>Shop gi</button>\
+            )\}\
+            \{names?.map((n, i) => \{\
+              const locked = tab === "pattern" && level < patternMinLevel(i);\
+              return (\
+                <button key=\{n\} type="button" disabled=\{locked\} style=\{locked ? disabledBtn : \{ ...small, background: look[tab] === i ? "#1e8449" : "#3a2210" \}\} onClick=\{() => choose(tab, i)\}>\
+                  \{locked ? `\uc0\u55357 \u56594  Lv $\{patternMinLevel(i)\}` : n\}\
+                </button>\
+              );\
+            \})\}\
+            \{sw?.map((c, i) => (\
+              <button key=\{c\} type="button" aria-label=\{`$\{tab\} colour $\{i + 1\}`\} onClick=\{() => choose(tab, i)\} style=\{\{ width: 40, height: 40, borderRadius: 8, background: c, cursor: "pointer", pointerEvents: "auto", border: look[tab] === i ? "4px solid #2ecc71" : "2px solid #fff6" \}\} />\
+            ))\}\
+          </div>\
+        </div>\
+      </div>\
+    </Frame>\
+  );\
+\}}
