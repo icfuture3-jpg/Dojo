@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
-export const BOARD_ZONE = {start:35,end:65};
-export const boardSpeed = (hits:number) => 1 + hits * .2;
-export const boardPosition = (elapsed:number,hits:number) => (1-Math.cos(elapsed*boardSpeed(hits)/750))*50;
-export const boardHit = (position:number) => position>=BOARD_ZONE.start && position<=BOARD_ZONE.end;
-
-/** Five timing attempts. No failure can block the campaign; effort always builds strength. */
-export function TrainingGame({ strength, avatar, onDone, fighterName = "Your fighter", automatic = false, skinColor = "#e1ac80", sleeveColor = "#318fc5" }: { strength: number; avatar: ReactNode; onDone(hits: number): void; fighterName?: string; automatic?: boolean; skinColor?: string; sleeveColor?: string }) {
-  const [chop, setChop] = useState(0);
+/** Difficulty follows completed chops, not successes; stage five is the result screen. */
+export function boardZone(chops:number){
+const width=Math.max(10,30-Math.max(0,Math.min(5,chops))*4);
+return {start:50-width/2,end:50+width/2,width};
+}
+export const boardSpeed = (chops:number) => 1 + Math.max(0,Math.min(5,chops)) * .2;
+export const boardPosition = (elapsed:number,chops:number) => (1-Math.cos(elapsed*boardSpeed(chops)/750))*50;
+export const boardHit = (position:number,chops=0) => {const zone=boardZone(chops);return position>=zone.start && position<=zone.end;};
   const [combo, setCombo] = useState(0);
   const [impact, setImpact] = useState(false);
   const busy = useRef(false);
@@ -26,21 +26,21 @@ export function TrainingGame({ strength, avatar, onDone, fighterName = "Your fig
     if (!ready || attempt === 5 || busy.current) return;
     const id = window.setInterval(() => {
       positionRef.current = boardPosition(performance.now() - started.current,hits);
-      setPosition(positionRef.current);
+      const zone=boardZone(attempt);
     }, 16);
     return () => clearInterval(id);
   }, [attempt, ready, hits, chop]);
-  const strike = () => {
+   positionRef.current = boardPosition(performance.now() - started.current,attempt);
     if (!ready || attemptsRef.current >= 5 || busy.current) return;
     busy.current = true;
     setChop(c => c + 1);
-    attemptsRef.current++;
+   }, [attempt, ready, chop]);
     const hit = boardHit(positionRef.current);
     setImpact(false);
     impactTimer.current = setTimeout(() => {
     setImpact(hit);
     setCombo(c => hit ? c + 1 : 0);
-    setHits(h => h + Number(hit));
+     const hit = boardHit(positionRef.current,attempt);
     setAttempt(a => a + 1);
     setFeedback(hit ? 'BOARD BROKEN! Clean chop — strength is growing!' : 'THUD! Shake it off. Watch the gold zone and strike again!');
     started.current = performance.now();
@@ -96,7 +96,7 @@ export function TrainingGame({ strength, avatar, onDone, fighterName = "Your fig
     </div>}
     <svg key={`boards-${chop}-${impact}`} style={{overflow:"visible",animation:impact ? "dojoShake .35s ease-out" : undefined}} width="300" height="155" viewBox="0 -68 220 140" role="img" aria-label={`${hits} boards broken`}>
       <style>{`@keyframes boardChop{0%{transform:translateY(-55px) rotate(-24deg)}58%{transform:translateY(0) rotate(0)}72%{transform:translateY(5px)}100%{transform:translateY(-55px) rotate(-24deg)}} @keyframes woodImpact{from{opacity:1;transform:scale(.5)}to{opacity:0;transform:scale(1.4)}}`}</style>
-      {chop > 0 && <g key={chop} aria-label="Your hand chops down onto the wood" style={{animation:'boardChop .72s ease-in-out forwards',transformOrigin:'110px 0'}}>
+       <div>After every chop, the gold zone shrinks and the marker speeds up—even if you miss. You get five attempts, with no time limit between strikes. Every session earns strength and XP—even if you miss. Hold-free controls: press once for each strike.</div>
         <path d="M93-65H124L123-28H96Z" fill={sleeveColor} stroke="#fff7" strokeWidth="2"/>
         <path d="M96-29H123V-9L139-1Q145 5 138 8L111 8Q98 6 96-5Z" fill={skinColor} stroke="#553a3088" strokeWidth="2"/>
         <path d="M104-20V-6M111-20V-6M118-20V-6" stroke="#553a3066" fill="none"/>
@@ -113,7 +113,7 @@ export function TrainingGame({ strength, avatar, onDone, fighterName = "Your fig
       <div aria-label="Gold success zone" style={{position:'absolute',left:`${BOARD_ZONE.start}%`,width:`${BOARD_ZONE.end-BOARD_ZONE.start}%`,height:'100%',background:'#d5a62a'}} />
       <div style={{position:'absolute',left:`${position}%`,width:6,height:'100%',background:'white',transform:'translateX(-50%)'}} />
     </div>
-    {ready && <div key={`feedback-${attempt}`} aria-live="polite" style={{fontSize:impact ? 24 : 17,fontWeight:impact ? 700 : 400,color:impact ? '#ffe28a' : '#fff4d5',animation:impact ? 'boardShout .4s ease-out' : undefined,textShadow:impact ? '0 0 18px #f2b42b77' : undefined}}>{feedback}{combo > 1 && <div style={{fontSize:18,color:'#83e8bf'}}>{combo} HIT STREAK!</div>}</div>}
-    {!ready ? null : attempt < 5 ? automatic ? <div aria-live="polite">Watch {fighterName} train…</div> : <button type="button" onClick={strike} disabled={busy.current} style={{padding:'15px 40px',fontSize:22}}>STRIKE — SPACE</button> : <><strong style={{fontSize:24,color:"#ffe28a"}}>{!automatic && hits === 5 ? "PERFECT SESSION! " : ""}{automatic ? `${fighterName}: ${hits}/5 boards broken · Strength test complete` : `Strength +${gain} · XP +${20 + hits * 5}`}</strong>{!automatic && <div>Guard unlocked: block one losing round each match.</div>}<button type="button" style={{padding:14,fontSize:20}} onClick={() => { if (!submitted.current) { submitted.current = true; onDone(hits); } }}>{automatic ? "CONTINUE" : "CONTINUE — SAVE TRAINING"}</button></>}
-  </div>;
+   <div>Strength {strength} · {attempt}/5 attempts · {hits} solid hits{!automatic&&` · Speed ${boardSpeed(attempt).toFixed(1)}×`}</div>
+    <div style={{visibility:ready ? 'visible' : 'hidden',position:'relative',width:'min(400px, 85%)',height:32,background:'#493858',borderRadius:10}} aria-label="Timing meter" data-speed={boardSpeed(attempt).toFixed(1)}>
+  <div aria-label="Gold success zone" style={{position:'absolute',left:`${zone.start}%`,width:`${zone.width}%`,height:'100%',background:'#d5a62a'}} />
 }
