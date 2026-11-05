@@ -11,3 +11,5 @@ The `?defeat` fixture uses the actual remaining defeat story shots. It now has t
 Add `?training` to check the actual Board-breaking Training component with no rewards/saves. Gold zone spans 35–65%; marker speed increases 20% per broken board, not per attempt. Five attempts and strength/XP payouts unchanged.
 
 Use `?boards` for Bao's actual board-breaking shot. Resume to run its 3-second windup/contact/split/retract cycle. Shared animation clock controls the attached right arm and board split; hand center contacts the top board at 1200 ms. Pausing freezes that clock. No gameplay/rewards or saved character changes.
+
+Progressive chop update: zone widths after 0–5 completed chops are 30%, 26%, 22%, 18%, 14%, 10%, paired with speeds 1.0×–2.0× in 0.2 increments. Both use completed attempts, including misses. Hit scoring uses the zone visible at strike time; the next stage applies after impact. Five attempts and rewards unchanged.
