@@ -453,7 +453,7 @@ function ExtraMasterStory({k,kind,color,belt}:{k:number;kind:'win'|'lose';color:
  <g aria-label={win?'Bright path revealed on star table':'Star table covered with one bright tile remaining'}><path d="M240 230H375V265H240ZM255 265V310M360 265V310" fill="#35334c" stroke="#8b84aa" strokeWidth="5"/>{Array.from({length:6},(_,i)=><rect key={i} x={250+i*19} y="232" width="16" height="16" fill={win||i===0?'#eada9f':'#141523'} stroke="#746a96"/>)}{win?<path d="M270 200l6-13 6 13 14 2-11 10 3 14-12-7-12 7 3-14-11-10Z" fill="#f6e1a7" style={{animation:'storySash 4s infinite'}}/>:<path d="M270 215H375V260H270Z" fill="#493551"/>}</g>}
  </g>;
 }
-export function cinematicOpponentIndex(name:string){return ['Brick Fist Bao','Mirage Mei','Master Ren','Grandmaster Oku','Fox Jun','Echo Kai','Storm Rin','Void Sage'].indexOf(name);}
+export { cinematicOpponentIndex } from "./movie-opponents";
 const RESCUE_CAPTIONS=[
  {intro:'At Bamboo Grove, Bao pulls the gate brace loose while Take shields the seedlings.',win:'You reset the bamboo brace. Take ties a green ribbon around the restored gate.',lose:'A cracked bamboo post blocks the trail; Take lights a marker beside the seedlings.'},
  {intro:'Jun sends the Lotus Pond ferry drifting away with Hana’s medicine chest aboard.',win:'The ferry returns to its mooring. Hana opens the medicine chest beside the lilies.',lose:'Jun raises the ferry rope across the pond. Hana waits on the bank with a paper lantern.'},
