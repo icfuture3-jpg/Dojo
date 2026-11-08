@@ -118,8 +118,7 @@ export const UPGRADES: readonly Upgrade[] = [
   { id: "xp", name: "Scholar's Scroll", blurb: "+10% XP per level", costs: [150, 300, 500] },
 ];
 
-export const BOX_COST = 120;
-export const BOX_GEM_COST = 8;
+export const BOX_DUPLICATE_COINS = 60;
 const BOX_WEIGHTS: Record<Rarity, number> = { common: 60, rare: 28, epic: 10, legendary: 2 };
 
 // ---------- ranks and levels ----------
@@ -727,14 +726,11 @@ export function boxOdds(rp: number): Record<Rarity, number> {
 }
 
 export function openBox(input: Profile, currency: "coins" | "gems" | "free", rnd: () => number): Profile | null {
-  const cost = currency === "coins" ? BOX_COST : BOX_GEM_COST;
-  if (!["coins", "gems", "free"].includes(currency)) return null;
+  if (currency !== "free" || input.freeBoxes < 1) return null;
   const random = rnd();
   if (!Number.isFinite(random) || random < 0 || random >= 1) return null;
-  if (currency === "free" ? input.freeBoxes < 1 : (currency === "coins" ? input.coins : input.gems) < cost) return null;
   const p = clone(input);
-  if (currency === "free") p.freeBoxes--;
-  else p[currency] -= cost;
+  p.freeBoxes--;
   p.stats.boxes += 1;
   const pool = ITEMS.filter((i) => !FREE_IDS.includes(i.id) && rankIndex(p.rp) >= i.minRank);
   const total = pool.reduce((s, i) => s + BOX_WEIGHTS[i.rarity], 0);
@@ -749,9 +745,9 @@ export function openBox(input: Profile, currency: "coins" | "gems" | "free", rnd
   }
   const lines: string[] = [];
   if (p.owned.includes(won.id)) {
-    const refund = Math.round(BOX_COST / 2);
-    p.coins += refund;
-    lines.push(`Duplicate ${won.name}: +${refund} coins back`);
+    const bonus = BOX_DUPLICATE_COINS;
+    p.coins += bonus;
+    lines.push(`Duplicate ${won.name}: +${bonus} bonus coins`);
   } else {
     p.owned.push(won.id);
     lines.push(`You found ${won.name} (${won.rarity})!`);

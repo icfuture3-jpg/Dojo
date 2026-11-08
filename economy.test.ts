@@ -109,13 +109,8 @@ it('opens a free victory box without charging currency or allowing reuse', () =>
  expect(openBox(next, 'free', ()=>0)).toBeNull();
  expect(p.freeBoxes).toBe(1);
 });
-it('paid coin boxes debit once and return a visible prize notice',()=>{
- const p={...fresh(),coins:1000};
- const next=openBox(p,'coins',()=>.5)!;
- expect(next.stats.boxes).toBe(p.stats.boxes+1);
- expect(next.last.title).toBe('Mystery box');
- expect(next.last.box).not.toBe('');
- expect(next.last.lines.length).toBeGreaterThan(0);
- expect(next.coins).toBeLessThan(p.coins);
- expect(p.coins).toBe(1000);
+it('rejects paid boxes even with enough currency and an earned box',()=>{
+ const p={...fresh(),coins:1000,gems:100,freeBoxes:1};
+ for(const currency of ['coins','gems'] as const)expect(openBox(p,currency,()=>.5)).toBeNull();
+ expect(p.freeBoxes).toBe(1);expect(p.stats.boxes).toBe(0);
 });

@@ -73,13 +73,13 @@ it('rejects malformed actions and unknown messages without touching the profile'
   expect(applyAction(p, 'openBox', { currency: 'invalid' }, now)).toBe(p);
   expect(applyAction(p, 'buyPeek', { level: Infinity }, now)).toBe(p);
 });
-it('a supplied random draw produces repeatable paid-box transitions', () => {
-  const p = { ...fresh(), coins: 1000 };
-  const a = applyAction(p, 'openBox', { currency: 'coins' }, now, .5);
-  expect(applyAction(p, 'openBox', { currency: 'coins' }, now, .5)).toEqual(a);
+it('a supplied random draw produces repeatable earned-box transitions', () => {
+  const p = { ...fresh(), coins: 1000, freeBoxes: 1 };
+  const a = applyAction(p, 'openBox', { currency: 'free' }, now, .5);
+  expect(applyAction(p, 'openBox', { currency: 'free' }, now, .5)).toEqual(a);
   expect(a.stats.boxes).toBe(p.stats.boxes + 1);
   expect(p.stats.boxes).toBe(0);
-  expect(applyAction(p, 'openBox', { currency: 'coins' }, now, NaN)).toBe(p);
+  expect(applyAction(p, 'openBox', { currency: 'free' }, now, NaN)).toBe(p);
 });
 it('displays the exact weighted eligible-pool rarity probabilities without changing selection', () => {
   const weights = { common: 60, rare: 28, epic: 10, legendary: 2 };
@@ -91,4 +91,9 @@ it('displays the exact weighted eligible-pool rarity probabilities without chang
     for (const rarity of Object.keys(weights) as (keyof typeof weights)[]) expect(odds[rarity]).toBeCloseTo(pool.filter(i => i.rarity === rarity).reduce((sum, i) => sum + weights[i.rarity], 0) / total * 100);
   }
   expect(boxOdds(0).legendary).toBe(0);
+});
+
+it('rejects paid mystery-box requests at the action boundary',()=>{
+ const p={...fresh(),coins:10000,gems:1000,freeBoxes:1};
+ for(const currency of ['coins','gems'])expect(applyAction(p,'openBox',{currency},now,.5)).toBe(p);
 });
