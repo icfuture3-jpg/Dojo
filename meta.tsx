@@ -57,12 +57,13 @@ export function ProfileBar({ p }: { p: Profile }) {
   const lv = levelInfo(p.xp);
   const rank = RANKS[rankIndex(p.rp)] ?? RANKS[0];
   return (
-    <div style={{ display: "flex", gap: 18, alignItems: "center", background: "#000a", border: `2px solid ${GOLD}`, borderRadius: 10, padding: "8px 16px", fontFamily: serif, color: "#fff6dc" }}>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 18, alignItems: "center", background: "#000a", border: `2px solid ${GOLD}`, borderRadius: 10, padding: "8px 16px", fontFamily: serif, color: "#fff6dc" }}>
       <div style={{ width: 150 }}>
         <div style={{ fontSize: 15 }}>LEVEL {lv.level}</div>
         <Bar value={lv.into} max={lv.need} color="#2ecc71" />
         <div style={{ fontSize: 11, opacity: 0.7 }}>{lv.into}/{lv.need} XP</div>
       </div>
+      <div aria-label="Tournament record" style={{ fontSize: 16 }}>{`Wins: ${p.stats.won} · Losses: ${Math.max(0, p.stats.played - p.stats.won)}`}<div style={{ fontSize: 11, opacity: 0.7 }}>Tournament record · this device</div></div>
       <div style={{ fontSize: 20 }}><Coin/> {p.coins}</div>
       <div style={{ fontSize: 20 }}>💎 {p.gems}</div>
       <div style={{ fontSize: 16, color: rank?.color }}>◆ {rank?.name} <span style={{ opacity: 0.7, fontSize: 13 }}>({p.rp} RP)</span></div>
@@ -228,7 +229,7 @@ export function TrophiesPanel({ p, onClose }: { p: Profile; onClose(): void }) {
   );
 }
 
-interface BoardRow { id: string; name: string; rp: number; wins: number }
+interface BoardRow { id: string; name: string; rp: number; wins: number; losses: number }
 export function RanksPanel({ p, boardData, boardId, dispatch, onClose, avatar }: { avatar?: React.ReactNode; p: Profile; boardData: string; boardId: string; dispatch(e: DojoEvent): void; onClose(): void }) {
   const [draft, setDraft] = useState(p.name);
   useEffect(() => { dispatch({ type: "dojo.send", message: refreshBoardMsg({ at: Date.now() }) }); }, [dispatch]);
@@ -259,11 +260,11 @@ export function RanksPanel({ p, boardData, boardId, dispatch, onClose, avatar }:
           <div style={{ fontSize: 22, color: GOLD, marginBottom: 8 }}>Top fighters</div>
           {standings.length === 0 && <div style={{ opacity: 0.7 }}>No one on the board yet. Win a match to claim the first spot.</div>}
           {standings.map((s, i) => (
-            <div key={s.id} style={{ display: "flex", gap: 12, padding: "6px 12px", marginBottom: 4, borderRadius: 6, background: s.id === boardId ? "#3a2a08" : "#2a1a0e", border: `2px solid ${s.id === boardId ? GOLD : "#4a3a2a"}` }}>
+            <div key={s.id} style={{ display: "flex", flexWrap: "wrap", gap: 12, padding: "6px 12px", marginBottom: 4, borderRadius: 6, background: s.id === boardId ? "#3a2a08" : "#2a1a0e", border: `2px solid ${s.id === boardId ? GOLD : "#4a3a2a"}` }}>
               <span style={{ width: 28 }}>#{i + 1}</span>
               <span style={{ flex: 1 }}>{s.name}{s.id === boardId ? " (you)" : ""}</span>
               <span style={{ color: RANKS[rankIndex(s.rp)]?.color }}>{s.rp} RP</span>
-              <span style={{ opacity: 0.7 }}>{s.wins} wins</span>
+              <span style={{ opacity: 0.7 }}>{`Wins: ${s.wins} · Losses: ${s.losses}`}</span>
             </div>
           ))}
           <div style={{ marginTop: 12 }}>

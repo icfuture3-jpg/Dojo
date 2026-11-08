@@ -68,7 +68,7 @@ export function App() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  const board = [{ id: 'local', name: profile.name || 'You (this device)', rp: profile.rp, wins: profile.stats.won }];
+  const board = [{ id: 'local', name: profile.name || 'You (this device)', rp: profile.rp, wins: profile.stats.won, losses: Math.max(0, profile.stats.played - profile.stats.won) }];
   const warning = saveError || loaded.warning;
 
   return (
