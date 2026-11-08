@@ -9,8 +9,6 @@ import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import {
   boxOdds,
-  BOX_COST,
-  BOX_GEM_COST,
   ITEMS,
   RANKS,
   TROPHIES,
@@ -181,17 +179,14 @@ export function ShopPanel({ p, dispatch, onClose, avatar }: { p: Profile; dispat
           <div style={{ width: 240, textAlign: "center", background: "#2a1a0e", padding: 18, borderRadius: 10, border: "2px solid #a569bd" }}>
             <div style={{ fontSize: 72 }}>🎁</div>
             <div style={{ fontSize: 20 }}>Mystery Box</div>
-            <div style={{ fontSize: 13, opacity: 0.75, margin: "6px 0 10px" }}>A random outfit, headband, aura or finisher. Duplicates refund coins.</div>
+            <div style={{ fontSize: 13, opacity: 0.75, margin: "6px 0 10px" }}>A random outfit, headband, aura or finisher. Duplicates award bonus coins.</div>
             {p.freeBoxes > 0 && <button type="button" style={small} onClick={() => dispatch({ type: "dojo.send", message: openBoxMsg({ currency: "free" }) })}>OPEN FREE BOX ({p.freeBoxes})</button>}
-            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-              <button type="button" disabled={p.coins < BOX_COST} style={p.coins >= BOX_COST ? small : disabledBtn} onClick={() => dispatch({ type: "dojo.send", message: openBoxMsg({ currency: "coins" }) })}><Coin/> {BOX_COST}</button>
-              <button type="button" disabled={p.gems < BOX_GEM_COST} style={p.gems >= BOX_GEM_COST ? small : disabledBtn} onClick={() => dispatch({ type: "dojo.send", message: openBoxMsg({ currency: "gems" }) })}>💎 {BOX_GEM_COST}</button>
-            </div>
+            <p>Earn a mystery box by winning a match or game mode. Boxes cannot be bought with coins or gems.</p>
           </div>
           <div style={{ fontSize: 14, lineHeight: 1.8 }}>
             Current rank odds: {Object.entries(boxOdds(p.rp)).map(([rarity, chance]) => `${rarity}: ${chance.toFixed(1)}%`).join(" · ")}. Items above your rank cannot drop.
             <br />
-            You have opened {p.stats.boxes} boxes. Free victory boxes: {p.freeBoxes}.
+            You have opened {p.stats.boxes} boxes. Earned victory boxes: {p.freeBoxes}.
           </div>
         </div>
       ) : (
