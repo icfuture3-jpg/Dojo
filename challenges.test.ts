@@ -191,3 +191,16 @@ it('planned challenge hands stay independent of selection/history and balanced a
  }
  for(const count of Object.values(counts))expect(Math.abs(count-4000)).toBeLessThan(240);
 });
+
+it('awards the Beginner Champion gi only after winning the complete tournament',()=>{
+ let p=start('beginner','champion-gi');
+ expect(p.owned).not.toContain('gi-champion-jade');
+ const failed=round(round(round(p,'lose'),'lose'),'lose');
+ expect(failed.owned).not.toContain('gi-champion-jade');
+ p=playToEnd(p);
+ expect(p.challenges.run!.phase).toBe('complete');
+ expect(p.owned).toContain('gi-champion-jade');
+ expect(p.challenges.run!.feedback).toContain('Earned Jade Champion Gi');
+ const replay=playToEnd(start('beginner','champion-gi-again',p));
+ expect(replay.owned.filter(id=>id==='gi-champion-jade')).toHaveLength(1);
+});

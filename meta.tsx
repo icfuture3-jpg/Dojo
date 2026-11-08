@@ -1,3 +1,4 @@
+import { CONTENT } from "./content-catalog";
 import { Coin, OutfitArt } from "./catalog-art";
 import { Pattern } from "./lookart";
 import { ShopUpgrades } from "./shop-upgrades";
@@ -149,6 +150,8 @@ function ItemCard({ it, p, dispatch, onPreview }: { it: Item; p: Profile; dispat
         <button type="button" disabled={equipped} style={equipped ? { ...small, background: "#1e8449" } : small} onClick={() => dispatch({ type: "dojo.send", message: equipItemMsg({ id: it.id }) })}>
           {equipped ? "EQUIPPED" : "EQUIP"}
         </button>
+      ) : it.tournament ? (
+        <div style={{fontSize:12,textAlign:"center"}}>TOURNAMENT EXCLUSIVE · Win {CONTENT[it.tournament].name} to earn</div>
       ) : locked ? (
         <div style={{ ...disabledBtn, background: "#333", border: "2px solid #666" }}>{rankLocked ? `🔒 ${RANKS[it.minRank]?.name} rank` : `🔒 Level ${it.minLevel}`}</div>
       ) : (

@@ -119,3 +119,22 @@ it('paid coin boxes debit once and return a visible prize notice',()=>{
  expect(next.coins).toBeLessThan(p.coins);
  expect(p.coins).toBe(1000);
 });
+
+it('backfills tournament gis from recorded clears without charging or duplicating them',()=>{
+ const p=parseProfile({saveVersion:4,coins:500,gems:20,challenges:{clears:{beginner:1,advanced:1,world:1}}});
+ for(const id of ['gi-champion-jade','gi-champion-storm','gi-champion-golden'])expect(p.owned).toContain(id);
+ expect(p.coins).toBe(500);expect(p.gems).toBe(20);
+ expect(parseProfile(p).owned).toEqual(p.owned);
+ const freshProfile=parseProfile({});
+ for(const id of ['gi-champion-jade','gi-champion-storm','gi-champion-golden']){
+  expect(freshProfile.owned).not.toContain(id);
+  expect(buyItem({...freshProfile,coins:100000,gems:100000,xp:100000,rp:100000},id)).toBeNull();
+ }
+});
+it('never drops tournament-exclusive gis in mystery boxes',()=>{
+ const p=parseProfile({coins:100000,freeBoxes:1,rp:100000});
+ for(let n=0;n<1000;n++){
+  const next=openBox(p,'free',()=>n/1000)!;
+  expect(next.last.box).not.toMatch(/^gi-champion-/);
+ }
+});
