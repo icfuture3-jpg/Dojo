@@ -1,5 +1,5 @@
 export type PotMotionMode = 'throw' | 'jump' | 'chop';
-export const MOTION_MS = 3600;
+export const MOTION_MS = 6000;
 export const CONTACT = { throw: .64, jump: .56, chop: .72 } as const;
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
 function stage(t:number,a:number,b:number){return clamp((t-a)/(b-a));}
