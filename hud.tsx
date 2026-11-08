@@ -8,9 +8,9 @@ import { createPortal } from "react-dom";
 const AcademyHall=lazy(()=>import("./academy-hall").then(m=>({default:m.AcademyHall})));
 const ChallengeDojo=lazy(()=>import("./challenge-dojo").then(m=>({default:m.ChallengeDojo})));
 import "./expansion.css";
-import { TreePots } from "./tree-pots";
+const TreePots=lazy(()=>import("./tree-pots").then(m=>({default:m.TreePots})));
 import { FinisherScene } from "./finishers";
-import { TrainingGame } from "./training";
+const TrainingGame=lazy(()=>import("./training").then(m=>({default:m.TrainingGame})));
 import { trainingDue } from "./economy";
 import { useCallback, useEffect, useMemo, useRef, useState, useId, lazy, Suspense } from "react";
 import type { CSSProperties } from "react";
@@ -44,7 +44,10 @@ import { RESCUES } from "./rescue";
 import { RescueScenery } from "./scenery";
 import { EYE_COLORS, HAIR_COLORS, MASTER_LOOKS, OUTFIT_COLORS, SKINS, seededLook, type Look } from "./look";
 import { Eyes, HairBack, HairFront, HEAD_SHAPES, Pattern } from "./lookart";
-import { cinematicOpponentIndex, CutScene, DojoMovie, RescueMovie } from "./movie";
+import { cinematicOpponentIndex } from "./movie-opponents";
+const CutScene=lazy(()=>import("./movie").then(m=>({default:m.CutScene})));
+const DojoMovie=lazy(()=>import("./movie").then(m=>({default:m.DojoMovie})));
+const RescueMovie=lazy(()=>import("./movie").then(m=>({default:m.RescueMovie})));
 
 type Phase = "title" | "movie" | "cutscene" | "pots" | "finisher" | "loserTraining" | "intro" | "choose" | "reveal" | "result" | "matchEnd" | "champion";
 type Mode = "ladder" | "tower" | "daily" | "rescue";
@@ -718,18 +721,22 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
       {academyOpen && <Suspense fallback={createPortal(<section className="expansion-screen" role="status">Loading Training Hall…</section>,document.body)}><AcademyHall p={prof} dispatch={dispatch} onExit={()=>setAcademyOpen(false)} onShop={()=>{setAcademyOpen(false);setScreen("shop");}} onSound={()=>sfx.gong()} fighter={master=>master==='self'?myFig.avatar:<Fighter look={MASTER_LOOKS.find(m=>m.name.endsWith(master))?.look} color={master==='Bao'?'#a52b27':'#317e96'} belt="#202020" move={null} state="idle"/>}/></Suspense>}
       {challengeOpen && <Suspense fallback={createPortal(<section className="expansion-screen" role="status">Loading Challenge Dojo…</section>,document.body)}><ChallengeDojo p={prof} dispatch={dispatch} onExit={() => setChallengeOpen(false)} fighter={(r, state) => r ? <Fighter look={(MASTER_LOOKS.find(m=>m.name===r.name)?.look ?? seededLook([...TOWER_POOL,...NEW_RIVALS].findIndex(t=>t.name===r.name)+20))} color={r.color} belt={r.belt} move={null} state={state} flip /> : <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={myFig.color} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state={state}/>} /></Suspense>}
       {settingsOpen && createPortal(<section className="expansion-screen" aria-label="Audio settings"><header className="expansion-header"><h1>AUDIO SETTINGS</h1><button onClick={()=>setSettingsOpen(false)}>BACK TO DOJO</button></header><div className="audio-settings"><p>Saved on this device. Music and sound effects have separate controls.</p>{([['music','Music'],['sfx','Sound effects']] as const).map(([key,label])=><label key={key}>{label}: {Math.round(prof.audio[key]*100)}%<input aria-label={`${label} volume`} type="range" min="0" max="1" step="0.05" value={prof.audio[key]} onChange={e=>dispatch({type:'dojo.send',message:{send:emit=>emit('audio',{...prof.audio,[key]:Number(e.target.value)})}})}/></label>)}</div></section>,document.body)}
-      {phase === "pots" && <TreePots avatar={myFig.avatar} best={prof.potBest} onSave={(mode,hits)=>dispatch({type:"dojo.send",message:{send:send=>send("potDone",{mode,hits})}})} onExit={()=>setPhase("title")} />}
+      {phase === "pots" && <Suspense fallback={<section className="expansion-screen" role="status">Loading pot challenges…</section>}><TreePots avatar={myFig.avatar} best={prof.potBest} onSave={(mode,hits)=>dispatch({type:"dojo.send",message:{send:send=>send("potDone",{mode,hits})}})} onExit={()=>setPhase("title")} /></Suspense>}
       {phase === "finisher" && <FinisherScene item={findItem(prof.equip.finisher)!} avatar={myFig.avatar} onDone={() => setPhase(cut.kind === "lose" ? "loserTraining" : cut.next)} />}
+      <Suspense fallback={<section className="expansion-screen" role="status">Loading strength training…</section>}>
       {phase === "loserTraining" && <TrainingGame skinColor={myFig.skin} sleeveColor={myFig.color} strength={prof.training.strength} fighterName={prof.name || "Your fighter"} avatar={myFig.avatar} onDone={hits => {
         dispatch({ type: "dojo.send", message: { send: send => send("lossTrainingDone", { hits }) } });
         setPhase(trainingNext);
       }} />}
       {prof.lossTrainingPending > 0 && phase === "title" && <TrainingGame skinColor={myFig.skin} sleeveColor={myFig.color} key={`pending-${prof.lossTrainingPending}`} strength={prof.training.strength} avatar={myFig.avatar} fighterName={prof.name || "Your fighter"} onDone={hits => dispatch({ type: "dojo.send", message: { send: send => send("lossTrainingDone", { hits }) } })} />}
       {trainingDue(prof) && prof.lossTrainingPending === 0 && phase === "title" && <TrainingGame skinColor={myFig.skin} sleeveColor={myFig.color} strength={prof.training.strength} avatar={myFig.avatar} onDone={hits => dispatch({ type: "dojo.send", message: { send: send => send("trainingDone", { hits }) } })} />}
+      </Suspense>
+      <Suspense fallback={<section className="expansion-screen" role="status">Loading cutscene…</section>}>
       {phase === "cutscene" && mode === "rescue" && cut.kind !== "champion" && <RescueMovie k={level} kind={cut.kind} me={myFig} color={rival.color} belt={rival.belt} onDone={finishCutscene} />}
       {phase === "cutscene" && !(mode === "rescue" && cut.kind !== "champion") && <CutScene me={myFig} kind={cut.kind} dojo={mode==='ladder'?level:Math.max(0,cinematicOpponentIndex(rival.name))} color={rival.color} belt={rival.belt} onDone={finishCutscene} />}
       {phase === "movie" && mode === "rescue" && <RescueMovie k={level} kind="intro" me={myFig} color={rival.color} belt={rival.belt} onDone={() => beginIntro(level)} />}
       {phase === "movie" && mode !== "rescue" && <DojoMovie me={myFig} dojo={level} color={rival.color} belt={rival.belt} onDone={() => beginIntro(level)} />}
+      </Suspense>
       {phase === "intro" && (
         <div style={{ ...overlay, background: "#000a", pointerEvents: "none" }}>
           <div style={{ fontSize: 18, letterSpacing: 4, color: "#f1c40f" }}>{mode === "rescue" ? `SAVE THE ${(RESCUES[level] ?? RESCUES[0]!).dojo.toUpperCase()}` : mode === "tower" ? `FLOOR ${level + 1}` : mode === "daily" ? "DAILY CHALLENGE" : `MATCH ${level + 1}`}: {rival.title.toUpperCase()}</div>
