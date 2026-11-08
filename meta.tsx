@@ -299,6 +299,11 @@ export function RewardPopup({ p, onClose }: { p: Profile; onClose(): void }) {
             {/TROPHY/.test(l) ? "🏆 " : ""}{l}
           </div>
         ))}
+        <div aria-label="Current balance" style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${GOLD}`, fontSize: 16 }}>
+          <div>Already added to your balance</div>
+          <strong>{`${p.coins} coins · ${p.gems} gems · ${p.xp} XP`}</strong>
+          <div style={{ fontSize: 13, marginTop: 6 }}>NICE! closes this notice; it does not claim another reward.</div>
+        </div>
         <button type="button" style={{ ...menuButton, marginTop: 10 }} onClick={onClose}>NICE!</button>
       </div>
     </div>

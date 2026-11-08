@@ -41,6 +41,11 @@ function applyActionResult(previous: Profile, kind: string, raw: unknown, now: n
     });
   }
   switch (kind) {
+    case 'dismissNotice': {
+      const r = z.object({ n: z.number().int().positive() }).safeParse(raw);
+      return r.success && r.data.n === previous.last.n && r.data.n > previous.seenNotice
+        ? { ...previous, seenNotice: r.data.n } : previous;
+    }
     case 'academy': return applyAcademy(previous,raw,now,random);
     case 'challenge': { const next=applyChallenge(previous,raw,now); return next===previous?previous:checkExpansionAchievements(next); }
     case 'audio': { const r = z.object({ music: z.number().min(0).max(1), sfx: z.number().min(0).max(1) }).safeParse(raw); return r.success ? { ...previous, audio: r.data } : previous; }

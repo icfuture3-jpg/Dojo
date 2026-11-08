@@ -330,6 +330,8 @@ export const profileSchema = z.object({
   prog: z.record(z.string(), z.number()).default(() => ({})),
   /** Mission ids already paid out. */
   done: z.array(z.string()).default(() => []),
+  /** Last acknowledged reward notice; persisted so reloads do not replay it. */
+  seenNotice: z.number().int().nonnegative().default(0),
   /** The latest reward notice for the HUD: bump n, list what happened. */
   last: z
     .object({

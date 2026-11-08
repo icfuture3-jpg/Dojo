@@ -92,3 +92,13 @@ it('displays the exact weighted eligible-pool rarity probabilities without chang
   }
   expect(boxOdds(0).legendary).toBe(0);
 });
+
+it('only acknowledges the current notice, once, without changing rewards', () => {
+  const p = fresh();
+  for (const raw of [null, {}, { n: -1 }, { n: p.last.n + 1 }, { n: p.last.n - 1 }, { n: NaN }, { n: '1' }]) {
+    expect(applyAction(p, 'dismissNotice', raw, now)).toBe(p);
+  }
+  const next = applyAction(p, 'dismissNotice', { n: p.last.n }, now);
+  expect(next).toEqual({ ...p, seenNotice: p.last.n });
+  expect(applyAction(next, 'dismissNotice', { n: p.last.n }, now)).toBe(next);
+});
