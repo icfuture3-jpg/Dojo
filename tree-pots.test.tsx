@@ -1,6 +1,6 @@
 import {it,expect} from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { TreePots,POT_MODES,potHit,potSpeed,potPosition } from './tree-pots';
+import { TreePots,PotFighter,POT_MODES,potHit,potSpeed,potPosition } from './tree-pots';
 import {parseProfile,savePotScore} from './economy';
 it('offers three standalone challenges',()=>{expect(Object.keys(POT_MODES)).toHaveLength(3);const html=renderToStaticMarkup(<TreePots avatar={<div>Custom fighter</div>} best={{throw:0,jump:0,chop:0}} onSave={()=>{}} onExit={()=>{}}/>);for(const m of Object.values(POT_MODES))expect(html).toContain(m.name);});
 it('uses a narrower timing window',()=>{expect(potHit(40)).toBe(true);expect(potHit(60)).toBe(true);expect(potHit(39)).toBe(false);expect(potHit(61)).toBe(false);expect(potHit(10)).toBe(false);});
@@ -20,5 +20,21 @@ it('keeps the accelerating indicator inside the timing track',()=>{
  for(let attempt=0;attempt<5;attempt++)for(let ms=0;ms<=10000;ms+=50){
   expect(potPosition(ms,attempt)).toBeGreaterThanOrEqual(0);
   expect(potPosition(ms,attempt)).toBeLessThanOrEqual(100);
+ }
+});
+
+it('renders the saved fighter in a responsive HTML layer that travels and poses for every pot action',()=>{
+ for(const mode of ['throw','jump','chop'] as const){
+  const avatar=<div className="cutout-fighter">Saved pink-haired fighter</div>;
+  const idle=renderToStaticMarkup(<PotFighter avatar={avatar} mode={mode} progress={0} moving={false}/>);
+  const active=renderToStaticMarkup(<PotFighter avatar={avatar} mode={mode} progress={.44} moving/>);
+  expect(idle).toContain('left:14.0625%');
+  expect(active).not.toContain('left:14.0625%');
+  expect(active).toContain(`data-motion="${mode}"`);
+  expect(active).toContain('Saved pink-haired fighter');
+  expect(active).toContain('--pot-right-arm:');
+  expect(active).not.toContain('foreignObject');
+  expect(active).toContain('width:31.25%');
+  if(mode==='jump')expect(active).toContain('pot-airborne');
  }
 });
