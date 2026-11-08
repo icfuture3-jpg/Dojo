@@ -38,7 +38,7 @@ import {
   TrophiesPanel,
   type Screen,
 } from "./meta";
-import { matchDone, modeDoneMsg, buyPeekMsg, openBoxMsg, type DojoEvent } from "./net";
+import { matchDone, modeDoneMsg, buyPeekMsg, openBoxMsg, dismissNoticeMsg, type DojoEvent } from "./net";
 import { setMusicIntensity, setMusicMuted, startMusic, setMusicVolume, setEffectsVolume, getEffectsVolume, stopMusic } from "./music";
 import { RESCUES } from "./rescue";
 import { RescueScenery } from "./scenery";
@@ -352,14 +352,13 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
   const guardRef = useRef(false);
   const [size, setSize] = useState({ w: window.innerWidth, h: window.innerHeight });
   const [screen, setScreen] = useState<Screen | null>(null);
-  const [seenNotice, setSeenNotice] = useState(0);
   const ladderLost = useRef(false);
   const trailed = useRef(false);
   const equipGi = findItem(prof.equip.gi);
   const playerLook = prof.look.outfit === -1 && equipGi?.pattern !== undefined ? { ...prof.look, pattern: equipGi.pattern } : prof.look;
   const equipBand = findItem(prof.equip.band);
   const equipAura = findItem(prof.equip.aura);
-  const showNotice = prof.last.n > seenNotice && (prof.last.lines.length > 1 || !/^(Purchase|Upgrade)$/.test(prof.last.title));
+  const showNotice = prof.last.n > prof.seenNotice && (prof.last.lines.length > 1 || !/^(Purchase|Upgrade)$/.test(prof.last.title));
   const [phase, setPhase] = useState<Phase>("title");
   const [level, setLevel] = useState(0);
   const [score, setScore] = useState({ p: 0, r: 0 });
@@ -815,7 +814,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
         </div>
       )}
       {showNotice && (!screen || (screen === "shop" && prof.last.box !== "")) && (phase === "title" || phase === "matchEnd" || phase === "champion") && (
-        <RewardPopup p={prof} onClose={() => setSeenNotice(prof.last.n)} />
+        <RewardPopup p={prof} onClose={() => dispatch({ type: "dojo.send", message: dismissNoticeMsg({ n: prof.last.n }) })} />
       )}
     </div>
     </div>

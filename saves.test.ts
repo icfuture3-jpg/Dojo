@@ -89,3 +89,24 @@ it('recovers a valid Stage 1 backup when the new primary is damaged', () => {
  const {api, values}=storage();values.set(SAVE_KEY,'{broken');values.set(BACKUP_KEY,JSON.stringify({...parseProfile({coins:500}),saveVersion:2}));
  const loaded=loadSave(api,now);expect(loaded.canSave).toBe(true);expect(loaded.profile.saveVersion).toBe(4);expect(loaded.profile.coins).toBeGreaterThanOrEqual(500);expect(loaded.warning).toContain('Recovered');
 });
+
+it('persists dismissal without repaying the day-two login or Regular trophy on refresh', async () => {
+  const { applyAction } = await import('./actions');
+  const { api, values } = storage();
+  values.set(SAVE_KEY, JSON.stringify(parseProfile({
+    coins: 200, gems: 8, xp: 15, streak: 1, lastLogin: '2026-11-02', season: '2026-11',
+  })));
+  const paid = loadSave(api, now).profile;
+  expect([paid.coins, paid.gems, paid.xp]).toEqual([330, 9, 30]);
+  expect(paid.last.lines).toContain('TROPHY: Regular');
+  const dismissed = applyAction(paid, 'dismissNotice', { n: paid.last.n }, now);
+  expect(dismissed).toMatchObject({ seenNotice: paid.last.n });
+  expect(paid).not.toHaveProperty('seenNotice', paid.last.n);
+  expect(saveProfile(api, dismissed)).toBeNull();
+  const reloaded = loadSave(api, now).profile;
+  expect(reloaded).toMatchObject({ seenNotice: reloaded.last.n, coins: 330, gems: 9, xp: 30 });
+  const tomorrow = loadSave(api, now + 86400000).profile;
+  expect(tomorrow.last.n).toBeGreaterThan(reloaded.last.n);
+  expect(tomorrow).toMatchObject({ coins: 395, gems: 9, xp: 45 });
+  expect(tomorrow.last.lines).not.toContain('TROPHY: Regular');
+});

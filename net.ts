@@ -17,3 +17,5 @@ export const openBoxMsg = (d: { currency: "coins" | "gems" | "free" }) => out("o
 export const setNameMsg = (d: { name: string }) => out("setName", d);
 export const refreshBoardMsg = (d: { at: number }) => out("refreshBoard", d);
 export const buyPeekMsg = (d: { level: number }) => out("buyPeek", d);
+
+export const dismissNoticeMsg = (d: { n: number }) => out("dismissNotice", d);
