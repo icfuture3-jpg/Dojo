@@ -1,6 +1,6 @@
 import { CONTENT, NEW_RIVALS, EVENT_IDS, scheduledEvent, type ContentId } from "./content-catalog";
 import { z } from 'zod';
-import { awardActivity, dayKey, levelInfo, peekCost, recordMatchStreak, type Profile, type Reward } from './economy';
+import { grantTournamentGis, TOURNAMENT_GIS, awardActivity, dayKey, levelInfo, peekCost, recordMatchStreak, type Profile, type Reward } from './economy';
 import { beats, MOVES, RIVALS, TOWER_POOL, towerRival, type Move } from './rps';
 import { challengeKind, type ChallengeKind, type ChallengeRun } from './challenge-state';
 
@@ -63,6 +63,9 @@ function settle(p: Profile, success: boolean, now: number): Profile {
   }
   if (!success) return p;
   c.clears[run.kind] = (c.clears[run.kind] ?? 0) + 1;
+  const rewardGi = TOURNAMENT_GIS.find(gi => gi.tournament === run.kind);
+  if (rewardGi && !p.owned.includes(rewardGi.id)) run.feedback += ` Earned ${rewardGi.name}!`;
+  grantTournamentGis(p);
   const key = run.eventKey || (run.kind === 'daily' ? `daily:${run.day}` : run.kind);
   if (c.claimed.includes(key)) { run.feedback += ' Practice clear — first-clear reward already collected.'; return p; }
   c.claimed.push(key);
