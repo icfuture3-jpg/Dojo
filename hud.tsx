@@ -17,6 +17,7 @@ import type { CSSProperties } from "react";
 import {
   MOVES,
   roundBeatMs,
+  dailyRival,
   towerRival,
   MOVE_ICON,
   RIVALS,
@@ -58,7 +59,7 @@ const dailyBan = (): Move => MOVES[dailySeed() % 3] as Move;
 function rivalFor(mode: Mode, lvl: number): Rival {
   if (mode === "rescue") return TOWER_POOL[(RESCUES[lvl] ?? RESCUES[0]!).invader] as Rival;
   if (mode === "tower") return towerRival(lvl);
-  if (mode === "daily") return TOWER_POOL[dailySeed() % TOWER_POOL.length] as Rival;
+  if (mode === "daily") return dailyRival(TOWER_POOL[dailySeed() % TOWER_POOL.length]!, dailyBan());
   return RIVALS[lvl] as Rival;
 }
 function rivalLookFor(mode: Mode, lvl: number): Look {
@@ -643,6 +644,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 14, opacity: 0.8, letterSpacing: 3 }}>{mode === "rescue" ? `RESCUE · ${(RESCUES[level] ?? RESCUES[0]!).dojo.toUpperCase()}` : mode === "tower" ? `TOWER · FLOOR ${level + 1}` : mode === "daily" ? `DAILY CHALLENGE · NO ${dailyBan().toUpperCase()}` : `MATCH ${level + 1} OF ${RIVALS.length}`}</div>
               <div style={{ fontSize: 26, color: "#f1c40f" }}>{rival.title}</div>
+              {mode === "daily" && <div style={{ fontSize: 14 }}>Banned hand applies to both fighters.</div>}
             </div>
             <div style={{ textAlign: "right" }}><div style={{ fontSize: 22 }}>{rival.name.toUpperCase()}</div><div style={{ display: "flex", justifyContent: "flex-end" }}>{pips(score.r, "#e74c3c")}</div></div>
           </div>
