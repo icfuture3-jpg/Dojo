@@ -8,11 +8,15 @@ it('offers interactive board breaking for the defeated player', () => {
  expect(html).toContain('five attempts');
  expect(html).toContain('0 boards broken');
  expect(html).toContain('Custom fighter');
+ expect(html.match(/aria-label="Timing meter"/g)).toHaveLength(1);
+ expect(html).toContain('data-speed="1.0"');
+ expect(html).not.toContain('STRIKE — SPACE</button>');
 });
 it('shows the defeated rival training without granting player rewards', () => {
  const html = renderToStaticMarkup(<TrainingGame automatic fighterName="Mirage Mei" strength={2} avatar={<div>Rival</div>} onDone={()=>{}} />);
  expect(html).toContain('Mirage Mei');
- expect(html).not.toContain('>STRIKE<');
+ expect(html).not.toContain('STRIKE — SPACE');
+ expect(html).not.toContain('START TRAINING — SPACE');
  expect(html).toContain('Watch');
 });
 
