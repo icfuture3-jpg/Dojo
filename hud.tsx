@@ -708,7 +708,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
           <div className="saved-fighter-identity"><div className="saved-fighter-standing" aria-label="Your saved custom character standing in the dojo">{myFig.avatar}</div><div className="profile-summary">{prof.name || 'Your character'} · Level {myLevel} · {prof.xp} XP · <Coin/> {prof.coins} coins · {prof.gems} diamonds · {RANKS[rankIndex(prof.rp)]!.name} ({prof.rp} RP) · Strength {prof.training.strength}</div></div>
           <div className="title-profile"><ProfileBar p={prof}/></div>
           <MenuRow onOpen={setScreen} />
-          <div className="title-actions"><button onClick={() => setAcademyOpen(true)}>TRAINING HALL</button><button onClick={() => setChallengeOpen(true)}>CHALLENGES & EVENTS</button><button onClick={() => { sfx.gong(); begin("ladder", 0); }}>ENTER THE DOJO</button></div>
+          <div className="title-actions"><button onClick={() => setAcademyOpen(true)}>TRAINING HALL</button><button onClick={() => { sfx.gong(); begin("ladder", 0); }}>ENTER THE DOJO</button></div>
           <div className="title-actions">
             <button onClick={() => begin("tower",0)}>ENDLESS TOWER (best {prof.stats.tower})</button>
             <button onClick={() => setRescuePick(true)}>RESCUE DOJOS ({prof.stats.rescued}/{RESCUES.length})</button>
