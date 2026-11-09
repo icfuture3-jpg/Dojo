@@ -97,12 +97,18 @@ it('daily UTC rollover expires yesterday’s unfinished run without rewards',()=
 });
 it('survival continues with tighter timing and rewards only newly reached personal-best wins',()=>{
  let p=start('survival');for(let i=0;i<6;i++)p=round(p);expect(p.challenges.run!.wins).toBe(2);expect(choiceWindow(p.challenges.run!)).toBeLessThan(7200);const coins=p.coins;
- p=send(p,'finish');expect(p.challenges.survivalBest).toBe(2);expect(p.challenges.survivalPaid).toBe(2);expect(p.coins).toBe(coins+30);
+ p=send(p,'finish');expect(p.challenges.survivalBest).toBe(2);expect(p.challenges.survivalPaid).toBe(2);expect(p.coins).toBe(coins);
  let repeat=start('survival','repeat',p);for(let i=0;i<3;i++)repeat=round(repeat);repeat=send(repeat,'finish');expect(repeat.coins).toBe(p.coins);
  let best=start('survival','new-best',repeat);for(let i=0;i<9;i++)best=round(best);best=send(best,'finish');expect(best.coins).toBe(p.coins+15);expect(best.challenges.survivalBest).toBe(3);
 });
-it('survival loss settles the record reward and repeat settlement is ignored',()=>{
- let p=start('survival');for(let i=0;i<3;i++)p=round(p);for(let i=0;i<3;i++)p=round(p,'lose');expect(p.challenges.survivalBest).toBe(1);expect(p.challenges.run!.phase).toBe('failed');expect(send(p,'finish')).toBe(p);
+it('survival pays new records on wins, never on a loss, and ignores repeat settlement',()=>{
+ let p=start('survival'); const coins=p.coins;
+ for(let i=0;i<3;i++)p=round(p);
+ expect(p.coins).toBe(coins+15); expect(p.challenges.survivalPaid).toBe(1);
+ const beforeLoss=p;
+ for(let i=0;i<3;i++)p=round(p,'lose');
+ expect([p.coins,p.gems,p.xp]).toEqual([beforeLoss.coins,beforeLoss.gems,beforeLoss.xp]);
+ expect(p.challenges.survivalBest).toBe(1);expect(p.challenges.run!.phase).toBe('failed');expect(send(p,'finish')).toBe(p);
 });
 it('survival difficulty has a safe timing floor and legal rivals even on high records',()=>{
  const p=start('survival');p.challenges.run!.wins=10000;expect(choiceWindow(p.challenges.run!)).toBe(4800);expect(MOVES).toContain(plannedThrow(p.challenges.run!));

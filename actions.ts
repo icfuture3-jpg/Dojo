@@ -32,13 +32,14 @@ function applyActionResult(previous: Profile, kind: string, raw: unknown, now: n
     const eligible = kind === 'matchDone' || (result.data as economy.ModeResult).mode !== 'spectate';
     // Commit the completion, box/loss entitlement, and training counter together.
     if(eligible) economy.recordMatchStreak(next,result.data.won);
-    return checkExpansionAchievements({
+    const completed = {
       ...next,
       completedResults: [...previous.completedResults, id.data.completionId],
       training: { ...next.training, matches: next.training.matches + Number(eligible) },
       freeBoxes: next.freeBoxes + Number(eligible && result.data.won),
       lossTrainingPending: next.lossTrainingPending + Number(eligible && !result.data.won),
-    });
+    };
+    return eligible && !result.data.won ? completed : checkExpansionAchievements(completed);
   }
   switch (kind) {
     case 'dismissNotice': {
@@ -47,7 +48,7 @@ function applyActionResult(previous: Profile, kind: string, raw: unknown, now: n
         ? { ...previous, seenNotice: r.data.n } : previous;
     }
     case 'academy': return applyAcademy(previous,raw,now,random);
-    case 'challenge': { const next=applyChallenge(previous,raw,now); return next===previous?previous:checkExpansionAchievements(next); }
+    case 'challenge': { const next=applyChallenge(previous,raw,now); return next===previous || next.challenges.run?.phase === 'failed' ? next : checkExpansionAchievements(next); }
     case 'audio': { const r = z.object({ music: z.number().min(0).max(1), sfx: z.number().min(0).max(1) }).safeParse(raw); return r.success ? { ...previous, audio: r.data } : previous; }
     case 'potDone': { const r = pot.safeParse(raw); return r.success ? economy.savePotScore(previous, r.data.mode, r.data.hits) ?? previous : previous; }
     case 'trainingDone':
@@ -72,8 +73,13 @@ function applyActionResult(previous: Profile, kind: string, raw: unknown, now: n
   }
 }
 
-/** All successful gameplay updates can unlock trophies, including academy and pots. */
+/** Successful gameplay updates can unlock trophies; losing a match never pays them. */
 export function applyAction(previous: Profile, kind: string, raw: unknown, now: number, random = 0): Profile {
   const next = applyActionResult(previous, kind, raw, now, random);
-  return next === previous ? previous : economy.collectTrophies(next);
+  if (next === previous) return previous;
+  const result = kind === 'matchDone' ? economy.matchResultSchema.safeParse(raw)
+    : kind === 'modeDone' ? economy.modeResultSchema.safeParse(raw) : null;
+  if (result?.success && !result.data.won && !('mode' in result.data && result.data.mode === 'spectate')) return next;
+  if (kind === 'challenge' && next.challenges.run?.phase === 'failed') return next;
+  return economy.collectTrophies(next);
 }

@@ -102,3 +102,24 @@ it('only acknowledges the current notice, once, without changing rewards', () =>
   expect(next).toEqual({ ...p, seenNotice: p.last.n });
   expect(applyAction(next, 'dismissNotice', { n: p.last.n }, now)).toBe(next);
 });
+
+it('records losses without awarding threshold trophies, missions, achievements or boxes', () => {
+ const p = fresh();
+ p.stats.played = 4; p.stats.rounds = 14; p.stats.won = 10;
+ p.matchStreak = 4;
+ const next = applyAction(p, 'matchDone', {...loss, roundsWon:2}, now);
+ expect([next.coins, next.gems, next.xp, next.trophies, next.done, next.expansionAchievements, next.freeBoxes]).toEqual(
+  [p.coins, p.gems, p.xp, p.trophies, p.done, p.expansionAchievements, p.freeBoxes]);
+ expect(next.matchStreak).toBe(0);
+ expect(next.stats.played).toBe(5);
+ expect(next.stats.rounds).toBe(16);
+ expect(next.completedResults).toContain(loss.completionId);
+ expect(applyAction(parseProfile(next), 'matchDone', loss, now)).toEqual(parseProfile(next));
+});
+it.each(['tower', 'rescue', 'daily'] as const)('does not collect pending trophies or achievements on a %s loss', mode => {
+ const p = fresh(); p.stats.played = 5; p.stats.won = 10;
+ const next = applyAction(p, 'modeDone', {completionId:`loss-${mode}`, mode, floor:0, won:false}, now);
+ expect([next.coins, next.gems, next.xp, next.trophies, next.expansionAchievements, next.freeBoxes]).toEqual(
+  [p.coins, p.gems, p.xp, p.trophies, p.expansionAchievements, p.freeBoxes]);
+ expect(next.lossTrainingPending).toBe(1);
+});
