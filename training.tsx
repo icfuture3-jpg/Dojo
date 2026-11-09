@@ -96,7 +96,7 @@ export function TrainingGame({ strength, avatar, onDone, fighterName = "Your fig
     {!ready && <div style={{maxWidth:540,lineHeight:1.6}}>
       <strong>How to break boards</strong>
       <div>After a loss, practice with your fighter to build strength. Watch the white marker move across the bar. Press <strong>SPACE</strong> or click <strong>STRIKE</strong> while it is inside the gold zone to break a board.</div>
-      <div>After every chop, the gold zone shrinks and the marker speeds up—even if you miss. You get five attempts, with no time limit between strikes. Every session earns strength and XP—even if you miss. Hold-free controls: press once for each strike.</div>
+      <div>After every chop, the gold zone shrinks and the marker speeds up—even if you miss. You get five attempts, with no time limit between strikes. Hold-free controls: press once for each strike.</div>
       <button type="button" onClick={startTraining} style={{padding:'12px 28px',fontSize:20,marginTop:12}}>START TRAINING — SPACE</button>
     </div>}
     <svg key={`boards-${chop}-${impact}`} style={{overflow:"visible",animation:impact ? "dojoShake .35s ease-out" : undefined}} width="300" height="155" viewBox="0 -68 220 140" role="img" aria-label={`${hits} boards broken`}>
