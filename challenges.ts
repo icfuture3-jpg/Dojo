@@ -56,10 +56,8 @@ function settle(p: Profile, success: boolean, now: number): Profile {
   c.bestStreak = Math.max(c.bestStreak, run.wins);
   if (run.kind === 'survival') {
     c.survivalBest = Math.max(c.survivalBest, run.wins);
-    const gain = Math.max(0, run.wins - c.survivalPaid);
-    c.survivalPaid = Math.max(c.survivalPaid, run.wins);
-    run.feedback += gain ? ` New record: ${gain} newly rewarded win(s).` : ' No new record reward this run.';
-    return gain ? awardActivity(p, { coins: gain * 15, xp: gain * 8, gems: 0 }, 'Survival personal best') : p;
+    run.feedback += ' Rewards for personal-best wins were collected at each victory.';
+    return p;
   }
   if (!success) return p;
   c.clears[run.kind] = (c.clears[run.kind] ?? 0) + 1;
@@ -152,7 +150,15 @@ export function applyChallenge(input: Profile, raw: unknown, now: number): Profi
     if (!valid || !focus) { run.feedback += ' Match won, but the hand objective was not met.'; return settle(p, false, now); }
     const defeated=challengeRival({...run,wins:run.wins-1});if('defeat' in defeated)run.feedback+=` ${defeated.defeat}`;
     p.challenges.bestStreak = Math.max(p.challenges.bestStreak, run.wins);
-    if (run.kind === 'survival' || (run.kind === 'perfect' && run.wins < 3) || (spec && run.wins < spec.opponents.length)) { run.phase = 'between'; run.feedback += ` Match victory ${run.wins}! Next: ${challengeRival(run).name}.`; return p; }
+    if (run.kind === 'survival') {
+      const gain = Math.max(0, run.wins - p.challenges.survivalPaid);
+      p.challenges.survivalBest = Math.max(p.challenges.survivalBest, run.wins);
+      p.challenges.survivalPaid = Math.max(p.challenges.survivalPaid, run.wins);
+      run.phase = 'between';
+      run.feedback += ` Match victory ${run.wins}! Next: ${challengeRival(run).name}.`;
+      return gain ? awardActivity(p, { coins: gain * 15, xp: gain * 8, gems: 0 }, 'Survival personal best') : p;
+    }
+    if ((run.kind === 'perfect' && run.wins < 3) || (spec && run.wins < spec.opponents.length)) { run.phase = 'between'; run.feedback += ` Match victory ${run.wins}! Next: ${challengeRival(run).name}.`; return p; }
     return settle(p, true, now);
   }
   if(spec?.roundLimit && run.matchTurn >= spec.roundLimit){run.feedback+=' Throw limit reached.';return settle(p,false,now);}

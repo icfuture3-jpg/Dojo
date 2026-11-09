@@ -567,18 +567,20 @@ export function applyMatch(input: Profile, r: MatchResult, now: number): Profile
   bump("champs", champ ? 1 : 0);
   bump("comeback", comeback ? 1 : 0);
 
-  const base: Reward = won
-    ? { coins: 35 + 20 * rival + (flawless ? 25 : 0) + (champ ? 100 : 0), gems: champ ? 5 : 0, xp: 40 + 15 * rival + 10 * rounds }
-    : { coins: 4 * rounds, gems: 0, xp: 10 * rounds + 5 };
-  grant(p, base, lines);
+  if (won) {
+    const base: Reward = { coins: 35 + 20 * rival + (flawless ? 25 : 0) + (champ ? 100 : 0), gems: champ ? 5 : 0, xp: 40 + 15 * rival + 10 * rounds };
+    grant(p, base, lines);
+  }
   const before = rankIndex(p.rp);
   p.rp = Math.max(0, p.rp + (won ? 12 + 4 * rival : -10));
   const after = rankIndex(p.rp);
   lines.push(`${won ? "+" : ""}${won ? 12 + 4 * rival : -10} rank points (${RANKS[after]?.name})`);
   if (after > before) lines.push(`RANK UP: ${RANKS[after]?.name}!`);
-  checkMissions(p, lines);
-  checkTrophies(p, lines);
-  notice(p, won ? "Victory rewards" : "Match rewards", lines);
+  if (won) {
+    checkMissions(p, lines);
+    checkTrophies(p, lines);
+  }
+  notice(p, won ? "Victory rewards" : "Match lost", lines);
   return p;
 }
 
@@ -609,7 +611,6 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
       lines.push(boss ? `Floor ${f + 1} cleared: BOSS BONUS!` : `Floor ${f + 1} cleared`);
       notice(p, "Tower reward", lines);
     } else {
-      grant(p, { coins: 2 * f, gems: 0, xp: 5 + f }, lines);
       lines.push(`The climb ends on floor ${f + 1}. Best: floor ${p.stats.tower}`);
       notice(p, "Tower run over", lines);
     }
@@ -626,7 +627,6 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
       lines.push(`${m.dojo} is saved!`);
       notice(p, "Dojo rescued", lines);
     } else {
-      grant(p, { coins: 5, gems: 0, xp: 5 }, lines);
       lines.push(`${m.dojo} still needs you.`);
       notice(p, "Dojo in danger", lines);
     }

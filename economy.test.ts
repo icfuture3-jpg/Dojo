@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { applyLogin, applyMatch, applyMode, buyItem, parseProfile } from './economy';
+import { activeMissions, missionKey, applyLogin, applyMatch, applyMode, buyItem, parseProfile } from './economy';
 import { DEFAULT_LOOK, LOOK_COUNTS, seededLook } from './look';
 const now = Date.UTC(2026, 10, 2);
 const fresh = () => applyLogin(parseProfile({}), now);
@@ -118,4 +118,40 @@ it('paid coin boxes debit once and return a visible prize notice',()=>{
  expect(next.last.lines.length).toBeGreaterThan(0);
  expect(next.coins).toBeLessThan(p.coins);
  expect(p.coins).toBe(1000);
+});
+
+it.each([0, 1, 2])('does not reward a tournament loss with %i rounds won', roundsWon => {
+ const p = fresh();
+ p.rp = 100;
+ p.stats.played = 4;
+ p.stats.rounds = 14;
+ const next = applyMatch(p, {rival:3, won:false, roundsWon, roundsLost:3, comeback:false, perfectRun:false}, now);
+ expect([next.coins, next.gems, next.xp, next.trophies, next.done]).toEqual([p.coins, p.gems, p.xp, p.trophies, p.done]);
+ expect(next.stats.played).toBe(5);
+ expect(next.stats.rounds).toBe(14 + roundsWon);
+ expect(next.rp).toBe(90);
+ expect(next.last.title).toBe('Match lost');
+ expect(next.last.lines.some(line => /\+.*(coins|gems|XP)/.test(line))).toBe(false);
+});
+it.each(['tower', 'rescue', 'daily'] as const)('does not reward a %s loss', mode => {
+ const p = fresh();
+ p.stats.tower = 5;
+ const next = applyMode(p, {mode, floor:mode === 'tower' ? 5 : 0, won:false}, now)!;
+ expect([next.coins, next.gems, next.xp]).toEqual([p.coins, p.gems, p.xp]);
+ expect(next.stats.tower).toBe(p.stats.tower);
+ expect(next.stats.rescued).toBe(p.stats.rescued);
+});
+
+it('tracks mission progress on a loss but only pays it on a subsequent win', () => {
+ const p = fresh();
+ const mission = activeMissions(p).find(m => m.metric === 'rounds')!;
+ const key = missionKey(p, mission);
+ p.prog[key] = mission.target - 1;
+ const lost = applyMatch(p, {rival:0, won:false, roundsWon:1, roundsLost:3, comeback:false, perfectRun:false}, now);
+ expect(lost.prog[key]).toBe(mission.target);
+ expect(lost.done).not.toContain(key);
+ expect([lost.coins, lost.gems, lost.xp]).toEqual([p.coins, p.gems, p.xp]);
+ const won = applyMatch(lost, {rival:0, won:true, roundsWon:3, roundsLost:1, comeback:false, perfectRun:false}, now);
+ expect(won.done).toContain(key);
+ expect(won.coins).toBeGreaterThan(lost.coins);
 });
