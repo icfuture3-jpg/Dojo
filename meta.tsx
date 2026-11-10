@@ -24,7 +24,7 @@ import {
 import { MASTER_LOOKS, BODY_NAMES, EYE_COLORS, EYE_NAMES, HAIR_COLORS, HAIR_COLOR_NAMES, HAIR_NAMES, HEAD_NAMES, LOOK_COUNTS, OUTFIT_COLORS, OUTFIT_COLOR_NAMES, OUTFIT_COUNT, PATTERN_NAMES, SKINS, patternMinLevel, type Look } from "./look";
 import { type DojoEvent, setLookMsg, buyItemMsg, equipItemMsg, openBoxMsg, refreshBoardMsg, setNameMsg } from "./net";
 
-export type Screen = "create" | "shop" | "trophies" | "ranks";
+export type Screen = "create" | "shop" | "trophies" | "ranks" | "donate";
 
 const GOLD = "#f1c40f";
 const RARITY_COLOR = { common: "#bdc3c7", rare: "#5dade2", epic: "#a569bd", legendary: "#f39c12" };
@@ -77,6 +77,7 @@ export function MenuRow({ onOpen }: { onOpen(screen: Screen): void }) {
     ["shop", "🛍 SHOP"],
     ["trophies", "🏆 TROPHIES"],
     ["ranks", "◆ RANKS"],
+    ["donate", "♥ DONATE"],
   ];
   return (
     <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -101,6 +102,22 @@ function Frame({ title, onClose, p, children }: { title: string; onClose(): void
     </div>
   );
   return typeof document === 'undefined' ? content : createPortal(content, document.body);
+}
+
+export function DonatePanel({ p, onClose }: { p: Profile; onClose(): void }) {
+  return (
+    <Frame title="Support the Dojo" onClose={onClose} p={p}>
+      <div style={{ maxWidth: 560, margin: "24px auto", padding: 20, border: `2px solid ${GOLD}`, borderRadius: 10, background: "#2a1a0e", textAlign: "center" }}>
+        <h2 style={{ color: GOLD, marginTop: 0 }}>Enjoying Dojo of the Three Hands?</h2>
+        <p style={{ fontSize: 18, lineHeight: 1.6 }}>Help support the creator with an optional donation. Thank you for playing and supporting the dojo!</p>
+        <a className="donate-link" href="https://paypal.me/DemonicaFarr" target="_blank" rel="noopener noreferrer" style={{ ...menuButton, display: "inline-block", boxSizing: "border-box", maxWidth: "100%", textDecoration: "none", lineHeight: 1.5 }}>
+          Donate via PayPal
+        </a>
+        <p style={{ lineHeight: 1.5 }}>Opens PayPal in a new tab. Choose your amount and complete your payment securely on PayPal.</p>
+        <p style={{ fontSize: 14, opacity: 0.8 }}>Donations are voluntary and do not unlock in-game items or rewards. No payment details are collected by this game.</p>
+      </div>
+    </Frame>
+  );
 }
 
 const SLOT_TABS: { id: Slot | "upgrades" | "boxes"; label: string }[] = [
