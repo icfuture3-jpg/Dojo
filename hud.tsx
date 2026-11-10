@@ -30,6 +30,7 @@ import {
 import { dayKey, findItem, levelInfo, parseProfile, peekCost, RANKS, rankIndex } from "./economy";
 import {
   MenuRow,
+  DonatePanel,
   ProfileBar,
   RanksPanel,
   RewardPopup,
@@ -803,6 +804,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
           <Fighter gi={look.outfit === -1 ? equipGi : undefined} look={look.outfit === -1 && equipGi?.pattern !== undefined ? {...look,pattern:equipGi.pattern} : look} color={(look.outfit >= 0 ? OUTFIT_COLORS[look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state="idle" />
         )} />
       )}
+      {screen === "donate" && <DonatePanel p={prof} onClose={() => setScreen(null)} />}
       {screen === "shop" && <ShopPanel avatar={myFig.avatar} p={prof} dispatch={dispatch} onClose={() => setScreen(null)} />}
       {screen === "trophies" && <TrophiesPanel p={prof} onClose={() => setScreen(null)} />}
       {screen === "ranks" && <RanksPanel avatar={myFig.avatar} p={prof} boardData={boardData} boardId={boardId} dispatch={dispatch} onClose={() => setScreen(null)} />}
