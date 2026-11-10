@@ -85,6 +85,9 @@ export function MenuRow({ onOpen }: { onOpen(screen: Screen): void }) {
           {label}
         </button>
       ))}
+      <a href="https://buy.stripe.com/3cI7sL3oP74rbtf1vG2wU00" target="_blank" rel="noopener noreferrer" aria-label="Support the Dojo — opens Stripe checkout in a new tab" title="Optional support via Stripe. Opens in a new tab; no in-game rewards." style={{ ...menuButton, display: "inline-block", boxSizing: "border-box", maxWidth: "100%", textAlign: "center", textDecoration: "none", lineHeight: 1.5 }}>
+        SUPPORT THE DOJO
+      </a>
     </div>
   );
 }
