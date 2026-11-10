@@ -7,5 +7,3 @@
 .trial-controls{position:sticky;bottom:0;background:#152620;padding:16px 0;border-top:1px solid #a3a06d;z-index:10}.trial-controls p{margin:8px 0}.trial-controls .trial-hands button{min-height:52px}
 .trial-model{width:200px;height:300px;transform-origin:top left}.trial-art{flex-shrink:0}@media(max-width:600px){.trial-art>.trial-model{transform:scale(.65);transform-origin:top left}}
 .trial-scenery{position:absolute;inset:0;z-index:-1;opacity:.45;overflow:hidden;pointer-events:none}.challenge-card strong{color:#e6c777}
-
-.donate-link:focus-visible{outline:3px solid #fff;outline-offset:3px}
