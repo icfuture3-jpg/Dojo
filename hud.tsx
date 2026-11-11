@@ -330,7 +330,7 @@ const btn: CSSProperties = {
   borderRadius: 6, letterSpacing: 1,
 };
 
-export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools }: { onSaveTools?():void; dispatch(e: DojoEvent): void; profileData: string; boardData: string; boardId: string }) {
+export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatch(e: DojoEvent): void; profileData: string; boardData: string; boardId: string }) {
   const prof = useMemo(() => parseProfile(profileData ? JSON.parse(profileData) : {}), [profileData]);
   const [trainingNext, setTrainingNext] = useState<Phase>("matchEnd");
   const finishCutscene = () => { setTrainingNext(cut.next); setPhase(prof.equip.finisher ? "finisher" : cut.kind === "lose" ? "loserTraining" : cut.next); };
@@ -714,7 +714,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
             <button onClick={() => setRescuePick(true)}>RESCUE DOJOS ({prof.stats.rescued}/{RESCUES.length})</button>
             <button disabled={prof.dailyDone === todayKey()} onClick={() => begin("daily",0)}>CLASSIC DAILY: NO {dailyBan().toUpperCase()}</button>
             <button onClick={() => setPhase("pots")}>TREE POT CHALLENGE — 3 MODES</button>
-            <button onClick={() => setSettingsOpen(true)}>AUDIO SETTINGS</button>{onSaveTools&&<button onClick={onSaveTools}>SAVE TOOLS</button>}
+            <button onClick={() => setSettingsOpen(true)}>AUDIO SETTINGS</button>
           </div><p className="expansion-note">Progress and records are on this device. One free Peek per match; extra Peeks cost coins. Original Guard, loss training, mystery boxes and all game modes remain available.</p>
         </div></section>, document.body)}
       {academyOpen && <Suspense fallback={createPortal(<section className="expansion-screen" role="status">Loading Training Hall…</section>,document.body)}><AcademyHall p={prof} dispatch={dispatch} onExit={()=>setAcademyOpen(false)} onShop={()=>{setAcademyOpen(false);setScreen("shop");}} onSound={()=>sfx.gong()} fighter={master=>master==='self'?myFig.avatar:<Fighter look={MASTER_LOOKS.find(m=>m.name.endsWith(master))?.look} color={master==='Bao'?'#a52b27':'#317e96'} belt="#202020" move={null} state="idle"/>}/></Suspense>}
