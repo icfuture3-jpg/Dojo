@@ -11,3 +11,11 @@ it('loads AdSense once in the head with the requested publisher', () => {
   expect(script).toContain('crossorigin="anonymous"');
   expect(html.slice(html.indexOf('<head>'), html.indexOf('</head>'))).toContain(script);
 });
+
+it('includes the AdSense account meta tag exactly once in the head', () => {
+  const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+  const tags = html.match(/<meta\b[^>]*name="google-adsense-account"[^>]*>/g);
+  const expected = '<meta name="google-adsense-account" content="ca-pub-7490501106653664">';
+  expect(tags).toEqual([expected]);
+  expect(html.slice(html.indexOf('<head>'), html.indexOf('</head>'))).toContain(expected);
+});

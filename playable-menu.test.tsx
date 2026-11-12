@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ChallengeDojo } from './challenge-dojo';
+import { GameHud } from './hud';
 import { CHALLENGES, applyChallenge, dailyAvailable, entryReason } from './challenges';
 import { parseProfile } from './economy';
 import { TOURNAMENT_IDS } from './content-catalog';
@@ -25,4 +26,13 @@ it('new and advanced profiles see only available real challenges, without empty 
 it('an active saved trial reopens its actual round rather than a page full of unavailable cards',()=>{
  const p=applyChallenge(parseProfile({}),{action:'start',kind:'perfect',id:'resume-me'},now);
  const html=menu(p);expect(html).toContain('START ROUND');expect(html).toContain('FORFEIT TRIAL');expect(html).not.toContain('ENTER CHALLENGE');expect(html).not.toContain('FINISH CURRENT RUN FIRST');
+});
+
+it('hides Challenges & Events from the main menu without hiding the other game modes',()=>{
+ vi.stubGlobal('window',{innerWidth:1280,innerHeight:800});
+ vi.stubGlobal('document',{body:{}});
+ const html=renderToStaticMarkup(<GameHud profileData={JSON.stringify(parseProfile({}))} boardData="[]" boardId="local" dispatch={()=>{}}/>);
+ expect(html).toContain('aria-label="Dojo main menu"');
+ expect(html).not.toMatch(/<button[^>]*>[^<]*(?:CHALLENGES|EVENTS)/);
+ for(const label of ['TRAINING HALL','ENTER THE DOJO','ENDLESS TOWER','RESCUE DOJOS','CLASSIC DAILY','TREE POT CHALLENGE'])expect(html).toContain(label);
 });
