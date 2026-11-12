@@ -1,3 +1,4 @@
+import { CONTENT } from "./content-catalog";
 import { Coin, OutfitArt } from "./catalog-art";
 import { Pattern } from "./lookart";
 import { ShopUpgrades } from "./shop-upgrades";
@@ -9,8 +10,6 @@ import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import {
   boxOdds,
-  BOX_COST,
-  BOX_GEM_COST,
   ITEMS,
   RANKS,
   TROPHIES,
@@ -153,6 +152,8 @@ function ItemCard({ it, p, dispatch, onPreview }: { it: Item; p: Profile; dispat
         <button type="button" disabled={equipped} style={equipped ? { ...small, background: "#1e8449" } : small} onClick={() => dispatch({ type: "dojo.send", message: equipItemMsg({ id: it.id }) })}>
           {equipped ? "EQUIPPED" : "EQUIP"}
         </button>
+      ) : it.tournament ? (
+        <div style={{fontSize:12,textAlign:"center"}}>TOURNAMENT EXCLUSIVE · Win {CONTENT[it.tournament].name} to earn</div>
       ) : locked ? (
         <div style={{ ...disabledBtn, background: "#333", border: "2px solid #666" }}>{rankLocked ? `🔒 ${RANKS[it.minRank]?.name} rank` : `🔒 Level ${it.minLevel}`}</div>
       ) : (
@@ -185,17 +186,14 @@ export function ShopPanel({ p, dispatch, onClose, avatar }: { p: Profile; dispat
           <div style={{ width: 240, textAlign: "center", background: "#2a1a0e", padding: 18, borderRadius: 10, border: "2px solid #a569bd" }}>
             <div style={{ fontSize: 72 }}>🎁</div>
             <div style={{ fontSize: 20 }}>Mystery Box</div>
-            <div style={{ fontSize: 13, opacity: 0.75, margin: "6px 0 10px" }}>A random outfit, headband, aura or finisher. Duplicates refund coins.</div>
+            <div style={{ fontSize: 13, opacity: 0.75, margin: "6px 0 10px" }}>A random outfit, headband, aura or finisher. Duplicates award bonus coins.</div>
             {p.freeBoxes > 0 && <button type="button" style={small} onClick={() => dispatch({ type: "dojo.send", message: openBoxMsg({ currency: "free" }) })}>OPEN FREE BOX ({p.freeBoxes})</button>}
-            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-              <button type="button" disabled={p.coins < BOX_COST} style={p.coins >= BOX_COST ? small : disabledBtn} onClick={() => dispatch({ type: "dojo.send", message: openBoxMsg({ currency: "coins" }) })}><Coin/> {BOX_COST}</button>
-              <button type="button" disabled={p.gems < BOX_GEM_COST} style={p.gems >= BOX_GEM_COST ? small : disabledBtn} onClick={() => dispatch({ type: "dojo.send", message: openBoxMsg({ currency: "gems" }) })}>💎 {BOX_GEM_COST}</button>
-            </div>
+            <p>Earn a mystery box by winning a match or game mode. Boxes cannot be bought with coins or gems.</p>
           </div>
           <div style={{ fontSize: 14, lineHeight: 1.8 }}>
             Current rank odds: {Object.entries(boxOdds(p.rp)).map(([rarity, chance]) => `${rarity}: ${chance.toFixed(1)}%`).join(" · ")}. Items above your rank cannot drop.
             <br />
-            You have opened {p.stats.boxes} boxes. Free victory boxes: {p.freeBoxes}.
+            You have opened {p.stats.boxes} boxes. Earned victory boxes: {p.freeBoxes}.
           </div>
         </div>
       ) : (
@@ -285,6 +283,7 @@ export function RanksPanel({ p, boardData, boardId, dispatch, onClose, avatar }:
 }
 
 export function RewardPopup({ p, onClose }: { p: Profile; onClose(): void }) {
+  const lost = ['Match lost', 'Tower run over', 'Dojo in danger', 'Daily challenge'].includes(p.last.title);
   const box = p.last.box ? findItem(p.last.box) : undefined;
   const content = (
     <div style={{ position: "fixed", inset: 0, zIndex: 600, overflowY: "auto", padding: 12, background: "#000b", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "auto", fontFamily: serif, color: "#fff6dc" }}>
@@ -304,11 +303,11 @@ export function RewardPopup({ p, onClose }: { p: Profile; onClose(): void }) {
           </div>
         ))}
         <div aria-label="Current balance" style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${GOLD}`, fontSize: 16 }}>
-          <div>Already added to your balance</div>
+          <div>{lost ? 'No rewards for this loss. Current balance:' : 'Already added to your balance'}</div>
           <strong>{`${p.coins} coins · ${p.gems} gems · ${p.xp} XP`}</strong>
-          <div style={{ fontSize: 13, marginTop: 6 }}>NICE! closes this notice; it does not claim another reward.</div>
+          {!lost && <div style={{ fontSize: 13, marginTop: 6 }}>NICE! closes this notice; it does not claim another reward.</div>}
         </div>
-        <button type="button" style={{ ...menuButton, marginTop: 10 }} onClick={onClose}>NICE!</button>
+        <button type="button" style={{ ...menuButton, marginTop: 10 }} onClick={onClose}>{lost ? 'CLOSE' : 'NICE!'}</button>
       </div>
     </div>
   );

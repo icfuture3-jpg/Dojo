@@ -3,13 +3,18 @@ import { potMotion, MOTION_MS, CONTACT } from "./pot-motion";
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 export type PotMode = 'throw' | 'jump' | 'chop';
 export const POT_MODES: Record<PotMode,{name:string;instructions:string;action:string}> = {
- throw:{name:'Stone Throw',instructions:'Aim at the hanging pot. Press Space or THROW when the moving crosshair is inside the gold zone.',action:'THROW'},
+ throw:{name:'Stone Throw',instructions:'Step toward the tree, wind up, and throw a stone at the hanging pot. Press Space or THROW when the moving crosshair is inside the gold zone.',action:'THROW'},
  jump:{name:'Jump Strike',instructions:'Build your jump height. Press Space or JUMP when the height marker reaches the gold zone to fly toward the pot with an extended dragon kick.',action:'JUMP'},
- chop:{name:'Timed Chop',instructions:'Wait for the swinging pot to line up. Press Space or CHOP inside the gold zone to bring your hand down.',action:'CHOP'},
+ chop:{name:'Timed Chop',instructions:'Walk up to the swinging pot, raise your hand, and chop down. Press Space or CHOP inside the gold zone to bring your hand down.',action:'CHOP'},
 };
 export function potHit(position:number){return position>=40 && position<=60;}
 export function potSpeed(attempt:number){return 1+attempt*.2;}
 export function potPosition(elapsedMs:number,attempt:number){return (1-Math.cos(elapsedMs*potSpeed(attempt)/700))*50;}
+/** Keep the saved HTML/SVG fighter in an HTML layer, not an SVG foreignObject. */
+export function PotFighter({avatar,mode,progress,moving}:{avatar:ReactNode;mode:PotMode;progress:number;moving:boolean}){
+ const pose=potMotion(mode,moving?progress:0);
+ return <div className={`pot-fighter-anchor pot-pose${pose.airborne&&moving?' pot-airborne':''}`} data-motion={moving?mode:'idle'} aria-label={moving?`${POT_MODES[mode].name} in motion`:'Challenge fighter'} style={{position:'absolute',left:`${(90+pose.x)/640*100}%`,top:`${(155+pose.y)/340*100}%`,width:'31.25%',aspectRatio:'2/3',transform:'scale(.55)',transformOrigin:'top left',pointerEvents:'none','--pot-torso':`${pose.torso}deg`,'--pot-right-leg':`${pose.rightLeg}deg`,'--pot-left-leg':`${pose.leftLeg}deg`,'--pot-right-arm':`${pose.rightArm}deg`,'--pot-left-arm':`${pose.leftArm}deg`} as import('react').CSSProperties}>{avatar}</div>;
+}
 export function TreePots({avatar,best,onSave,onExit}:{avatar:ReactNode;best:Record<PotMode,number>;onSave(mode:PotMode,hits:number):void;onExit():void}){
  const [mode,setMode]=useState<PotMode|null>(null);
  const [started,setStarted]=useState(false);
@@ -48,7 +53,9 @@ export function TreePots({avatar,best,onSave,onExit}:{avatar:ReactNode;best:Reco
  const reset=(m:PotMode)=>{setMode(m);setStarted(false);setAttempt(0);setHits(0);setAction(0);setBroken(false);setFeedback('');reported.current=false;};
  const content=<div className="activity-panel pot-panel" role="dialog" aria-label="Tree Pot Challenge" style={{position:'fixed',inset:0,zIndex:450,overflowY:'auto',background:'#102b2c',color:'#fff5d5',fontFamily:'Georgia, serif',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12,padding:16,boxSizing:'border-box',pointerEvents:'auto'}}>
  <style>{`
- .pot-pose .fighter-art{animation:none!important;transform-origin:100px 180px;transform:rotate(var(--pot-torso))}
+ .pot-fighter-anchor>.cutout-fighter{width:100%!important;height:100%!important}
+ .pot-fighter-anchor .fighter-art{width:100%;height:auto;max-width:none}
+ .pot-pose .fighter-art{animation:none!important;transform-origin:50% 60%;transform:rotate(var(--pot-torso))}
  .pot-pose .fighter-right-leg{transform-origin:123px 210px;transform:rotate(var(--pot-right-leg))}
  .pot-pose .fighter-left-leg{transform-origin:77px 210px;transform:rotate(var(--pot-left-leg))}
  .pot-pose .fighter-right-arm{transform-origin:153px 112px;transform:rotate(var(--pot-right-arm))}
@@ -70,13 +77,7 @@ export function TreePots({avatar,best,onSave,onExit}:{avatar:ReactNode;best:Reco
  {motion.rockVisible&&moving&&<g transform={`translate(${motion.rockX} ${motion.rockY})`} aria-label="Thrown stone"><circle r="10" fill="#657080" stroke="#39404b" strokeWidth="2"/></g>}
  {mode==='throw'&&!moving&&started&&<g transform={`translate(${300+position*2.6} 150)`} stroke="#9c342c" strokeWidth="2"><circle r="16" fill="none"/><path d="M-22 0H22M0-22V22"/></g>}
  </svg>
- <svg viewBox="0 0 640 340" aria-label={busy&&mode==='jump'?'Player flying toward the clay pot with an extended dragon kick':'Challenge fighter'} style={{position:'absolute',inset:0,width:'100%',height:'100%',overflow:'visible',pointerEvents:'none'}}>
- <g transform={moving?`translate(${motion.x} ${motion.y})`:undefined}>
- <foreignObject className={moving?`pot-pose${motion.airborne?' pot-airborne':''}`:undefined} x={90} y="155" width="120" height={170} style={{overflow:'visible', '--pot-torso':`${motion.torso}deg`, '--pot-right-leg':`${motion.rightLeg}deg`, '--pot-left-leg':`${motion.leftLeg}deg`, '--pot-right-arm':`${motion.rightArm}deg`, '--pot-left-arm':`${motion.leftArm}deg`} as import('react').CSSProperties}><div style={{transform:'scale(.55)',transformOrigin:'top left'}}>{avatar}</div></foreignObject>
-
-
-
- </g></svg>
+ <PotFighter avatar={avatar} mode={mode} progress={flight} moving={moving}/>
  </div>
  {!started?<button style={{padding:'14px 30px',fontSize:20}} onClick={()=>{setStarted(true);}}>START CHALLENGE</button>:<>
  <div>{attempt}/5 attempts · {hits} pots broken · Best {best[mode]}/5 · Speed {potSpeed(Math.min(attempt,4)).toFixed(1)}×</div>

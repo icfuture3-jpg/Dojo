@@ -40,6 +40,12 @@ export function randomMove(rnd: () => number): Move {
 }
 export const fairPick: Rival["pick"] = (_history, rnd) => randomMove(rnd);
 
+/** Classic Daily uses the same banned hand for both fighters. */
+export function dailyRival(rival: Rival, banned: Move): Rival {
+  const allowed = MOVES.filter(move => move !== banned);
+  return { ...rival, pick: (_history, rnd) => allowed[Math.floor(rnd() * allowed.length)]! };
+}
+
 const BASE_RIVALS: readonly Rival[] = [
   {
     name: "Brick Fist Bao",
