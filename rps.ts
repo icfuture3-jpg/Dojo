@@ -40,6 +40,34 @@ export function randomMove(rnd: () => number): Move {
 }
 export const fairPick: Rival["pick"] = (_history, rnd) => randomMove(rnd);
 
+/** Match the first-choice assistance: 50% win, 20% draw, 30% loss.
+ * When a Daily ban removes a possible result, renormalize the remaining weights.
+ */
+export function playerFavoredPick(player: Move, rnd: () => number, banned?: Move): Move {
+  const outcomes = [
+    {move: counterTo(counterTo(player)), weight: .5},
+    {move: player, weight: .2},
+    {move: counterTo(player), weight: .3},
+  ].filter(o => o.move !== banned);
+  let roll = rnd() * outcomes.reduce((sum, o) => sum + o.weight, 0);
+  for (const o of outcomes) { roll -= o.weight; if (roll < 0) return o.move; }
+  return outcomes[outcomes.length - 1]!.move;
+}
+/** One CPU hand per round: first legal choice or Peek locks it until reset. */
+export function createRoundPlan() {
+  let move: Move = "rock", locked = false;
+  return {
+    reset(initial: Move) { move = initial; locked = false; },
+    select(player: Move, rnd: () => number, banned?: Move) {
+      if (player === banned) return move;
+      if (!locked) { move = playerFavoredPick(player, rnd, banned); locked = true; }
+      return move;
+    },
+    peek() { locked = true; return move; },
+    get move() { return move; },
+  };
+}
+
 /** Classic Daily uses the same banned hand for both fighters. */
 export function dailyRival(rival: Rival, banned: Move): Rival {
   const allowed = MOVES.filter(move => move !== banned);
@@ -53,7 +81,7 @@ const BASE_RIVALS: readonly Rival[] = [
     color: "#c0392b",
     belt: "#f1c40f",
     intro: "Words are for the weak. Fists are for winners!",
-    blurb: "Rock, Paper and Scissors are equally likely. No habit-reading.",
+    blurb: "The CPU hand locks on your first choice or Peek; later choices cannot reroll it.",
     tellHonesty: 0.9,
     pick: fairPick,
   },
@@ -63,7 +91,7 @@ const BASE_RIVALS: readonly Rival[] = [
     color: "#8e44ad",
     belt: "#ecf0f1",
     intro: "Do you see my hand... or the hand I want you to see?",
-    blurb: "Rock, Paper and Scissors are equally likely. No habit-reading.",
+    blurb: "The CPU hand locks on your first choice or Peek; later choices cannot reroll it.",
     tellHonesty: 0.8,
     pick: fairPick,
   },
@@ -73,7 +101,7 @@ const BASE_RIVALS: readonly Rival[] = [
     color: "#16a085",
     belt: "#e67e22",
     intro: "Every hand has its chance. Make yours count.",
-    blurb: "Rock, Paper and Scissors are equally likely. No habit-reading.",
+    blurb: "The CPU hand locks on your first choice or Peek; later choices cannot reroll it.",
     tellHonesty: 0.75,
     pick: fairPick,
   },
@@ -83,7 +111,7 @@ const BASE_RIVALS: readonly Rival[] = [
     color: "#2c3e50",
     belt: "#d4af37",
     intro: "Three hands. One path. Show me yours.",
-    blurb: "Rock, Paper and Scissors are equally likely. No habit-reading.",
+    blurb: "The CPU hand locks on your first choice or Peek; later choices cannot reroll it.",
     tellHonesty: 0.8,
     pick: fairPick,
   },
@@ -93,9 +121,9 @@ export const RIVALS: readonly Rival[] = BASE_RIVALS.map(r => ({...r,tellHonesty:
 /** Extra challengers for the Endless Tower and the daily challenge. */
 const BASE_EXTRA: readonly Rival[] = [
   { name: "Fox Jun", title: "The Bluffer", color: "#d35400", belt: "#1abc9c", intro: "Believe my tells. I dare you.", blurb: "Her tells are often lies.", tellHonesty: 0.3, pick: fairPick },
-  { name: "Echo Kai", title: "The Copycat", color: "#2980b9", belt: "#ecf0f1", intro: "I am your shadow.", blurb: "Rock, Paper and Scissors are equally likely. No habit-reading.", tellHonesty: 0.7, pick: fairPick },
-  { name: "Storm Rin", title: "The Tempest", color: "#6c3483", belt: "#f39c12", intro: "Winners keep the storm!", blurb: "Rock, Paper and Scissors are equally likely. No habit-reading.", tellHonesty: 0.8, pick: fairPick },
-  { name: "Void Sage", title: "The Hollow One", color: "#1b2631", belt: "#e74c3c", intro: "There is no pattern. There is only you.", blurb: "Rock, Paper and Scissors are equally likely. No habit-reading.", tellHonesty: 0.6, pick: fairPick },
+  { name: "Echo Kai", title: "The Copycat", color: "#2980b9", belt: "#ecf0f1", intro: "I am your shadow.", blurb: "The CPU hand locks on your first choice or Peek; later choices cannot reroll it.", tellHonesty: 0.7, pick: fairPick },
+  { name: "Storm Rin", title: "The Tempest", color: "#6c3483", belt: "#f39c12", intro: "Winners keep the storm!", blurb: "The CPU hand locks on your first choice or Peek; later choices cannot reroll it.", tellHonesty: 0.8, pick: fairPick },
+  { name: "Void Sage", title: "The Hollow One", color: "#1b2631", belt: "#e74c3c", intro: "There is no pattern. There is only you.", blurb: "The CPU hand locks on your first choice or Peek; later choices cannot reroll it.", tellHonesty: 0.6, pick: fairPick },
 ];
 export const EXTRA_RIVALS: readonly Rival[] = BASE_EXTRA.map(r => ({...r,tellHonesty:Math.max(.35,r.tellHonesty-.08)}));
 export const TOWER_POOL: readonly Rival[] = [RIVALS[0]!, EXTRA_RIVALS[0]!, RIVALS[1]!, EXTRA_RIVALS[1]!, RIVALS[2]!, EXTRA_RIVALS[2]!, RIVALS[3]!, EXTRA_RIVALS[3]!];

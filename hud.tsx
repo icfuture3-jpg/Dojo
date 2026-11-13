@@ -17,6 +17,7 @@ import type { CSSProperties } from "react";
 import {
   MOVES,
   roundBeatMs,
+  createRoundPlan,
   dailyRival,
   towerRival,
   MOVE_ICON,
@@ -376,7 +377,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
   const shootMs = beatMs * 3;
   const rivalLook = rivalLookFor(mode, level);
   const myLevel = levelInfo(prof.xp).level;
-  const planned = useRef<Move>("rock");
+  const planned = useRef(createRoundPlan());
   const completionId = useRef("");
   const combatTimers=useRef(new PauseTimers());
   const [combatPaused,setCombatPaused]=useState(false);
@@ -389,7 +390,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
 
   const startRound = useCallback((hist: Round[], lvl: number) => {
     const r = rivalFor(modeRef.current, lvl);
-    planned.current = r.pick(hist, Math.random);
+    planned.current.reset(r.pick(hist, Math.random));
     setPick(null); setRivalMove(null); setOutcome(null); setPeek(null);
     chosen.current = null;
     setElapsed(0);
@@ -419,6 +420,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
   const selectMove = useCallback((m: Move) => {
     if (phase !== "choose" || pausedRef.current) return;
     if (modeRef.current === "daily" && m === dailyBan()) return;
+    planned.current.select(m, Math.random, modeRef.current === "daily" ? dailyBan() : undefined);
     chosen.current = m;
     setPick(m);
   }, [phase]);const throwMove = useCallback((m: Move | null) => {
@@ -426,7 +428,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
     setPick(m);
     setPhase("reveal");
     sfx.whoosh();
-    const rm = planned.current;
+    const rm = planned.current.move;
     let res: "win" | "lose" | "tie" = m === null ? "lose" : m === rm ? "tie" : beats(m, rm) ? "win" : "lose";
     if (res === "lose" && guardRef.current) { res = "tie"; guardRef.current = false; setGuardArmed(false); setGuardUsed(true); }
     later(() => {
@@ -479,6 +481,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLElement && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))) return;
       const m = KEYS[e.code];
       if (m) selectMove(m);
     };
@@ -504,17 +507,19 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
   const peekPrice = peekCost(level);
   const canPeek = phase === "choose" && peek === null && (!peekUsed || prof.coins >= peekPrice);
   const doPeek = () => {
-    if (!canPeek || peekLock.current) return;
+    if (!canPeek || peekLock.current || pausedRef.current) return;
     peekLock.current = true;
     if (peekUsed) dispatch({ type: "dojo.send", message: buyPeekMsg({ level }) });
     setPeekUsed(true);
-    setPeek(planned.current);
+    setPeek(planned.current.peek());
   };
   useEffect(() => { if (phase === "choose" && peek === null) peekLock.current = false; }, [phase, peek]);
   const doGuard = () => { if (guardUsed || (myLevel < 3 && prof.training.strength === 0)) return; guardRef.current = !guardRef.current; setGuardArmed(guardRef.current); };
   const myFig = { name: prof.name, avatar: <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={(prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state="idle" />, color: (prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3", belt: "#ecf0f1", skin: SKINS[prof.look.skin] ?? "#e8c39e", hair: prof.look.hair === 0 ? "" : HAIR_COLORS[prof.look.hairColor] ?? "#222", fem: prof.look.body === 1 };
   // Scale controls uniformly, but expand the stage to the viewport instead of letterboxing.
   const scale = Math.min(1, size.w / 1280, size.h / 800);
+  const compact = size.w < 900 || size.h < 600;
+  const activeRound = ["choose", "reveal", "result"].includes(phase);
   const lost = score.r >= WINS_NEEDED;
   const revealing = phase === "reveal";
   const slowmo = revealing || phase === "result";
@@ -670,7 +675,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           </div>
           {peek && phase === "choose" && <div style={{ position: "absolute", left: "50%", top: "20%", transform: "translateX(-50%)", fontSize: 24, color: "#9be7ff", textShadow: "0 2px 0 #000" }}>👁 You peek: they will throw {MOVE_ICON[peek]}</div>}
           {emote && <div key={emote + String(flash)} style={{ position: "absolute", left: "calc(50% - 300px)", bottom: "calc(26% + 300px)", fontSize: 64, animation: "pop 0.3s ease-out", zIndex: 30 }}>{emote}</div>}
-          <div style={{ position: "absolute", left: 14, bottom: 24, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className={compact ? "compact-hidden" : "desktop-tools"} style={{ position: "absolute", left: 14, bottom: 24, display: "flex", flexDirection: "column", gap: 8 }}>
             <button type="button" disabled={!canPeek} className="dojo-save" style={{ opacity: canPeek ? 1 : 0.4 }} onClick={doPeek}>👁 {peek !== null ? "PEEK REVEALED" : peekUsed ? `PEEK — ${peekPrice} COINS` : "PEEK — FREE (1)"}</button>
             <button type="button" disabled={guardUsed || (myLevel < 3 && prof.training.strength === 0)} className="dojo-save" style={{ opacity: guardUsed || (myLevel < 3 && prof.training.strength === 0) ? 0.4 : 1, background: guardArmed ? "#1e8449" : undefined }} onClick={doGuard}>{(myLevel < 3 && prof.training.strength === 0) ? "🛡 GUARD (Lv 3)" : guardArmed ? "🛡 GUARD ARMED" : `🛡 GUARD (${guardUsed ? 0 : 1})`}</button>
             <div style={{ display: "flex", gap: 6 }}>
@@ -690,7 +695,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
             </div>
           )}
           {['choose','reveal','result'].includes(phase) && <div role="status" aria-label="Your chosen hand" style={{position:'absolute',left:'50%',bottom:142,transform:'translateX(-50%)',padding:'8px 16px',border:'2px solid #d6b260',borderRadius:8,background:'#100c09ee',color:pick?'#90efb6':'#ffdf90',fontSize:20,textAlign:'center',zIndex:35}}>{pick ? `${phase==='choose'?'SELECTED':'YOU THREW'}: ${pick.toUpperCase()} ${MOVE_ICON[pick]}` : phase==='choose'?'CHOOSE ROCK, PAPER OR SCISSORS':'NO HAND SELECTED'}</div>}
-          <div style={{ position: "absolute", left: 0, right: 0, bottom: 24, display: "flex", justifyContent: "center", gap: 20 }}>
+          <div className={compact ? "compact-hidden" : "desktop-moves"} style={{ position: "absolute", left: 0, right: 0, bottom: 24, display: "flex", justifyContent: "center", gap: 20 }}>
             {MOVES.map((m, i) => (
               <button key={m} type="button" aria-pressed={pick === m} disabled={phase !== "choose" || (mode === "daily" && m === dailyBan())} onClick={() => selectMove(m)}
                 style={{ ...btn, opacity: phase === "choose" && !(mode === "daily" && m === dailyBan()) ? 1 : 0.35, background: pick === m ? "linear-gradient(#34d27b, #1e8449)" : btn.background, transform: pick === m ? "translateY(-8px) scale(1.06)" : "none", boxShadow: pick === m ? "0 0 22px #2ecc71aa, 0 4px 0 #0e4a28" : btn.boxShadow, transition: "transform 0.15s", width: 150 }}>
@@ -702,11 +707,16 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
         </>
       )}
 
+      {compact && activeRound && createPortal(<section className="unified-touch-controls" aria-label="Match controls">
+        <div className="unified-touch-status" role="status">{phase === "choose" ? `${BEATS[Math.min(3,Math.floor(elapsed/beatMs))]} · ${pick ? `Selected ${pick}` : "Choose a hand"}` : phase === "result" ? outcome === "win" ? "POINT!" : outcome === "tie" ? "DRAW" : "STRUCK!" : "SHOOT!"}</div>
+        <div className="unified-touch-tools"><button disabled={!canPeek || combatPaused} onClick={doPeek}>{peek ? `CPU: ${peek.toUpperCase()}` : peekUsed ? `PEEK ${peekPrice} coins` : "PEEK FREE"}</button><button disabled={combatPaused || guardUsed || (myLevel < 3 && prof.training.strength === 0)} onClick={doGuard}>{guardArmed ? "GUARD ARMED" : "GUARD"}</button></div>
+        <div className="unified-touch-moves">{MOVES.map(m=><button key={m} aria-label={`Choose ${m}`} aria-pressed={pick===m} disabled={combatPaused || phase!=="choose" || (mode==="daily" && m===dailyBan())} onClick={()=>selectMove(m)}>{MOVE_ICON[m]} {m.toUpperCase()}</button>)}</div>
+      </section>,document.body)}
       {phase === "title" && !academyOpen && !challengeOpen && !settingsOpen && !screen && !rescuePick && prof.lossTrainingPending === 0 && !trainingDue(prof) && prof.freeBoxes === 0 && createPortal(
         <section className="expansion-screen cinematic-main-menu" style={{zIndex:200}} aria-label="Dojo main menu"><div className="title-illustration"><CinematicDojo/></div><div className="native-title">
           <ThreeHandsCrest/>
           <p className="eyebrow">THE ORIGINAL THREE HANDS</p><h1>DOJO OF THE THREE HANDS</h1>
-          <p className="intro-copy">Defeat four masters, first to three points each. Rock beats Scissors, Scissors beats Paper, Paper beats Rock. Choose during the countdown with the buttons or 1 / 2 / 3 (R / P / S). Both throw on SHOOT! No selection means you lose that round.</p>
+          <p className="intro-copy">Defeat four masters, first to three points each. Rock beats Scissors, Scissors beats Paper, Paper beats Rock. Choose during the countdown with the buttons or 1 / 2 / 3 (R / P / S). The CPU hand locks on your first choice or Peek. You can change your own hand without rerolling theirs. Both throw on SHOOT! No selection means you lose that round.</p>
           <div className="saved-fighter-identity"><div className="saved-fighter-standing" aria-label="Your saved custom character standing in the dojo">{myFig.avatar}</div><div className="profile-summary">{prof.name || 'Your character'} · Level {myLevel} · {prof.xp} XP · <Coin/> {prof.coins} coins · {prof.gems} diamonds · {RANKS[rankIndex(prof.rp)]!.name} ({prof.rp} RP) · Strength {prof.training.strength}</div></div>
           <div className="title-profile"><ProfileBar p={prof}/></div>
           <MenuRow onOpen={setScreen} />

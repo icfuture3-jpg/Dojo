@@ -26,3 +26,15 @@ body{background:#191720;color:var(--dojo-paper)}
 
 @keyframes movieShoulderLift{0%,100%{transform:translateY(0)}35%,65%{transform:translateY(var(--lift-distance))}}
 .movie-shoulder-lift .movie-avatar-anchor{animation:movieShoulderLift 2.4s ease-in-out infinite}.movie-shoulder-lift .fighter-art{animation:none!important}.movie-shoulder-lift .fighter-shadow{display:none}.movie-shoulder-lift .movie-avatar-model .fighter-left-leg{transform-origin:77px 210px;transform:rotate(65deg)}.movie-shoulder-lift .movie-avatar-model .fighter-right-leg{transform-origin:123px 210px;transform:rotate(-65deg)}
+
+/* Keep match actions readable on small embeds, outside scaled fighter artwork. */
+.compact-hidden{display:none!important}
+.unified-touch-controls{position:fixed;bottom:env(safe-area-inset-bottom,0px);left:0;right:0;z-index:90;background:#170e08f5;color:#fff6dc;padding:8px;box-sizing:border-box;font:15px Georgia,serif}
+.unified-touch-status{text-align:center;min-height:22px;color:#ffe19a}
+.unified-touch-tools{display:flex;justify-content:center;gap:8px;margin:4px}
+.unified-touch-controls button{min-height:44px;touch-action:manipulation;background:#7a1f14;color:#fff6dc;border:2px solid #e8bf61;border-radius:8px;font:inherit;cursor:pointer}
+.unified-touch-controls button:disabled{opacity:.4;cursor:default}
+.unified-touch-controls button:focus-visible{outline:3px solid white;outline-offset:2px}
+.unified-touch-moves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.unified-touch-moves button{min-height:56px}
+.unified-touch-moves button[aria-pressed=true]{background:#1e8449;border-color:#90efb6}
