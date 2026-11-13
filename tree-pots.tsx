@@ -3,7 +3,7 @@ import { potMotion, MOTION_MS, CONTACT } from "./pot-motion";
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 export type PotMode = 'throw' | 'jump' | 'chop';
 export const POT_MODES: Record<PotMode,{name:string;instructions:string;action:string}> = {
- throw:{name:'Stone Throw',instructions:'Step toward the tree, wind up, and throw a stone at the hanging pot. Press Space or THROW when the moving crosshair is inside the gold zone.',action:'THROW'},
+ throw:{name:'Stone Throw',instructions:'Step toward the tree, wind up, and throw a stone at the hanging pot. Press Space or THROW when the white marker in the timing bar is inside the gold zone.',action:'THROW'},
  jump:{name:'Jump Strike',instructions:'Watch the white timing marker move across the bar below. Press Space or JUMP when it enters the gold zone to fly toward the pot with an extended dragon kick.',action:'JUMP'},
  chop:{name:'Timed Chop',instructions:'Walk up to the swinging pot, raise your hand, and chop down. Press Space or CHOP inside the gold zone to bring your hand down.',action:'CHOP'},
 };
@@ -49,8 +49,8 @@ export function TreePots({avatar,best,onSave,onExit}:{avatar:ReactNode;best:Reco
   },MOTION_MS*CONTACT[mode]);
  };
  const strikeRef=useRef(strike);strikeRef.current=strike;
- useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.code==='Space'&&mode&&started){e.preventDefault();e.stopPropagation();if(!e.repeat)strikeRef.current();}};window.addEventListener('keydown',key,true);return()=>window.removeEventListener('keydown',key,true);},[mode,started]);
- const reset=(m:PotMode)=>{setMode(m);setStarted(false);setAttempt(0);setHits(0);setAction(0);setBroken(false);setFeedback('');reported.current=false;};
+ useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.code==='Space'&&mode&&started&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!(e.target instanceof HTMLElement&&(e.target.isContentEditable||e.target.closest('button,input,textarea,select')))){e.preventDefault();e.stopPropagation();if(!e.repeat)strikeRef.current();}};window.addEventListener('keydown',key,true);return()=>window.removeEventListener('keydown',key,true);},[mode,started]);
+ const reset=(m:PotMode)=>{pos.current=0;epoch.current=performance.now();lock.current=false;setPosition(0);setFlight(0);setBusy(false);setMode(m);setStarted(false);setAttempt(0);setHits(0);setAction(0);setBroken(false);setFeedback('');reported.current=false;};
  const content=<div className="activity-panel pot-panel" role="dialog" aria-label="Tree Pot Challenge" style={{position:'fixed',inset:0,zIndex:450,overflowY:'auto',background:'#102b2c',color:'#fff5d5',fontFamily:'Georgia, serif',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',gap:12,padding:16,boxSizing:'border-box',pointerEvents:'auto'}}>
  <style>{`
  .pot-panel > *{flex-shrink:0}

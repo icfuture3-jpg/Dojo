@@ -27,3 +27,32 @@ it.each(['Jump Strike','Stone Throw','Timed Chop'])('%s keeps a non-shrinking go
  expect(document.querySelector('[aria-label="Gold timing zone"]')).not.toBeNull();
  expect(document.querySelector('[role="meter"]')?.getAttribute('aria-valuenow')).toBe('0');
 });
+it('starting a different pot challenge resets both the displayed marker and sampled hit position',async()=>{
+ vi.useFakeTimers({toFake:['setTimeout','clearTimeout','setInterval','clearInterval','performance','requestAnimationFrame','cancelAnimationFrame']});
+ const el=document.createElement('main');document.body.append(el);root=createRoot(el);const save=vi.fn();
+ await act(()=>root!.render(<TreePots avatar={<div/>} best={{throw:0,jump:0,chop:0}} onSave={save} onExit={()=>{}}/>));
+ await click('Jump Strike');await click('START CHALLENGE');await act(()=>vi.advanceTimersByTime(1000));
+ expect(Number(document.querySelector('[role="meter"]')?.getAttribute('aria-valuenow'))).toBeGreaterThan(40);
+ await click('ALL THREE CHALLENGES');await click('Stone Throw');await click('START CHALLENGE');
+ expect(document.querySelector('[role="meter"]')?.getAttribute('aria-valuenow')).toBe('0');
+ await click('THROW — SPACE');await act(()=>vi.advanceTimersByTime(6000));
+ expect(document.body.textContent).toContain('0 pots broken');expect(save).not.toHaveBeenCalled();
+});
+it.each(['Jump Strike','Stone Throw','Timed Chop'])('%s completes five attempts, reports once, and starts a clean replay',async(mode)=>{
+ vi.useFakeTimers({toFake:['setTimeout','clearTimeout','setInterval','clearInterval','performance','requestAnimationFrame','cancelAnimationFrame']});
+ const el=document.createElement('main');document.body.append(el);root=createRoot(el);const save=vi.fn();
+ await act(()=>root!.render(<TreePots avatar={<div/>} best={{throw:0,jump:0,chop:0}} onSave={save} onExit={()=>{}}/>));
+ await click(mode);await click('START CHALLENGE');const action=mode==='Jump Strike'?'JUMP — SPACE':mode==='Stone Throw'?'THROW — SPACE':'CHOP — SPACE';
+ for(let i=0;i<5;i++){await act(()=>vi.advanceTimersByTime(1100/(1+i*.2)));await click(action);await act(()=>vi.advanceTimersByTime(6100));}
+ expect(save).toHaveBeenCalledOnce();expect(save.mock.calls[0][1]).toBe(5);expect(document.body.textContent).toContain('Challenge complete');
+ await click('PLAY AGAIN');await click('START CHALLENGE');expect(document.body.textContent).toContain('0/5 attempts');expect(save).toHaveBeenCalledOnce();
+});
+it('Space respects focused buttons and typing instead of starting an unwanted pot action',async()=>{
+ vi.useFakeTimers({toFake:['setTimeout','clearTimeout','setInterval','clearInterval','performance','requestAnimationFrame','cancelAnimationFrame']});
+ const el=document.createElement('main');document.body.append(el);root=createRoot(el);
+ await act(()=>root!.render(<TreePots avatar={<div/>} best={{throw:0,jump:0,chop:0}} onSave={()=>{}} onExit={()=>{}}/>));await click('Jump Strike');await click('START CHALLENGE');
+ const back=[...document.querySelectorAll('button')].find(b=>b.textContent==='ALL THREE CHALLENGES')!;
+ const input=document.createElement('input');document.body.append(input);
+ for(const target of [back,input])await act(()=>target.dispatchEvent(new KeyboardEvent('keydown',{code:'Space',bubbles:true,cancelable:true})));
+ expect(back.disabled).toBe(false);expect(document.body.textContent).toContain('JUMP — SPACE');
+});

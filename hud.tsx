@@ -417,6 +417,19 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
     setStats({ rounds: 0, wins: 0 });
     startMatch(lvl);
   };
+  const returnToDojo = () => {
+    combatTimers.current.clear();
+    combatTimers.current.resume();
+    pausedRef.current = false; setCombatPaused(false);
+    chosen.current = null; setPick(null); setPeek(null); setPhase("title");
+  };
+  const forfeitMatch = () => {
+    if (score.p >= WINS_NEEDED || score.r >= WINS_NEEDED) return;
+    // An unfinished attempt is a loss, not a free Daily retry or a reward.
+    if (modeRef.current === "ladder") dispatch({type:"dojo.send",message:matchDone({completionId:completionId.current,rival:level,won:false,roundsWon:score.p,roundsLost:WINS_NEEDED,comeback:false,perfectRun:false})});
+    else dispatch({type:"dojo.send",message:modeDoneMsg({completionId:completionId.current,mode:modeRef.current as "tower"|"daily"|"rescue",floor:modeRef.current === "daily" ? 0 : level,won:false,correct:false})});
+    returnToDojo();
+  };
   const selectMove = useCallback((m: Move) => {
     if (phase !== "choose" || pausedRef.current) return;
     if (modeRef.current === "daily" && m === dailyBan()) return;
@@ -760,7 +773,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
         <div style={overlay}>
           <div style={{ fontSize: 56, color: lost ? "#e74c3c" : "#2ecc71" }}>{lost ? "DEFEATED" : "VICTORY"}</div>
           <div style={{ fontSize: 22 }}>{lost ? `${rival.name} wins ${score.r}–${score.p}.` : `You defeated ${rival.name} ${score.p}–${score.r}!`}</div>
-          <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center" }}>
             {mode !== "ladder" ? (
               !lost && mode === "tower" ? (
                 <button type="button" style={btn} onClick={() => startMatch(level + 1)}>NEXT FLOOR ({level + 2})</button>
@@ -778,6 +791,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
               <button type="button" style={btn} onClick={() => startMatch(level + 1)}>NEXT CHALLENGER</button>
             )}
           </div>
+          <button type="button" style={btn} onClick={returnToDojo}>BACK TO DOJO</button>
         </div>
       )}
       {phase === "champion" && (
@@ -787,6 +801,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           <div style={{ fontSize: 22 }}>You mastered the Three Hands.</div>
           <div style={{ fontSize: 18 }}>Rounds played: {stats.rounds} · Rounds won: {stats.wins} · Win rate: {stats.rounds ? Math.round((100 * stats.wins) / stats.rounds) : 0}%</div>
           <button type="button" style={btn} onClick={() => begin("ladder", 0)}>PLAY AGAIN</button>
+          <button type="button" style={btn} onClick={returnToDojo}>BACK TO DOJO</button>
         </div>
       )}
       {rescuePick && phase === "title" && createPortal(
@@ -808,7 +823,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
         </div>, document.body
       )}
       {['intro','choose','reveal','result'].includes(phase)&&<button type="button" className="dojo-save" style={{position:'absolute',right:14,top:86,zIndex:80}} onClick={pauseCombat}>PAUSE MATCH</button>}
-      {combatPaused&&createPortal(<section className="expansion-screen" style={{zIndex:850}} aria-label="Match paused"><h1>MATCH PAUSED</h1><p>Your remaining choice time and pending round transitions are paused.</p><button onClick={resumeCombat}>RESUME MATCH</button></section>,document.body)}
+      {combatPaused&&createPortal(<section className="expansion-screen" style={{zIndex:850}} aria-label="Match paused"><h1>MATCH PAUSED</h1><p>Your remaining choice time and pending round transitions are paused.</p><button onClick={resumeCombat}>RESUME MATCH</button><p>Leaving forfeits this match with no victory rewards. A Daily attempt is used.</p><button disabled={score.p >= WINS_NEEDED || score.r >= WINS_NEEDED} onClick={forfeitMatch}>FORFEIT & RETURN</button></section>,document.body)}
       <button type="button" aria-label="Toggle music" className="dojo-save" style={{ position: "absolute", right: 14, bottom: 14, zIndex: 70 }} onClick={() => setMuted(m => !m)}>{muted ? "🔇" : "🔊"}</button>
       {screen === "create" && (
         <CreatorPanel p={prof} dispatch={dispatch} onClose={() => setScreen(null)} preview={(look) => (
