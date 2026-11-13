@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 export type PotMode = 'throw' | 'jump' | 'chop';
 export const POT_MODES: Record<PotMode,{name:string;instructions:string;action:string}> = {
  throw:{name:'Stone Throw',instructions:'Step toward the tree, wind up, and throw a stone at the hanging pot. Press Space or THROW when the moving crosshair is inside the gold zone.',action:'THROW'},
- jump:{name:'Jump Strike',instructions:'Build your jump height. Press Space or JUMP when the height marker reaches the gold zone to fly toward the pot with an extended dragon kick.',action:'JUMP'},
+ jump:{name:'Jump Strike',instructions:'Watch the white timing marker move across the bar below. Press Space or JUMP when it enters the gold zone to fly toward the pot with an extended dragon kick.',action:'JUMP'},
  chop:{name:'Timed Chop',instructions:'Walk up to the swinging pot, raise your hand, and chop down. Press Space or CHOP inside the gold zone to bring your hand down.',action:'CHOP'},
 };
 export function potHit(position:number){return position>=40 && position<=60;}
@@ -51,8 +51,9 @@ export function TreePots({avatar,best,onSave,onExit}:{avatar:ReactNode;best:Reco
  const strikeRef=useRef(strike);strikeRef.current=strike;
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.code==='Space'&&mode&&started){e.preventDefault();e.stopPropagation();if(!e.repeat)strikeRef.current();}};window.addEventListener('keydown',key,true);return()=>window.removeEventListener('keydown',key,true);},[mode,started]);
  const reset=(m:PotMode)=>{setMode(m);setStarted(false);setAttempt(0);setHits(0);setAction(0);setBroken(false);setFeedback('');reported.current=false;};
- const content=<div className="activity-panel pot-panel" role="dialog" aria-label="Tree Pot Challenge" style={{position:'fixed',inset:0,zIndex:450,overflowY:'auto',background:'#102b2c',color:'#fff5d5',fontFamily:'Georgia, serif',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12,padding:16,boxSizing:'border-box',pointerEvents:'auto'}}>
+ const content=<div className="activity-panel pot-panel" role="dialog" aria-label="Tree Pot Challenge" style={{position:'fixed',inset:0,zIndex:450,overflowY:'auto',background:'#102b2c',color:'#fff5d5',fontFamily:'Georgia, serif',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',gap:12,padding:16,boxSizing:'border-box',pointerEvents:'auto'}}>
  <style>{`
+ .pot-panel > *{flex-shrink:0}
  .pot-fighter-anchor>.cutout-fighter{width:100%!important;height:100%!important}
  .pot-fighter-anchor .fighter-art{width:100%;height:auto;max-width:none}
  .pot-pose .fighter-art{animation:none!important;transform-origin:50% 60%;transform:rotate(var(--pot-torso))}
@@ -81,7 +82,7 @@ export function TreePots({avatar,best,onSave,onExit}:{avatar:ReactNode;best:Reco
  </div>
  {!started?<button style={{padding:'14px 30px',fontSize:20}} onClick={()=>{setStarted(true);}}>START CHALLENGE</button>:<>
  <div>{attempt}/5 attempts · {hits} pots broken · Best {best[mode]}/5 · Speed {potSpeed(Math.min(attempt,4)).toFixed(1)}×</div>
- {attempt<5?<><div aria-label="Gold timing zone" style={{position:'relative',height:26,width:'min(400px,80%)',background:'#324751',borderRadius:8}}><div style={{position:'absolute',left:'40%',width:'20%',height:'100%',background:'#c8a33f'}}/><div style={{position:'absolute',left:`${position}%`,height:'100%',width:5,background:'white'}}/></div><button disabled={busy} style={{padding:'12px 35px',fontSize:22}} onClick={strike}>{busy?'…':`${POT_MODES[mode].action} — SPACE`}</button></>:<><strong>Challenge complete! Best score saved on this device.</strong><button onClick={()=>reset(mode)}>PLAY AGAIN</button></>}
+ {attempt<5?<><div aria-label="Gold timing zone" style={{position:'relative',height:26,minHeight:26,flexShrink:0,width:'min(400px,80%)',background:'#324751',borderRadius:8,overflow:'hidden',border:'1px solid #9eb9c4'}}><div data-gold-zone style={{position:'absolute',left:'40%',width:'20%',height:'100%',background:'#e6bb42'}}/><div role="meter" aria-label="Timing indicator" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(position)} aria-valuetext={`${Math.round(position)} percent; gold target 40 to 60 percent`} style={{position:'absolute',left:`clamp(0px, ${position}%, calc(100% - 5px))`,height:'100%',width:5,background:'white',boxShadow:'0 0 0 1px #102b2c'}}/></div><button disabled={busy} style={{padding:'12px 35px',fontSize:22}} onClick={strike}>{busy?'…':`${POT_MODES[mode].action} — SPACE`}</button></>:<><strong>Challenge complete! Best score saved on this device.</strong><button onClick={()=>reset(mode)}>PLAY AGAIN</button></>}
  <div aria-live="polite">{feedback}</div></>}
  <button disabled={busy} onClick={()=>setMode(null)}>ALL THREE CHALLENGES</button><button disabled={busy} onClick={onExit}>BACK TO DOJO</button>
  </>}
