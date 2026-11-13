@@ -37,7 +37,7 @@ included in the standalone build. The runnable app source is at the repository r
 
 ## Consolidated Dojo itch.io release
 
-This release uses **this Dojo repository only**. It combines Dojo updates #4 (pot motion), #5 (earned-only boxes), #6 (champion gis), #8 (shared Classic Daily ban), #10 (hidden Challenges & Events menu), #12 (no rewards for match losses), and #21 (AdSense account metadata). Existing Dojo content, saves and equal-thirds opponent odds are retained. The hidden Challenges & Events menu stays hidden as requested, so its underlying tournament/gi logic is retained but not newly exposed.
+This release uses **this Dojo repository only**. It combines Dojo updates #4 (pot motion), #5 (earned-only boxes), #6 (champion gis), #8 (shared Classic Daily ban), #10 (hidden Challenges & Events menu), #12 (no rewards for match losses), and #21 (AdSense account metadata). Existing Dojo content and saves are retained. Classic matches now use first-choice assistance and CPU-hand locking; see below. The hidden Challenges & Events menu stays hidden as requested, so its underlying tournament/gi logic is retained but not newly exposed.
 
 Use Node 26 and npm:
 
@@ -52,3 +52,10 @@ Upload **artifacts/dojo-itch.zip**, not the repository or a ZIP of the enclosing
 On itch.io use the HTML game upload and mark the ZIP as playable in the browser. Preview the uploaded game in the actual embed before publishing; this repository cannot upload to your itch.io account. See https://itch.io/docs/creators/html5 . Existing HTTPS Google Tag Manager/AdSense scripts and optional support link are unchanged; external service configuration/approval is not included in this release.
 
 Build/test success does not verify every mode, physical mobile device, browser or external service. Saves are local to each browser and origin: Vercel progress does not automatically transfer to the itch.io embed. This build does not add save import or cloud accounts. Do not advertise real-device testing until performed. Publishing a source PR does not update production automatically until merged.
+
+
+## One maintained game
+
+This repository is the canonical source for both Vercel projects and the itch.io ZIP. Retain the expanded modes, creator, cosmetics, rewards and slower accessible countdowns. Classic matches now give an unchanged first choice 50% win / 20% draw / 30% loss, with the CPU locked on the first legal selection or Peek. Changing your choice never rerolls the CPU. A no-choice timeout still loses; pause/resume keeps the plan. Classic Daily keeps the same ban for both players and renormalizes only legal outcomes, so its odds differ. Challenge/academy/spectator activities keep their own rules. Small embeds have unscaled hand buttons; keyboard shortcuts ignore typing fields.
+
+Existing versionless browser saves are repaired into the expanded schema without deleting the original recovery snapshot. Each origin keeps separate local progress; this is not cloud save or synchronization. Keep the retired source repository as a backup until the unified release is merged and deployed successfully on both projects. Do not make new changes in that old source.
