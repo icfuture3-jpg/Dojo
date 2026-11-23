@@ -57,3 +57,11 @@ body{background:#191720;color:var(--dojo-paper)}
  .duel-impact,.duel-impact *{animation:none!important;transition:none!important}
  .duel-impact-ink{display:none!important}
 }
+
+/* Native-size, read-only shop aura try-on using the actual fighter glow. */
+.aura-preview{position:fixed;inset:0;z-index:450;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;background:radial-gradient(ellipse,#353047,#110d19 75%);color:#fff0c9;text-align:center;overflow:auto}
+.aura-preview h2{margin:0;font:28px Georgia,serif}
+.aura-preview-fighter{position:relative;isolation:isolate;width:280px;height:340px;display:flex;justify-content:center;align-items:center;flex-shrink:0;border-bottom:2px solid #cfad70;background:radial-gradient(ellipse at 50% 90%,#c7a46d33,transparent 65%)}
+.aura-preview p{max-width:480px;margin:0;font:16px/1.5 Georgia,serif}
+.aura-preview button{min-height:44px;flex-shrink:0}
+@media(max-height:600px){.aura-preview{justify-content:flex-start;gap:8px}.aura-preview-fighter{zoom:.7}}

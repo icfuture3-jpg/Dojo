@@ -861,7 +861,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           <Fighter gi={look.outfit === -1 ? equipGi : undefined} look={look.outfit === -1 && equipGi?.pattern !== undefined ? {...look,pattern:equipGi.pattern} : look} color={(look.outfit >= 0 ? OUTFIT_COLORS[look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state="idle" />
         )} />
       )}
-      {screen === "shop" && <ShopPanel avatar={myFig.avatar} p={prof} dispatch={dispatch} onClose={() => setScreen(null)} />}
+      {screen === "shop" && <ShopPanel auraPreview={color => <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={myFig.color} belt="#ecf0f1" band={equipBand?.color} aura={color} skin={prof.equip.skin} move={null} state="idle" />} avatar={myFig.avatar} p={prof} dispatch={dispatch} onClose={() => setScreen(null)} />}
       {screen === "trophies" && <TrophiesPanel p={prof} onClose={() => setScreen(null)} />}
       {prof.freeBoxes > 0 && !showNotice && !screen && (phase === "matchEnd" || phase === "champion" || phase === "title") && (
         <div role="dialog" aria-modal="true" aria-label="Free victory mystery box" style={{ position: "absolute", inset: 0, zIndex: 180, background: "#130c20ee", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, color: "#fff6dc", pointerEvents: "auto", fontFamily: "Georgia, serif" }}>

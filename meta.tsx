@@ -146,6 +146,7 @@ function ItemCard({ it, p, dispatch, onPreview }: { it: Item; p: Profile; dispat
       </div>
       <div style={{ fontSize: 15, textAlign: "center" }}>{it.name}</div>
       <div style={{ fontSize: 11, letterSpacing: 2, color: RARITY_COLOR[it.rarity] }}>{it.rarity.toUpperCase()}</div>
+      {it.slot === "aura" && <button type="button" style={small} aria-label={`Preview ${it.name}`} onClick={() => onPreview?.(it)}>PREVIEW AURA</button>}
       {it.slot === "finisher" && <button type="button" style={small} onClick={() => onPreview?.(it)}>PREVIEW MOVE</button>}
       {owned ? (
         <button type="button" disabled={equipped} style={equipped ? { ...small, background: "#1e8449" } : small} onClick={() => dispatch({ type: "dojo.send", message: equipItemMsg({ id: it.id }) })}>
@@ -164,13 +165,19 @@ function ItemCard({ it, p, dispatch, onPreview }: { it: Item; p: Profile; dispat
   );
 }
 
-export function ShopPanel({ p, dispatch, onClose, avatar }: { p: Profile; dispatch(e: DojoEvent): void; onClose(): void; avatar?: React.ReactNode }) {
+export function ShopPanel({ p, dispatch, onClose, avatar, auraPreview }: { p: Profile; dispatch(e: DojoEvent): void; onClose(): void; avatar?: React.ReactNode; auraPreview?(color: string): React.ReactNode }) {
   const [preview, setPreview] = useState<Item | null>(null);
   const [tab, setTab] = useState<(typeof SLOT_TABS)[number]["id"]>("gi");
   return (
     <Frame title="Dojo Shop" onClose={onClose} p={p}>
       {avatar && <div className="saved-fighter-shop" aria-label="Your saved character wearing the equipped outfit"><div className="saved-fighter-mini">{avatar}</div><p>Your saved character · Equipped appearance</p></div>}
-      {preview && <FinisherScene item={preview} avatar={avatar} onDone={() => setPreview(null)} />}
+      {preview?.slot === "finisher" && <FinisherScene item={preview} avatar={avatar} onDone={() => setPreview(null)} />}
+      {preview?.slot === "aura" && <section className="aura-preview" role="dialog" aria-label={`${preview.name} preview`}>
+        <h2>{preview.name}</h2>
+        <div className="aura-preview-fighter" aria-label="Your saved fighter with the preview aura">{auraPreview?.(preview.color) ?? avatar}</div>
+        <p>Preview only — your equipped aura and coins are unchanged.</p>
+        <button type="button" autoFocus style={small} onClick={() => setPreview(null)}>BACK TO AURAS</button>
+      </section>}
       <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
         {SLOT_TABS.map((t) => (
           <button key={t.id} type="button" style={{ ...small, background: tab === t.id ? "#c0392b" : "#3a2210" }} onClick={() => setTab(t.id)}>
