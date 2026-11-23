@@ -52,7 +52,7 @@ const CutScene=lazy(()=>import("./movie").then(m=>({default:m.CutScene})));
 const DojoMovie=lazy(()=>import("./movie").then(m=>({default:m.DojoMovie})));
 const RescueMovie=lazy(()=>import("./movie").then(m=>({default:m.RescueMovie})));
 
-type Phase = "title" | "movie" | "cutscene" | "pots" | "finisher" | "loserTraining" | "intro" | "choose" | "reveal" | "result" | "matchEnd" | "champion";
+type Phase = "title" | "movie" | "cutscene" | "pots" | "finisher" | "loserTraining" | "intro" | "choose" | "clashIntro" | "clash" | "reveal" | "result" | "matchEnd" | "champion";
 type Mode = "ladder" | "tower" | "daily" | "rescue";
 const EMOTES = [["🙇", "Bow"], ["💪", "Flex"], ["🤷", "Shrug"]] as const;
 const todayKey = () => dayKey(Date.now());
@@ -102,7 +102,7 @@ function tone(freq: number, dur = 0.25, type: OscillatorType = "sine", vol = 0.1
 const sfx = {
   gong() { tone(110, 1.4, "sine", 0.25); tone(165, 1.2, "triangle", 0.1); },
   whoosh() { tone(900, 0.4, "sawtooth", 0.05, -700); },
-  hit() { tone(140, 0.2, "square", 0.15, -90); },
+  hit() { tone(95, 0.18, "sine", 0.24, -60); tone(190, 0.09, "triangle", 0.12, -120); },
   win() { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.35, "triangle", 0.14), i * 140)); },
   lose() { [330, 262, 196].forEach((f, i) => setTimeout(() => tone(f, 0.4, "sawtooth", 0.08), i * 200)); },
   tick() { tone(660, 0.08, "square", 0.05); },
@@ -373,6 +373,8 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
   const chosen = useRef<Move | null>(null);
   const [stats, setStats] = useState({ rounds: 0, wins: 0 });
   const [flash, setFlash] = useState(0);
+  const [hitStop, setHitStop] = useState(false);
+  const roundClosed = useRef(false);
   const rival = rivalFor(mode, level);
   const beatMs = roundBeatMs(mode, level);
   const shootMs = beatMs * 3;
@@ -385,7 +387,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
   const pausedRef=useRef(false);
   const pauseCombat=()=>{pausedRef.current=true;combatTimers.current.pause();setCombatPaused(true);};
   const resumeCombat=()=>{pausedRef.current=false;combatTimers.current.resume();setCombatPaused(false);};
-  useEffect(()=>{if(!['intro','choose','reveal','result'].includes(phase))return;const hide=()=>{if(document.hidden)pauseCombat();};document.addEventListener('visibilitychange',hide);return()=>document.removeEventListener('visibilitychange',hide);},[phase]);
+  useEffect(()=>{if(!['intro','choose','clashIntro','clash','reveal','result'].includes(phase))return;const hide=()=>{if(document.hidden)pauseCombat();};document.addEventListener('visibilitychange',hide);return()=>document.removeEventListener('visibilitychange',hide);},[phase]);
   const later = (fn: () => void, ms: number) => { combatTimers.current.add(fn,ms); };
   useEffect(() => () => combatTimers.current.clear(), []);
 
@@ -393,7 +395,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
     const r = rivalFor(modeRef.current, lvl);
     planned.current.reset(r.pick(hist, Math.random));
     setPick(null); setRivalMove(null); setOutcome(null); setPeek(null);
-    chosen.current = null;
+    chosen.current = null; roundClosed.current = false; setHitStop(false);
     setElapsed(0);
     setPhase("choose");
     sfx.gong();
@@ -422,7 +424,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
     combatTimers.current.clear();
     combatTimers.current.resume();
     pausedRef.current = false; setCombatPaused(false);
-    chosen.current = null; setPick(null); setPeek(null); setPhase("title");
+    chosen.current = null; roundClosed.current = true; setHitStop(false); setPick(null); setPeek(null); setPhase("title");
   };
   const forfeitMatch = () => {
     if (score.p >= WINS_NEEDED || score.r >= WINS_NEEDED) return;
@@ -432,25 +434,48 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
     returnToDojo();
   };
   const selectMove = useCallback((m: Move) => {
-    if (phase !== "choose" || pausedRef.current) return;
+    if ((phase !== "choose" && phase !== "clash") || pausedRef.current || roundClosed.current) return;
     if (modeRef.current === "daily" && m === dailyBan()) return;
-    planned.current.select(m, Math.random, modeRef.current === "daily" ? dailyBan() : undefined);
+    if (phase === "choose") planned.current.select(m, Math.random, modeRef.current === "daily" ? dailyBan() : undefined);
     chosen.current = m;
     setPick(m);
-  }, [phase]);const throwMove = useCallback((m: Move | null) => {
-    if (phase !== "choose" || pausedRef.current) return;
+  }, [phase]);
+
+  const throwMove = useCallback((m: Move | null) => {
+    if ((phase !== "choose" && phase !== "clash") || pausedRef.current || roundClosed.current) return;
+    roundClosed.current = true;
     setPick(m);
     setPhase("reveal");
     sfx.whoosh();
     const rm = planned.current.move;
     let res: "win" | "lose" | "tie" = m === null ? "lose" : m === rm ? "tie" : beats(m, rm) ? "win" : "lose";
-    if (res === "lose" && guardRef.current) { res = "tie"; guardRef.current = false; setGuardArmed(false); setGuardUsed(true); }
+    const naturalTie = res === "tie";
+    if (phase === "choose" && res === "lose" && guardRef.current) { res = "tie"; guardRef.current = false; setGuardArmed(false); setGuardUsed(true); }
     later(() => {
-      setRivalMove(rm); setOutcome(res); setFlash((f) => f + 1);
-      sfx.hit();
-      if (res === "win") sfx.win(); else if (res === "lose") sfx.lose();
+      setRivalMove(rm);
       const hist = m === null ? history : [...history, { player: m, rival: rm }];
       setHistory(hist);
+      if (naturalTie) {
+        // A fresh hidden, legal CPU hand is committed before any clash input.
+        // Another tie repeats the clash; Guard saves remain ordinary draws.
+        const legal = MOVES.filter(hand => modeRef.current !== "daily" || hand !== dailyBan());
+        planned.current.reset(legal[Math.floor(Math.random() * legal.length)]!);
+        planned.current.peek();
+        setPhase("clashIntro"); setPeek(null); setOutcome(null);
+        later(() => {
+          chosen.current = null; roundClosed.current = false;
+          setPick(null); setRivalMove(null); setElapsed(0); setPhase("clash");
+          sfx.tick();
+        }, 1200);
+        return;
+      }
+      setOutcome(res); setFlash((f) => f + 1);
+      if (res !== "tie") {
+        setHitStop(true);
+        later(() => setHitStop(false), 100);
+        sfx.hit();
+      }
+      if (res === "win") sfx.win(); else if (res === "lose") sfx.lose();
       setStats((s) => ({ rounds: s.rounds + 1, wins: s.wins + (res === "win" ? 1 : 0) }));
       const ns = { p: score.p + (res === "win" ? 1 : 0), r: score.r + (res === "lose" ? 1 : 0) };
       setScore(ns);
@@ -471,7 +496,8 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
   }, [phase, history, score, level, startRound, dispatch]);
 
   useEffect(() => {
-    if (phase !== "choose" || pausedRef.current) return;
+    if ((phase !== "choose" && phase !== "clash") || pausedRef.current || roundClosed.current) return;
+    const deadline = phase === "clash" ? 1000 : shootMs;
     let t0 = performance.now();
     let previousTick=t0;
     let lastBeat = -1;
@@ -480,12 +506,12 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
       if(pausedRef.current){t0+=tick-previousTick;previousTick=tick;return;}
       previousTick=tick;
       const el = tick - t0;
-      setElapsed(Math.min(el, shootMs));
+      setElapsed(Math.min(el, deadline));
       const b = Math.min(3, Math.floor(el / beatMs));
-      if (b !== lastBeat) { lastBeat = b; sfx.tick(); }
+      if (phase === "choose" && b !== lastBeat) { lastBeat = b; sfx.tick(); }
       // The rival throws on SHOOT! no matter what. The game never picks for
       // you: if you have not chosen by then, you were too slow and lose the round.
-      if (el >= shootMs) {
+      if (el >= deadline) {
         clearInterval(id);
         throwMove(chosen.current);
       }
@@ -528,12 +554,14 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
     setPeek(planned.current.peek());
   };
   useEffect(() => { if (phase === "choose" && peek === null) peekLock.current = false; }, [phase, peek]);
-  const doGuard = () => { if (guardUsed || (myLevel < 3 && prof.training.strength === 0)) return; guardRef.current = !guardRef.current; setGuardArmed(guardRef.current); };
+  const doGuard = () => { if (phase !== "choose" || pausedRef.current || guardUsed || (myLevel < 3 && prof.training.strength === 0)) return; guardRef.current = !guardRef.current; setGuardArmed(guardRef.current); };
   const myFig = { name: prof.name, avatar: <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={(prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state="idle" />, color: (prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3", belt: "#ecf0f1", skin: SKINS[prof.look.skin] ?? "#e8c39e", hair: prof.look.hair === 0 ? "" : HAIR_COLORS[prof.look.hairColor] ?? "#222", fem: prof.look.body === 1 };
   // Scale controls uniformly, but expand the stage to the viewport instead of letterboxing.
   const scale = Math.min(1, size.w / 1280, size.h / 800);
   const compact = size.w < 900 || size.h < 600;
-  const activeRound = ["choose", "reveal", "result"].includes(phase);
+  const selecting = phase === "choose" || phase === "clash";
+  const activeRound = ["choose", "clashIntro", "clash", "reveal", "result"].includes(phase);
+  const clashStatus = phase === "clashIntro" ? "TIE → CLASH! One second to throw. Ties repeat. No choice = loss. No Peek or Guard." : phase === "clash" ? `CLASH! ${((1000 - elapsed) / 1000).toFixed(1)}s · ${pick ? `Selected ${pick}` : "Choose a NEW hand!"}` : null;
   const lost = score.r >= WINS_NEEDED;
   const revealing = phase === "reveal";
   const slowmo = revealing || phase === "result";
@@ -654,7 +682,6 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
       <div className="cinematic-light" aria-hidden="true" />
       <div className="cinematic-floor" aria-hidden="true" />
       {phase !== "title" && <EnergyRibbons key={`energy-${flash}`} move={pick} active={phase === "reveal" || phase === "result"}/> }
-      {flash > 0 && <div key={flash} style={{ position: "absolute", inset: 0, background: "#fff", animation: "flash 0.5s ease-out forwards" }} />}
 
       {phase !== "title" && (
         <>
@@ -667,17 +694,17 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
             </div>
             <div style={{ textAlign: "right" }}><div style={{ fontSize: 22 }}>{rival.name.toUpperCase()}</div><div style={{ display: "flex", justifyContent: "flex-end" }}>{pips(score.r, "#e74c3c")}</div></div>
           </div>
-          <div key={phase === "result" ? `r${flash}` : "calm"} style={{ position: "absolute", inset: 0, animation: phase === "result" && outcome ? "shake 0.45s linear 0.4s" : "none" }}>
-          {phase === "result" && outcome && (
-            <div key={`fx${flash}`} style={{ position: "absolute", left: "50%", bottom: "46%", width: 0, height: 0, zIndex: 20, pointerEvents: "none" }}>
-              <div style={{ position: "absolute", left: 0, top: 0, width: 360, height: 360, background: "conic-gradient(from 0deg, #f1c40f 0 6deg, #0000 6deg 18deg, #f1c40f 18deg 24deg, #0000 24deg 36deg, #fff 36deg 42deg, #0000 42deg 54deg, #f1c40f 54deg 60deg, #0000 60deg 72deg, #e74c3c 72deg 78deg, #0000 78deg 90deg)", backgroundSize: "100% 100%", WebkitMaskImage: "radial-gradient(circle, #000 25%, #0000 70%)", maskImage: "radial-gradient(circle, #000 25%, #0000 70%)", animation: "burst 0.6s ease-out 0.4s both" }} />
+          <div key={phase === "result" ? `r${flash}` : "calm"} className={`duel-impact ${hitStop || combatPaused ? "duel-hit-stop" : ""}`} data-hit-stop={hitStop} style={{ position: "absolute", inset: 0, animation: phase === "result" && outcome && outcome !== "tie" ? "duelShake 0.24s linear" : "none" }}>
+          {phase === "result" && outcome && outcome !== "tie" && (
+            <div className="duel-impact-ink" aria-hidden="true" key={`fx${flash}`} style={{ position: "absolute", left: "50%", bottom: "46%", width: 0, height: 0, zIndex: 20, pointerEvents: "none" }}>
+              <div style={{ position: "absolute", left: 0, top: 0, width: 360, height: 360, background: "conic-gradient(from 0deg, #f1c40f 0 6deg, #0000 6deg 18deg, #f1c40f 18deg 24deg, #0000 24deg 36deg, #fff 36deg 42deg, #0000 42deg 54deg, #f1c40f 54deg 60deg, #0000 60deg 72deg, #e74c3c 72deg 78deg, #0000 78deg 90deg)", backgroundSize: "100% 100%", WebkitMaskImage: "radial-gradient(circle, #000 25%, #0000 70%)", maskImage: "radial-gradient(circle, #000 25%, #0000 70%)", animation: "burst 0.4s ease-out both" }} />
               {Array.from({ length: 16 }, (_, i) => {
                 const a = (i / 16) * Math.PI * 2;
                 const d = 120 + (i % 3) * 50;
-                return <div key={i} style={{ position: "absolute", left: 0, top: 0, width: 10, height: 10, borderRadius: i % 2 ? 5 : 1, background: i % 3 === 0 ? "#fff" : i % 3 === 1 ? "#f1c40f" : "#e67e22", ["--dx" as string]: `${Math.cos(a) * d}px`, ["--dy" as string]: `${Math.sin(a) * d}px`, animation: `spark 0.7s ease-out ${0.4 + (i % 4) * 0.03}s both` }} />;
+                return <div key={i} style={{ position: "absolute", left: 0, top: 0, width: 10, height: 10, borderRadius: i % 2 ? 5 : 1, background: i % 3 === 0 ? "#fff" : i % 3 === 1 ? "#f1c40f" : "#e67e22", ["--dx" as string]: `${Math.cos(a) * d}px`, ["--dy" as string]: `${Math.sin(a) * d}px`, animation: `spark 0.7s ease-out ${(i % 4) * 0.03}s both` }} />;
               })}
-              <div style={{ position: "absolute", left: 0, top: 10, transform: "translateX(-50%)", whiteSpace: "nowrap", fontSize: 64, fontWeight: 900, fontStyle: "italic", color: outcome === "win" ? "#f1c40f" : outcome === "tie" ? "#ecf0f1" : "#e74c3c", WebkitTextStroke: "3px #000", textShadow: "4px 4px 0 #000", animation: "slam 0.35s ease-out 0.4s both" }}>
-                {outcome === "tie" ? ["DOUBLE HIT!", "CLASH!", "BOTH DOWN!"][flash % 3] : outcome === "win" ? ["BAM!", "WHAM!", "POW!"][flash % 3] : ["OUCH!", "CRASH!", "THUD!"][flash % 3]}
+              <div style={{ position: "absolute", left: 0, top: 10, transform: "translateX(-50%)", whiteSpace: "nowrap", fontSize: 64, fontWeight: 900, fontStyle: "italic", color: outcome === "win" ? "#f1c40f" : "#e74c3c", WebkitTextStroke: "3px #000", textShadow: "4px 4px 0 #000", animation: "slam 0.25s ease-out both" }}>
+                {outcome === "win" ? ["BAM!", "WHAM!", "POW!"][flash % 3] : ["OUCH!", "CRASH!", "THUD!"][flash % 3]}
               </div>
             </div>
           )}
@@ -691,7 +718,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           {emote && <div key={emote + String(flash)} style={{ position: "absolute", left: "calc(50% - 300px)", bottom: "calc(26% + 300px)", fontSize: 64, animation: "pop 0.3s ease-out", zIndex: 30 }}>{emote}</div>}
           <div className={compact ? "compact-hidden" : "desktop-tools"} style={{ position: "absolute", left: 14, bottom: 24, display: "flex", flexDirection: "column", gap: 8 }}>
             <button type="button" disabled={!canPeek} className="dojo-save" style={{ opacity: canPeek ? 1 : 0.4 }} onClick={doPeek}>👁 {peek !== null ? "PEEK REVEALED" : peekUsed ? `PEEK — ${peekPrice} COINS` : "PEEK — FREE (1)"}</button>
-            <button type="button" disabled={guardUsed || (myLevel < 3 && prof.training.strength === 0)} className="dojo-save" style={{ opacity: guardUsed || (myLevel < 3 && prof.training.strength === 0) ? 0.4 : 1, background: guardArmed ? "#1e8449" : undefined }} onClick={doGuard}>{(myLevel < 3 && prof.training.strength === 0) ? "🛡 GUARD (Lv 3)" : guardArmed ? "🛡 GUARD ARMED" : `🛡 GUARD (${guardUsed ? 0 : 1})`}</button>
+            <button type="button" disabled={combatPaused || phase !== "choose" || guardUsed || (myLevel < 3 && prof.training.strength === 0)} className="dojo-save" style={{ opacity: guardUsed || (myLevel < 3 && prof.training.strength === 0) ? 0.4 : 1, background: guardArmed ? "#1e8449" : undefined }} onClick={doGuard}>{(myLevel < 3 && prof.training.strength === 0) ? "🛡 GUARD (Lv 3)" : guardArmed ? "🛡 GUARD ARMED" : `🛡 GUARD (${guardUsed ? 0 : 1})`}</button>
             <div style={{ display: "flex", gap: 6 }}>
               {EMOTES.map(([e, n]) => <button key={n} type="button" title={n} aria-label={n} className="dojo-save" onClick={() => doEmote(e)}>{e}</button>)}
             </div>
@@ -702,17 +729,18 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
               
             </div>
           )}
+          {clashStatus && <div className="duel-clash-status" role="status" aria-hidden={compact}>{clashStatus}</div>}
           {revealing && <div style={{ position: "absolute", left: "50%", top: "30%", transform: "translateX(-50%)", fontSize: 44, letterSpacing: 8, color: "#fff", textShadow: "0 3px 0 #000" }}>SHOOT!</div>}
           {phase === "result" && outcome && (
             <div style={{ position: "absolute", left: "50%", top: "26%", transform: "translateX(-50%)", fontSize: 72, fontWeight: 700, color: outcome === "win" ? "#2ecc71" : outcome === "lose" ? "#e74c3c" : "#f1c40f", textShadow: "0 4px 0 #000", animation: "pop 0.4s ease-out" }}>
-              {outcome === "win" ? "POINT!" : outcome === "lose" ? "STRUCK!" : "DRAW — YOU BOTH TAKE IT!"}
+              {outcome === "win" ? "POINT!" : outcome === "lose" ? "STRUCK!" : "GUARD SAVED — NO POINT"}
             </div>
           )}
-          {['choose','reveal','result'].includes(phase) && <div role="status" aria-label="Your chosen hand" style={{position:'absolute',left:'50%',bottom:142,transform:'translateX(-50%)',padding:'8px 16px',border:'2px solid #d6b260',borderRadius:8,background:'#100c09ee',color:pick?'#90efb6':'#ffdf90',fontSize:20,textAlign:'center',zIndex:35}}>{pick ? `${phase==='choose'?'SELECTED':'YOU THREW'}: ${pick.toUpperCase()} ${MOVE_ICON[pick]}` : phase==='choose'?'CHOOSE ROCK, PAPER OR SCISSORS':'NO HAND SELECTED'}</div>}
+          {['choose','clash','reveal','result'].includes(phase) && <div role="status" aria-label="Your chosen hand" style={{position:'absolute',left:'50%',bottom:142,transform:'translateX(-50%)',padding:'8px 16px',border:'2px solid #d6b260',borderRadius:8,background:'#100c09ee',color:pick?'#90efb6':'#ffdf90',fontSize:20,textAlign:'center',zIndex:35}}>{pick ? `${selecting?'SELECTED':'YOU THREW'}: ${pick.toUpperCase()} ${MOVE_ICON[pick]}` : selecting?'CHOOSE ROCK, PAPER OR SCISSORS':'NO HAND SELECTED'}</div>}
           <div className={compact ? "compact-hidden" : "desktop-moves"} style={{ position: "absolute", left: 0, right: 0, bottom: 24, display: "flex", justifyContent: "center", gap: 20 }}>
             {MOVES.map((m, i) => (
-              <button key={m} type="button" aria-pressed={pick === m} disabled={phase !== "choose" || (mode === "daily" && m === dailyBan())} onClick={() => selectMove(m)}
-                style={{ ...btn, opacity: phase === "choose" && !(mode === "daily" && m === dailyBan()) ? 1 : 0.35, background: pick === m ? "linear-gradient(#34d27b, #1e8449)" : btn.background, transform: pick === m ? "translateY(-8px) scale(1.06)" : "none", boxShadow: pick === m ? "0 0 22px #2ecc71aa, 0 4px 0 #0e4a28" : btn.boxShadow, transition: "transform 0.15s", width: 150 }}>
+              <button key={m} type="button" aria-pressed={pick === m} disabled={combatPaused || !selecting || (mode === "daily" && m === dailyBan())} onClick={() => selectMove(m)}
+                style={{ ...btn, opacity: selecting && !(mode === "daily" && m === dailyBan()) ? 1 : 0.35, background: pick === m ? "linear-gradient(#34d27b, #1e8449)" : btn.background, transform: pick === m ? "translateY(-8px) scale(1.06)" : "none", boxShadow: pick === m ? "0 0 22px #2ecc71aa, 0 4px 0 #0e4a28" : btn.boxShadow, transition: "transform 0.15s", width: 150 }}>
                 <div style={{ fontSize: 44 }}>{MOVE_ICON[m]}</div>
                 {m.toUpperCase()} <span style={{ opacity: 0.6, fontSize: 14 }}>[{i + 1}]</span>
               </button>
@@ -722,15 +750,15 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
       )}
 
       {compact && activeRound && createPortal(<section className="unified-touch-controls" aria-label="Match controls">
-        <div className="unified-touch-status" role="status">{phase === "choose" ? `${BEATS[Math.min(3,Math.floor(elapsed/beatMs))]} · ${pick ? `Selected ${pick}` : "Choose a hand"}` : phase === "result" ? outcome === "win" ? "POINT!" : outcome === "tie" ? "DRAW" : "STRUCK!" : "SHOOT!"}</div>
-        <div className="unified-touch-tools"><button disabled={!canPeek || combatPaused} onClick={doPeek}>{peek ? `CPU: ${peek.toUpperCase()}` : peekUsed ? `PEEK ${peekPrice} coins` : "PEEK FREE"}</button><button disabled={combatPaused || guardUsed || (myLevel < 3 && prof.training.strength === 0)} onClick={doGuard}>{guardArmed ? "GUARD ARMED" : "GUARD"}</button></div>
-        <div className="unified-touch-moves">{MOVES.map(m=><button key={m} aria-label={`Choose ${m}`} aria-pressed={pick===m} disabled={combatPaused || phase!=="choose" || (mode==="daily" && m===dailyBan())} onClick={()=>selectMove(m)}>{MOVE_ICON[m]} {m.toUpperCase()}</button>)}</div>
+        <div className="unified-touch-status" role="status">{clashStatus ?? (phase === "choose" ? `${BEATS[Math.min(3,Math.floor(elapsed/beatMs))]} · ${pick ? `Selected ${pick}` : "Choose a hand"}` : phase === "result" ? outcome === "win" ? "POINT!" : outcome === "tie" ? "DRAW" : "STRUCK!" : "SHOOT!")}</div>
+        <div className="unified-touch-tools"><button disabled={!canPeek || combatPaused} onClick={doPeek}>{peek ? `CPU: ${peek.toUpperCase()}` : peekUsed ? `PEEK ${peekPrice} coins` : "PEEK FREE"}</button><button disabled={combatPaused || phase !== "choose" || guardUsed || (myLevel < 3 && prof.training.strength === 0)} onClick={doGuard}>{guardArmed ? "GUARD ARMED" : "GUARD"}</button></div>
+        <div className="unified-touch-moves">{MOVES.map(m=><button key={m} aria-label={`Choose ${m}`} aria-pressed={pick===m} disabled={combatPaused || !selecting || (mode==="daily" && m===dailyBan())} onClick={()=>selectMove(m)}>{MOVE_ICON[m]} {m.toUpperCase()}</button>)}</div>
       </section>,document.body)}
       {phase === "title" && !academyOpen && !challengeOpen && !settingsOpen && !screen && !rescuePick && prof.lossTrainingPending === 0 && !trainingDue(prof) && prof.freeBoxes === 0 && createPortal(
         <section className="expansion-screen cinematic-main-menu" style={{zIndex:200}} aria-label="Dojo main menu"><div className="title-illustration"><CinematicDojo/></div><div className="native-title">
           <ThreeHandsCrest/>
           <p className="eyebrow">THE ORIGINAL THREE HANDS</p><h1>DOJO OF THE THREE HANDS</h1>
-          <p className="intro-copy">Defeat four masters, first to three points each. Rock beats Scissors, Scissors beats Paper, Paper beats Rock. Choose during the countdown with the buttons or 1 / 2 / 3 (R / P / S). The CPU hand locks on your first choice or Peek. You can change your own hand without rerolling theirs. Both throw on SHOOT! No selection means you lose that round.</p>
+          <p className="intro-copy">Defeat four masters, first to three points each. Rock beats Scissors, Scissors beats Paper, Paper beats Rock. Choose during the countdown with the buttons or 1 / 2 / 3 (R / P / S). The CPU hand locks on your first choice or Peek. You can change your own hand without rerolling theirs. Both throw on SHOOT! No selection means you lose that round. Tied hands trigger a Clash: after the warning, choose a fresh hand within one second. Another tie repeats the Clash; the winner takes one point. Peek and Guard are unavailable during a Clash.</p>
           <div className="saved-fighter-identity"><div className="saved-fighter-standing" aria-label="Your saved custom character standing in the dojo">{myFig.avatar}</div><div className="profile-summary">{prof.name || 'Your character'} · Level {myLevel} · {prof.xp} XP · <Coin/> {prof.coins} coins · {prof.gems} diamonds · {RANKS[rankIndex(prof.rp)]!.name} ({prof.rp} RP) · Strength {prof.training.strength}</div></div>
           <div className="title-profile"><ProfileBar p={prof}/></div>
           <MenuRow onOpen={setScreen} />
@@ -823,7 +851,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           <button type="button" className="dojo-save" onClick={() => setRescuePick(false)}>BACK</button>
         </div>, document.body
       )}
-      {['intro','choose','reveal','result'].includes(phase)&&createPortal(<button type="button" className="dojo-save match-pause-control" onClick={pauseCombat}>PAUSE MATCH</button>,document.body)}
+      {['intro','choose','clashIntro','clash','reveal','result'].includes(phase)&&createPortal(<button type="button" className="dojo-save match-pause-control" onClick={pauseCombat}>PAUSE MATCH</button>,document.body)}
       {combatPaused&&createPortal(<section className="expansion-screen" style={{zIndex:850}} aria-label="Match paused"><h1>MATCH PAUSED</h1><p>Your remaining choice time and pending round transitions are paused.</p><button onClick={resumeCombat}>RESUME MATCH</button><p>Leaving forfeits this match with no victory rewards. A Daily attempt is used.</p><button disabled={score.p >= WINS_NEEDED || score.r >= WINS_NEEDED} onClick={forfeitMatch}>FORFEIT & RETURN</button></section>,document.body)}
       <button type="button" aria-label="Toggle music" className="dojo-save" style={{ position: "absolute", right: 14, bottom: 14, zIndex: 70 }} onClick={() => setMuted(m => !m)}>{muted ? "🔇" : "🔊"}</button>
       {screen === "create" && (

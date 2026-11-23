@@ -59,3 +59,20 @@ Build/test success does not verify every mode, physical mobile device, browser o
 This repository is the canonical source for both Vercel projects and the itch.io ZIP. Retain the expanded modes, creator, cosmetics, rewards and slower accessible countdowns. Classic matches now give an unchanged first choice 50% win / 20% draw / 30% loss, with the CPU locked on the first legal selection or Peek. Changing your choice never rerolls the CPU. A no-choice timeout still loses; pause/resume keeps the plan. Classic Daily keeps the same ban for both players and renormalizes only legal outcomes, so its odds differ. Challenge/academy/spectator activities keep their own rules. Small embeds have unscaled hand buttons; keyboard shortcuts ignore typing fields.
 
 Existing versionless browser saves are repaired into the expanded schema without deleting the original recovery snapshot. Each origin keeps separate local progress; this is not cloud save or synchronization. Keep the retired source repository as a backup until the unified release is merged and deployed successfully on both projects. Do not make new changes in that old source.
+
+## Clash tie-breaks and impact feedback
+
+In classic ladder, Endless Tower, Classic Daily and rescue duels, tied hands now
+open a **Clash**. After a 1.2-second warning, choose a fresh hand within one second
+using the same touch/click buttons or R/P/S (1/2/3). Your old choice is cleared.
+The rival commits a fresh hidden hand uniformly among legal hands before input;
+changing your hand cannot reroll it. Daily's shared ban still applies. Another tie
+repeats the Clash; failing to choose loses. Only the resolved duel awards a single point.
+Peek and Guard cannot be activated during Clashes. A Guard already armed stays
+reserved for the next normal round; a Guard-blocked loss remains a no-point draw,
+not a Clash. Optional academy, challenge and spectator activities are unchanged.
+
+Scoring hits have a 100ms visual hit-stop, short mild arena shake, comic ink burst
+and a layered percussion strike using the existing sound-effects volume control.
+Reduced-motion preferences suppress impact animation/particles; no full-screen
+white flash is used. Pause, hidden-tab pause and forfeit cover Clash transitions.
