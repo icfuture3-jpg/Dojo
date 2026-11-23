@@ -96,3 +96,10 @@ effects instead of movement. Post-match scenes render outside the scaled arena
 so the presentation and Continue button retain native viewport sizing. No changes
 to prices, ownership, equip rules, rewards or the save schema. These remain 2D
 cutout animations; rendered motion quality requires a browser/device check.
+
+Thunder Stomp adds a localized cloud/lightning strike and ground sparks at the
+footfall (44% of the scene, 2.288 seconds), with synthesized thunder through the
+sound-effects volume control. It uses one fading strike, not a strobe. Reduced
+motion keeps a static lightning illustration. Skipping or leaving the scene
+cancels pending thunder and releases its audio context; unavailable/blocked audio
+does not interrupt the finisher.

@@ -50,3 +50,13 @@ it('automatically completes after the full choreography and cancels on unmount',
  await act(()=>vi.advanceTimersByTime(1));expect(done).toHaveBeenCalledOnce();
  await act(()=>root!.unmount());root=undefined;await act(()=>vi.advanceTimersByTime(10000));expect(done).toHaveBeenCalledOnce();
 });
+it('adds lightning only to Thunder Stomp, timed to the 44% footfall pose',()=>{
+ for(const item of items){
+  const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<FinisherScene item={item} avatar={avatar} onDone={()=>{}}/>);
+  expect(el.querySelector('.finisher-thunder')!==null).toBe(item.id==='finisher-2');
+  if(item.id==='finisher-2'){
+   expect(el.querySelector('.finisher-choreography')?.getAttribute('style')).toContain('--stomp-impact-delay:2288ms');
+   expect(el.querySelector('.thunder-bolts')).not.toBeNull();expect(el.querySelector('.thunder-ground')).not.toBeNull();
+  }
+ }
+});
