@@ -823,7 +823,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           <button type="button" className="dojo-save" onClick={() => setRescuePick(false)}>BACK</button>
         </div>, document.body
       )}
-      {['intro','choose','reveal','result'].includes(phase)&&<button type="button" className="dojo-save" style={{position:'absolute',right:14,top:86,zIndex:80}} onClick={pauseCombat}>PAUSE MATCH</button>}
+      {['intro','choose','reveal','result'].includes(phase)&&createPortal(<button type="button" className="dojo-save match-pause-control" onClick={pauseCombat}>PAUSE MATCH</button>,document.body)}
       {combatPaused&&createPortal(<section className="expansion-screen" style={{zIndex:850}} aria-label="Match paused"><h1>MATCH PAUSED</h1><p>Your remaining choice time and pending round transitions are paused.</p><button onClick={resumeCombat}>RESUME MATCH</button><p>Leaving forfeits this match with no victory rewards. A Daily attempt is used.</p><button disabled={score.p >= WINS_NEEDED || score.r >= WINS_NEEDED} onClick={forfeitMatch}>FORFEIT & RETURN</button></section>,document.body)}
       <button type="button" aria-label="Toggle music" className="dojo-save" style={{ position: "absolute", right: 14, bottom: 14, zIndex: 70 }} onClick={() => setMuted(m => !m)}>{muted ? "🔇" : "🔊"}</button>
       {screen === "create" && (

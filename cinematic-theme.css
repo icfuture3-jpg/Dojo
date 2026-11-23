@@ -45,3 +45,6 @@ body{background:#191720;color:var(--dojo-paper)}
 .movie-scene-label{flex:1 1 140px;letter-spacing:2px;font:14px Georgia,serif;color:#f1c40f}
 .movie-controls button{min-height:44px;padding:8px 12px;border:1px solid #d9b268;border-radius:6px;background:#29211b;color:#fff1c8;font:14px Georgia,serif}
 .movie-controls .movie-scene-navigation{display:flex;flex-wrap:wrap;gap:8px;flex-basis:100%}
+
+/* Keep pause usable on phones, outside the desktop-scaled match artwork. */
+.match-pause-control{position:fixed;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));z-index:250;min-height:44px;padding:10px 16px;font-size:16px}
