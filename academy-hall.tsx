@@ -1,3 +1,4 @@
+import { createRunId } from "./run-id";
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { Profile } from './economy';
@@ -16,7 +17,7 @@ export function AcademyHall({p,dispatch,onExit,onSound,fighter}:{p:Profile;dispa
  useEffect(()=>{if(hall.current)hall.current.scrollTop=0;},[r?.id,begun]);
  const send=(data:unknown)=>dispatch({type:'dojo.send',message:{send:emit=>emit('academy',data)}});
  const act=(action:string,extra:Record<string,unknown>={})=>{if(r)send({action,id:r.id,turn:r.turn,...extra});};
- const start=(game:AcademyId)=>send({action:'start',id:crypto.randomUUID(),game,difficulty:1,playImmediately:true});
+ const start=(game:AcademyId)=>send({action:'start',id:createRunId(),game,difficulty:1,playImmediately:true});
  useEffect(()=>{if(!r)return;const id=setInterval(()=>{setClock(Date.now());act('tick');},100);return()=>clearInterval(id);},[r?.id,r?.turn,r?.phase]);
  useEffect(()=>{const hide=()=>{if(document.hidden&&r&&['play','watch','review'].includes(r.phase))act('pause');};document.addEventListener('visibilitychange',hide);return()=>document.removeEventListener('visibilitychange',hide);},[r?.id,r?.turn,r?.phase]);
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.repeat||e.ctrlKey||e.metaKey||e.altKey||(e.target as HTMLElement)?.matches?.('input,select,textarea'))return;

@@ -1,3 +1,5 @@
+import { CutsceneFrame } from "./cutscene-frame";
+import { createRunId } from "./run-id";
 import { GiDesign } from "./gi-design";
 import { Coin } from "./catalog-art";
 import { PauseTimers } from "./pause-timers";
@@ -404,7 +406,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
   }, [startRound]);
 
   const startMatch = (lvl: number, replay = false) => {
-    completionId.current = crypto.randomUUID();
+    completionId.current = createRunId();
     setLevel(lvl); setScore({ p: 0, r: 0 }); setHistory([]); trailed.current = false;
     setPeekUsed(false); setGuardUsed(false); setGuardArmed(false); guardRef.current = false;
     if (replay || (modeRef.current !== "ladder" && modeRef.current !== "rescue")) beginIntro(lvl); else setPhase("movie");
@@ -742,12 +744,12 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
       {prof.lossTrainingPending > 0 && phase === "title" && <TrainingGame skinColor={myFig.skin} sleeveColor={myFig.color} key={`pending-${prof.lossTrainingPending}`} strength={prof.training.strength} avatar={myFig.avatar} fighterName={prof.name || "Your fighter"} onDone={hits => dispatch({ type: "dojo.send", message: { send: send => send("lossTrainingDone", { hits }) } })} />}
       {trainingDue(prof) && prof.lossTrainingPending === 0 && phase === "title" && <TrainingGame skinColor={myFig.skin} sleeveColor={myFig.color} strength={prof.training.strength} avatar={myFig.avatar} onDone={hits => dispatch({ type: "dojo.send", message: { send: send => send("trainingDone", { hits }) } })} />}
       </Suspense>
-      <Suspense fallback={<section className="expansion-screen" role="status">Loading cutscene…</section>}>
+      {(phase === "movie" || phase === "cutscene") && <CutsceneFrame key={`${phase}-${mode}-${level}-${cut.kind}`} onContinue={phase === "movie" ? () => beginIntro(level) : finishCutscene}>
       {phase === "cutscene" && mode === "rescue" && cut.kind !== "champion" && <RescueMovie k={level} kind={cut.kind} me={myFig} color={rival.color} belt={rival.belt} onDone={finishCutscene} />}
       {phase === "cutscene" && !(mode === "rescue" && cut.kind !== "champion") && <CutScene me={myFig} kind={cut.kind} dojo={mode==='ladder'?level:Math.max(0,cinematicOpponentIndex(rival.name))} color={rival.color} belt={rival.belt} onDone={finishCutscene} />}
       {phase === "movie" && mode === "rescue" && <RescueMovie k={level} kind="intro" me={myFig} color={rival.color} belt={rival.belt} onDone={() => beginIntro(level)} />}
       {phase === "movie" && mode !== "rescue" && <DojoMovie me={myFig} dojo={level} color={rival.color} belt={rival.belt} onDone={() => beginIntro(level)} />}
-      </Suspense>
+      </CutsceneFrame>}
       {phase === "intro" && (
         <div style={{ ...overlay, background: "#000a", pointerEvents: "none" }}>
           <div style={{ fontSize: 18, letterSpacing: 4, color: "#f1c40f" }}>{mode === "rescue" ? `SAVE THE ${(RESCUES[level] ?? RESCUES[0]!).dojo.toUpperCase()}` : mode === "tower" ? `FLOOR ${level + 1}` : mode === "daily" ? "DAILY CHALLENGE" : `MATCH ${level + 1}`}: {rival.title.toUpperCase()}</div>
