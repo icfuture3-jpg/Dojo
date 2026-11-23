@@ -48,3 +48,12 @@ body{background:#191720;color:var(--dojo-paper)}
 
 /* Keep pause usable on phones, outside the desktop-scaled match artwork. */
 .match-pause-control{position:fixed;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));z-index:250;min-height:44px;padding:10px 16px;font-size:16px}
+
+/* Impact is visual only: score and input timers never wait on CSS animation. */
+@keyframes duelShake{20%{transform:translate(-5px,2px)}50%{transform:translate(4px,-2px)}80%{transform:translate(-2px,1px)}}
+.duel-hit-stop,.duel-hit-stop *{animation-play-state:paused!important}
+.duel-clash-status{position:absolute;left:50%;top:27%;transform:translateX(-50%);max-width:650px;width:80%;padding:16px;background:#160e08ed;border:3px solid #edc15c;color:#fff0c2;text-align:center;font:bold 28px/1.4 Georgia,serif;z-index:40}
+@media(prefers-reduced-motion:reduce){
+ .duel-impact,.duel-impact *{animation:none!important;transition:none!important}
+ .duel-impact-ink{display:none!important}
+}
