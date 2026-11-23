@@ -79,3 +79,20 @@ Scoring hits have a 100ms visual hit-stop, short mild arena shake, comic ink bur
 and a layered percussion strike using the existing sound-effects volume control.
 Reduced-motion preferences suppress impact animation/particles; no full-screen
 white flash is used. Pause, hidden-tab pause and forfeit cover Clash transitions.
+
+## Literal finisher choreography
+
+All twelve shop previews and equipped finishing scenes now animate the saved
+fighter's waist, arms and legs, not just the outer avatar. Respectful Bow folds
+at the waist with planted feet; Lotus Pose sits cross-legged; Crane Balance lifts
+one leg; Cyclone Kick extends a leg; Meteor Punch extends a fist; Victory Salute
+raises both arms; Jade Wave uses an open palm and outgoing energy. Dragon Spin,
+Thunder Stomp, Phoenix Leap, Shadow Dash and Starburst each have their own windup,
+action, held pose and recovery, with matching vector trails or impact motifs.
+
+Scenes last 5.2 seconds and CONTINUE still skips immediately. Switching preview
+moves resets the timeline. Reduced motion shows the held action pose and static
+effects instead of movement. Post-match scenes render outside the scaled arena
+so the presentation and Continue button retain native viewport sizing. No changes
+to prices, ownership, equip rules, rewards or the save schema. These remain 2D
+cutout animations; rendered motion quality requires a browser/device check.
