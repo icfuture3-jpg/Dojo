@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { academyIds, type AcademyId, type AcademyRun } from './academy-state';
+import { academyIds, visibleAcademyIds, type AcademyId, type AcademyRun } from './academy-state';
 import type { Profile } from './economy';
 import { MOVES, beats, counterTo, randomMove, type Move } from './rps';
 export const ACADEMY:Record<AcademyId,{name:string;coins:number;instructions:string;xp:number}>={
@@ -17,7 +17,7 @@ export const ACADEMY:Record<AcademyId,{name:string;coins:number;instructions:str
 export const BELTS=[['White','Beginner',0,'#eee'],['Yellow','Apprentice',80,'#f4d64f'],['Orange','Fighter',210,'#ea923d'],['Green','Warrior',400,'#54a86a'],['Blue','Expert',680,'#4b9ed6'],['Brown','Master-in-Training',1050,'#ad7955'],['Black','Grandmaster',1550,'#333']] as const;
 export function beltInfo(xp:number){let index=0;for(let i=1;i<BELTS.length;i++)if(xp>=BELTS[i]![2])index=i;return {current:BELTS[index]!,next:BELTS[index+1],index};}
 export function academyDay(now:number){return new Date(now).toISOString().slice(0,10);}
-export function dailyAcademy(now:number):AcademyId[]{const n=Math.floor(now/86400000)%3;return n===0?['grandmaster','memory','shadow']:n===1?['frenzy','balance','lightning']:['lightning','says','trial'];}
+export function dailyAcademy(now:number):AcademyId[]{const n=Math.floor(now/86400000)%3;return n===0?['says','memory','shadow']:n===1?['frenzy','balance','lightning']:['lightning','says','balance'];}
 export function clues(r:AcademyRun){
  const names:Record<Move,string[]>={rock:['A closed fist.','Paper defeats my choice.','My choice defeats Scissors.'],paper:['An open palm.','Scissors defeats my choice.','My choice defeats Rock.'],scissors:['Two fingers.','Rock defeats my choice.','My choice defeats Paper.']};
  const c=names[r.target];return r.difficulty===1?c:r.difficulty===2?[c[1]!,c[2]!,`It is not ${counterTo(r.target)}.`]:[`It counters ${MOVES.find(m=>beats(r.target,m))}.`,`It loses to ${counterTo(r.target)}.`,`Neither of the two named hands is my choice.`];
@@ -50,7 +50,7 @@ function pay(p:Profile,r:AcademyRun,now:number):Profile{
  const clears={...a.clears,[r.game]:(a.clears[r.game]??0)+1};
  const unlocks=[...a.unlocks];const add=(id:string)=>{if(!unlocks.includes(id))unlocks.push(id);};
  const kinds=Object.keys(clears).length;
- if(kinds>=1)add('lanterns');if(kinds>=2)add('gold');if(kinds>=3)add('bamboo');if(kinds>=4)add('Bao');if(kinds>=6)add('cyan');if(kinds>=8)add('Mei');
+ if(kinds>=1)add('lanterns');if(kinds>=2)add('gold');if(kinds>=3)add('bamboo');if(kinds>=4)add('Bao');if(kinds>=6)add('cyan');if(kinds>=8||visibleAcademyIds.every(id=>(clears[id]??0)>0))add('Mei');
  const owned=[...p.owned];if(kinds>=2&&!owned.includes('gi-new-1'))owned.push('gi-new-1');if(kinds>=5&&!owned.includes('gi-new-2'))owned.push('gi-new-2');
  return {...p,owned,coins:p.coins+catalog.coins+(daily?25:0),academy:{...a,run:{...r,paid:true},xp:a.xp+catalog.xp+(daily?20:0),clears,unlocks,claimed:[...a.claimed,r.id],daily:daily?[...a.daily,key]:a.daily}};
 }

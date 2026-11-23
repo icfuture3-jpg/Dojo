@@ -1,4 +1,4 @@
-import { academyStateSchema, playableAcademyIds } from "./academy-state";
+import { academyStateSchema, visibleAcademyIds } from "./academy-state";
 import { challengeStateSchema } from "./challenge-state";
 import { RESCUES } from "./rescue";
 import { z } from "zod";
@@ -250,7 +250,7 @@ export const TROPHIES: readonly Trophy[] = [
   t("lightning-perfect", "Precision Spark", "Complete Lightning Hands with 100% accuracy", 100, 2, p => (p.academy.clears.lightning ?? 0) > 0 && p.academy.records.lightningAccuracy === 100),
   t("memory-clear", "Mind Palace", "Complete Three-Hand Memory through its six-hand sequence", 90, 2, p => (p.academy.clears.memory ?? 0) > 0),
   t("shadow-variety", "Uncopied Shadow", "Defeat Shadow Master without repeating a hand in that run", 110, 2, p => p.academy.run?.game === 'shadow' && p.academy.run.paid && p.academy.run.noRepeat),
-  t("academy-versatile", "Eight Disciplines", "Complete each of the eight playable Training Hall mini-games", 200, 4, p => playableAcademyIds.every(id => (p.academy.clears[id] ?? 0) > 0)),
+  t("academy-versatile", "Six Disciplines", "Complete each of the six Training Hall mini-games", 200, 4, p => visibleAcademyIds.every(id => (p.academy.clears[id] ?? 0) > 0)),
   t("upgrade-toolkit", "Balanced Toolkit", "Buy at least one Coin Purse and one Scholar’s Scroll upgrade", 80, 1, p => p.up.coin > 0 && p.up.xp > 0),
   t("equipped-finish", "Finishing Touch", "Equip a finisher together with a non-starter gi, headband and aura", 80, 1, p => ['gi','band','aura','finisher'].every(slot => {const id=p.equip[slot as Slot];return p.owned.includes(id) && ITEMS.some(item => item.id === id && item.slot === slot && !FREE_IDS.includes(id));})),
   t("rescue-lantern", "A Light Restored", "Rescue your first dojo in Rescue Dojos", 100, 2, p => p.stats.rescued >= 1),
