@@ -103,3 +103,14 @@ sound-effects volume control. It uses one fading strike, not a strobe. Reduced
 motion keeps a static lightning illustration. Skipping or leaving the scene
 cancels pending thunder and releases its audio context; unavailable/blocked audio
 does not interrupt the finisher.
+
+## Name-matched aura shop previews
+
+Every named aura now has a themed vector effect in its shop preview: Inferno has
+flames and hot cores, Ocean Mist has fog, Tidal Flow has foam-topped waves, Rose
+Petals/Sakura/Cherry Bloom have petals or flowers, Storm/Steel Storm have clouds
+and lightning/shards, and the celestial/plant/gem auras have matching motifs.
+No Aura remains clear. A short description names the visible effect. Artwork is
+bounded SVG/CSS, without external assets or animation frame loops; reduced motion
+shows static artwork. These are **shop-only effect illustrations**: equipped
+in-match aura glows are unchanged. Previewing still never purchases or equips.
