@@ -1,6 +1,7 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import type { Item } from './economy';
 import './finishers.css';
+import { prepareThunder } from './thunder';
 
 // Each channel drives an actual joint on the saved Fighter, in its 200×300 viewBox.
 // 0–22% anticipate, 22–44% execute, 44–72% hold, 72–100% recover.
@@ -11,7 +12,7 @@ export const FINISHER_CHOREOGRAPHY: readonly Choreography[] = [
   windup:{leftArm:'rotate(-8deg)',rightArm:'rotate(8deg)'},strike:{upper:'perspective(450px) rotateX(-60deg)',leftArm:'rotate(-8deg)',rightArm:'rotate(8deg)'}},
  {action:'Wind up, spin twice with arms sweeping outward, then land in a dragon stance.',cue:'DRAGON SPIN',effect:'dragon',
   windup:{body:'rotate(-18deg)',leftArm:'rotate(-35deg)',rightArm:'rotate(35deg)'},strike:{body:'rotateY(720deg)',leftArm:'rotate(100deg)',rightArm:'rotate(-100deg)',rightLeg:'rotate(-22deg)'}},
- {action:'Lift the right foot high, drive it into the mat, and hold a powerful grounded stance.',cue:'THUNDER STOMP',effect:'shockwave',
+ {action:'Lift the right foot high, drive it into the mat, and summon lightning and thunder as the foot lands.',cue:'THUNDER STOMP',effect:'shockwave',
   windup:{rightLeg:'translateY(-48px) rotate(-30deg)',leftArm:'rotate(45deg)',rightArm:'rotate(-100deg)'},strike:{body:'translateY(8px)',rightLeg:'rotate(-18deg)',leftLeg:'rotate(12deg)',leftArm:'rotate(-25deg)',rightArm:'rotate(25deg)'}},
  {action:'Crouch, leap upward with arms spread like phoenix wings, then land softly.',cue:'PHOENIX RISE',effect:'wings',
   windup:{body:'translateY(20px) scaleY(.88)',leftArm:'rotate(-25deg)',rightArm:'rotate(25deg)'},strike:{body:'translateY(-100px)',leftArm:'rotate(125deg)',rightArm:'rotate(-125deg)',leftLeg:'rotate(20deg)',rightLeg:'rotate(-35deg)'}},
@@ -39,23 +40,28 @@ function motion(from: string, to: string) {
 // Retained for existing catalog consistency checks; now these are articulated timelines.
 export const FINISHER_MOTIONS = FINISHER_CHOREOGRAPHY.map(move => CHANNELS.map(channel => motion(move.windup[channel] ?? 'none', move.strike[channel] ?? 'none')).join('\n'));
 const DURATION = 5200;
+export const STOMP_IMPACT_MS = DURATION * .44;
 
 export function FinisherScene({item,avatar,onDone}:{item:Item;avatar:ReactNode;onDone():void}) {
  const index = Number(item.id.split('-')[1]);
  const move = FINISHER_CHOREOGRAPHY[index] ?? FINISHER_CHOREOGRAPHY[0]!;
  const done = useRef(onDone); done.current = onDone;
  const completed = useRef(false);
- const finish = () => { if (!completed.current) { completed.current = true; done.current(); } };
+ const thunder = useRef<ReturnType<typeof prepareThunder> | null>(null);
+ const finish = () => { thunder.current?.dispose(); if (!completed.current) { completed.current = true; done.current(); } };
  useEffect(() => {
   completed.current = false;
+  const sound = item.id === 'finisher-2' ? prepareThunder() : null;
+  thunder.current = sound;
+  const impact = sound ? setTimeout(() => { if (!completed.current) sound.strike(); }, STOMP_IMPACT_MS) : null;
   const id = setTimeout(() => { if (!completed.current) { completed.current = true; done.current(); } }, DURATION);
-  return () => clearTimeout(id);
+  return () => { clearTimeout(id); if (impact !== null) clearTimeout(impact); sound?.dispose(); thunder.current = null; };
  }, [item.id]);
  const styles = Object.fromEntries(CHANNELS.flatMap(channel => [[`--${channel}-windup`,move.windup[channel] ?? 'none'],[`--${channel}-strike`,move.strike[channel] ?? 'none']])) as CSSProperties;
  return <section className="activity-panel cinematic-finisher finisher-scene" role="dialog" aria-label={`${item.name} finisher`}>
   <div className="finisher-spotlight" aria-hidden="true"/>
   <header><p className="finisher-eyebrow">THE THREE HANDS · FINISHING ART</p><h2>{item.name}</h2></header>
-  <div key={item.id} className="finisher-choreography" data-finisher={item.id} style={{...styles,'--finisher-color':item.color} as CSSProperties}>
+  <div key={item.id} className="finisher-choreography" data-finisher={item.id} style={{...styles,'--finisher-color':item.color,'--stomp-impact-delay':`${STOMP_IMPACT_MS}ms`} as CSSProperties}>
    <div className="finisher-mat" aria-hidden="true"/>
    <div className={`finisher-effect finisher-effect-${move.effect}`} aria-hidden="true">
     <svg viewBox="0 0 520 380" preserveAspectRatio="xMidYMid meet">
@@ -71,6 +77,11 @@ export function FinisherScene({item,avatar,onDone}:{item:Item;avatar:ReactNode;o
      {move.effect === 'halo' && <><circle cx="260" cy="185" r="145"/><circle cx="260" cy="185" r="165" strokeDasharray="12 22"/></>}
     </svg>
    </div>
+   {item.id === 'finisher-2' && <svg className="finisher-thunder" aria-hidden="true" viewBox="0 0 520 380">
+    <g className="thunder-clouds"><path d="M75 65Q55 30 95 25Q115 0 150 25Q190 10 205 45Q220 70 185 75H95ZM315 50Q300 15 340 15Q365 -5 390 20Q435 5 440 40Q475 65 430 75H340Z"/></g>
+    <g className="thunder-bolts"><path d="M155 72L118 146L153 138L110 244L186 133L151 143L193 72ZM365 72L332 148L365 138L325 244L402 133L367 143L407 72Z"/></g>
+    <g className="thunder-ground"><path d="M310 325L285 295L312 305L300 265L340 310L325 305L350 330M300 330L245 345L275 350M335 330L380 345L365 355"/><ellipse cx="320" cy="332" rx="95" ry="15"/></g>
+   </svg>}
    <div className="finisher-performer">{avatar}</div>
    <strong className="finisher-cue" aria-hidden="true">{move.cue}</strong>
   </div>

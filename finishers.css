@@ -45,3 +45,11 @@
 
 .finisher-performer .fighter-shadow{display:none}
 @media(max-width:400px){.finisher-performer{scale:.8}}
+
+/* One localized lightning strike, not a strobe or full-screen flash. */
+.finisher-thunder{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:3;opacity:0;animation:stompThunder 900ms ease-out var(--stomp-impact-delay) forwards}
+.thunder-clouds{fill:#25394c;stroke:#a4c7e3;stroke-width:3}
+.thunder-bolts{fill:#e4f8ff;stroke:#65cfff;stroke-width:3;filter:drop-shadow(0 0 7px #83deff)}
+.thunder-ground{fill:none;stroke:#b8efff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+@keyframes stompThunder{0%,16%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.finisher-thunder{animation:none!important;opacity:.65}.thunder-bolts{filter:none}}
