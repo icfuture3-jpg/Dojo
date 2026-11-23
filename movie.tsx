@@ -326,7 +326,22 @@ export function FocusFighter({me,entrance,paused,reviewMs,shoulderLift=false,pla
  const box=useRef<HTMLDivElement>(null);
  const [size,setSize]=useState({w:640,h:360});
  const [elapsed,setElapsed]=useState(0);const elapsedRef=useRef(0);
- useEffect(()=>{const node=box.current;if(!node)return;const update=()=>setSize({w:node.clientWidth,h:node.clientHeight});update();const observer=new ResizeObserver(update);observer.observe(node);return()=>observer.disconnect();},[]);
+ useEffect(() => {
+  const node = box.current;
+  if (!node) return;
+  const update = () => setSize(previous => {
+   const w = node.clientWidth, h = node.clientHeight;
+   return previous.w === w && previous.h === h ? previous : { w, h };
+  });
+  update();
+  if (typeof ResizeObserver === 'function') {
+   const observer = new ResizeObserver(update);
+   observer.observe(node);
+   return () => observer.disconnect();
+  }
+  window.addEventListener('resize', update);
+  return () => window.removeEventListener('resize', update);
+ }, []);
  useEffect(()=>{if(reviewMs!==null){elapsedRef.current=reviewMs;setElapsed(reviewMs);}},[reviewMs]);
  useEffect(()=>{if(paused||!entrance)return;const start=performance.now()-elapsedRef.current;let frame=0;const tick=(t:number)=>{const ms=Math.min(6000,t-start);elapsedRef.current=ms;setElapsed(ms);if(ms<6000)frame=requestAnimationFrame(tick);};frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);},[paused,entrance]);
  const pose=entrance?entrancePose(reviewMs??elapsed):{x:0,step:0,walking:false};
@@ -388,10 +403,10 @@ export function DojoMovie({ dojo, color, belt, onDone, shots: custom, label, me,
         @keyframes mvfade{from{opacity:0;transform:scale(1.06)}to{opacity:1;transform:scale(1)}}
         @keyframes mvcap{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
       `}</style>
-      <svg key={i} viewBox="0 0 640 360" preserveAspectRatio="xMidYMid meet" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", animation: paused ? "none" : "mvfade 0.6s ease-out" }}>
+      <svg key={`shot-${i}`} viewBox="0 0 640 360" preserveAspectRatio="xMidYMid meet" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", animation: paused ? "none" : "mvfade 0.6s ease-out" }}>
         <HTMLFocus.Provider value={!!(shot.playerFocus||shot.shoulderLift||shot.playerAt) && !!me?.avatar}><g transform="translate(0 -26)">{shot.draw(color, belt, me ?? DEFAULT_ME)}</g></HTMLFocus.Provider>
       </svg>
-      {(shot.playerFocus||shot.shoulderLift||shot.playerAt) && me?.avatar && <FocusFighter key={i} me={me} entrance={!!shot.entrance} shoulderLift={!!shot.shoulderLift} playerAt={shot.playerAt} paused={paused} reviewMs={reviewMs}/> }
+      {(shot.playerFocus||shot.shoulderLift||shot.playerAt) && me?.avatar && <FocusFighter key={`avatar-${i}`} me={me} entrance={!!shot.entrance} shoulderLift={!!shot.shoulderLift} playerAt={shot.playerAt} paused={paused} reviewMs={reviewMs}/> }
       <EnergyRibbons/>
       <div style={{ position: "absolute", inset: 0, boxShadow: "inset 0 0 160px #000c", zIndex: 1, pointerEvents: "none" }} />
       <div style={{ ...bar, top: 0 }} />
@@ -399,11 +414,13 @@ export function DojoMovie({ dojo, color, belt, onDone, shots: custom, label, me,
       <div style={{ ...bar, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div key={i} style={{ fontSize: "clamp(14px,2vw,22px)", lineHeight:1.35, maxHeight:"100%",overflowY:"auto", fontStyle: "italic", textAlign: "center", padding: "0 clamp(16px,6vw,80px)", animation: paused ? "none" : "mvcap 0.6s ease-out 0.3s both" }}>{shot.caption}</div>
       </div>
-      <div style={{ position: "absolute", top: "4%", left: 30, zIndex: 3, letterSpacing: 4, fontSize: 14, color: "#f1c40f" }}>{label ?? `DOJO ${dojo + 1}`} · {shots.length > 0 ? `${i + 1}/${shots.length}` : ""}</div>
-      {paused && <div className="movie-scene-navigation" style={{position:'absolute',top:'10%',right:30,zIndex:6,display:'flex',gap:8}}><button type="button" disabled={i===0} onClick={()=>{setReviewMs(null);shotTime.current=0;setI(n=>Math.max(0,n-1));}}>PREVIOUS SCENE</button><button type="button" disabled={i===shots.length-1} onClick={()=>{setReviewMs(null);shotTime.current=0;setI(n=>Math.min(shots.length-1,n+1));}}>NEXT SCENE</button></div>}
+      <header className="movie-controls">
+        <div className="movie-scene-label">{label ?? `DOJO ${dojo + 1}`} · {shots.length > 0 ? `${i + 1}/${shots.length}` : ""}</div>
+        <button type="button" onClick={()=>{setReviewMs(null);setPaused(v=>!v);}}>{paused?'RESUME CUTSCENE':'PAUSE CUTSCENE'}</button>
+        <button type="button" onClick={onDone}>SKIP ▶▶</button>
+        {paused && <nav className="movie-scene-navigation" aria-label="Cutscene scenes"><button type="button" disabled={i===0} onClick={()=>{setReviewMs(null);shotTime.current=0;setI(n=>Math.max(0,n-1));}}>PREVIOUS SCENE</button><button type="button" disabled={i===shots.length-1} onClick={()=>{setReviewMs(null);shotTime.current=0;setI(n=>Math.min(shots.length-1,n+1));}}>NEXT SCENE</button></nav>}
+      </header>
       {paused && i===0 && me && !custom && <label style={{position:'absolute',bottom:'17%',left:'10%',right:'10%',zIndex:5,font:'14px system-ui',color:'#ffe4a8'}}>Entrance replay position<input aria-label="Entrance replay position" type="range" min="0" max="6000" step="100" value={reviewMs??Math.min(6000,shotTime.current)} onChange={e=>{const ms=Number(e.target.value);setReviewMs(ms);shotTime.current=ms;}} style={{display:'block',width:'100%',height:36}}/></label>}
-      <button type="button" onClick={()=>{setReviewMs(null);setPaused(v=>!v);}} style={{position:'absolute',top:'3%',right:160,zIndex:4,padding:'9px 14px',minHeight:40,background:'#29211b',border:'1px solid #d9b268',color:'#fff1c8'}}>{paused?'RESUME CUTSCENE':'PAUSE CUTSCENE'}</button>
-      <button type="button" onClick={onDone} style={{ position: "absolute", top: "3%", right: 30, zIndex: 3, cursor: "pointer", background: "#0008", color: "#fff6dc", border: "2px solid #f1c40f", borderRadius: 6, fontFamily: "Georgia, serif", fontSize: 16, padding: "6px 14px" }}>SKIP ▶▶</button>
     </div></MoviePause.Provider>
   );
 }

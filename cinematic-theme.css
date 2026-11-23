@@ -38,3 +38,10 @@ body{background:#191720;color:var(--dojo-paper)}
 .unified-touch-moves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .unified-touch-moves button{min-height:56px}
 .unified-touch-moves button[aria-pressed=true]{background:#1e8449;border-color:#90efb6}
+
+/* Cinematics must not inherit the game stage's desktop-to-phone transform. */
+.cutscene-viewport{position:fixed;inset:0;z-index:300;overflow:hidden;background:#000}
+.movie-controls{position:absolute;top:0;left:0;right:0;z-index:6;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 12px max(12px,env(safe-area-inset-left));background:linear-gradient(#000e,#0000)}
+.movie-scene-label{flex:1 1 140px;letter-spacing:2px;font:14px Georgia,serif;color:#f1c40f}
+.movie-controls button{min-height:44px;padding:8px 12px;border:1px solid #d9b268;border-radius:6px;background:#29211b;color:#fff1c8;font:14px Georgia,serif}
+.movie-controls .movie-scene-navigation{display:flex;flex-wrap:wrap;gap:8px;flex-basis:100%}
