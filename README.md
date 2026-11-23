@@ -112,5 +112,5 @@ Petals/Sakura/Cherry Bloom have petals or flowers, Storm/Steel Storm have clouds
 and lightning/shards, and the celestial/plant/gem auras have matching motifs.
 No Aura remains clear. A short description names the visible effect. Artwork is
 bounded SVG/CSS, without external assets or animation frame loops; reduced motion
-shows static artwork. These are **shop-only effect illustrations**: equipped
-in-match aura glows are unchanged. Previewing still never purchases or equips.
+shows static artwork. The equipped aura also shows its themed effect on match-winning hits and
+winning result/champion screens in classic duels. Regular-round glows remain unchanged. Previewing still never purchases or equips.
