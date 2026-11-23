@@ -25,7 +25,8 @@ export function App() {
   // Cross-tab synchronization listener
   useEffect(() => {
     const changed = (event: StorageEvent) => {
-      if (event.key === SAVE_KEY) {
+      const storage = browserStorage();
+      if (storage && event.storageArea === storage && (event.key === SAVE_KEY || event.key === null)) {
         conflictRef.current = true;
         setConflict(true);
         setSaveError(
