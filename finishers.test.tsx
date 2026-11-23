@@ -60,3 +60,12 @@ it('adds lightning only to Thunder Stomp, timed to the 44% footfall pose',()=>{
   }
  }
 });
+
+it('Jade Wave energy and its currentColor glow use jade green, independent of catalog color',()=>{
+ const item=items.find(i=>i.id==='finisher-10')!;
+ const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<FinisherScene item={{...item,color:'#ff0000'}} avatar={avatar} onDone={()=>{}}/>);
+ expect(el.querySelector('.finisher-choreography')?.getAttribute('style')).toContain('--finisher-color:#00a86b');
+ expect(el.querySelector('.finisher-effect-wave')).not.toBeNull();
+ const other=document.createElement('div');other.innerHTML=renderToStaticMarkup(<FinisherScene item={{...items[0]!,color:'#ff0000'}} avatar={avatar} onDone={()=>{}}/>);
+ expect(other.querySelector('.finisher-choreography')?.getAttribute('style')).toContain('--finisher-color:#ff0000');
+});
