@@ -5,6 +5,7 @@ import {createRoot,type Root} from 'react-dom/client';
 import {GameHud} from './hud';
 import {parseProfile} from './economy';
 import {MOVES,roundBeatMs,type Move} from './rps';
+vi.mock('./movie',()=>({DojoMovie:({onDone}:{onDone():void})=><button onClick={onDone}>SKIP INTRO</button>}));
 let root:Root|undefined;
 (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 afterEach(async()=>{if(root)await act(()=>root!.unmount());root=undefined;document.body.innerHTML='';vi.restoreAllMocks();vi.useRealTimers();});
@@ -19,7 +20,7 @@ async function mount(mode='ENDLESS TOWER',strength=0){
  const profile=parseProfile({});profile.training.strength=strength;profile.audio={music:0,sfx:0};
  const dispatch=vi.fn(),el=document.createElement('main');document.body.append(el);root=createRoot(el);
  await act(()=>root!.render(<GameHud dispatch={dispatch} profileData={JSON.stringify(profile)} boardData="[]" boardId="local"/>));
- await click(mode);await wait(1700);return {random,dispatch};
+ await click(mode);if(mode==='ENTER THE DOJO'){await act(async()=>{await Promise.resolve();});await click('SKIP INTRO');}await wait(1700);return {random,dispatch};
 }
 async function reveal(mode:'tower'|'daily'='tower'){await wait(roundBeatMs(mode,0)*3+40);await wait(300);}
 async function startClash(){await choose('rock');await reveal();expect(status()).toContain('TIE → CLASH');await wait(1200);}
@@ -80,4 +81,16 @@ it('uses the desktop hand buttons for the same clash and mutes strike audio at e
  await click('ROCK [1]');await reveal();await wait(1200);await click('SCISSORS [3]');await wait(1040);await wait(300);
  expect(document.body.textContent).toContain('POINT!');expect(document.querySelector('.duel-impact-ink')).not.toBeNull();expect(Audio).not.toHaveBeenCalled();
  Reflect.deleteProperty(window,'AudioContext');
+});
+
+it('Enter the Dojo ties use the full regular countdown, not a one-second clash',async()=>{
+ const {random,dispatch}=await mount('ENTER THE DOJO');
+ await choose('rock');await wait(roundBeatMs('ladder',0)*3+40);await wait(300);
+ expect(status()).toBe('DRAW');expect(document.querySelector('.duel-clash-status')).toBeNull();
+ expect(document.body.textContent).toContain('DRAW — NO POINT');expect(dispatch).not.toHaveBeenCalled();
+ await wait(1900);expect(status()).toContain('ROCK…');
+ expect(document.querySelector('[aria-label="Choose rock"]')?.getAttribute('aria-pressed')).toBe('false');
+ await wait(1500);expect(status()).not.toBe('STRUCK!');
+ random.mockReturnValue(.1);await choose('rock');await wait(roundBeatMs('ladder',0)*3-1500+40);await wait(300);
+ expect(status()).toBe('POINT!');expect(document.querySelector('[data-hit-stop=true]')).not.toBeNull();expect(dispatch).not.toHaveBeenCalled();
 });

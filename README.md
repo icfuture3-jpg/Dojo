@@ -62,7 +62,10 @@ Existing versionless browser saves are repaired into the expanded schema without
 
 ## Clash tie-breaks and impact feedback
 
-In classic ladder, Endless Tower, Classic Daily and rescue duels, tied hands now
+In **Enter the Dojo** (classic ladder), ties award no point and restart the full
+normal countdown. There is no rapid Clash rematch in these fights.
+
+In Endless Tower, Classic Daily and rescue duels, tied hands
 open a **Clash**. After a 1.2-second warning, choose a fresh hand within one second
 using the same touch/click buttons or R/P/S (1/2/3). Your old choice is cleared.
 The rival commits a fresh hidden hand uniformly among legal hands before input;
