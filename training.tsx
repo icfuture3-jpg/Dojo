@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 /** Difficulty follows completed chops, not successes; stage five is the result screen. */
@@ -73,6 +74,7 @@ export function TrainingGame({ strength, avatar, onDone, fighterName = "Your fig
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.code !== 'Space' || automatic || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (event.target instanceof HTMLElement && (event.target.isContentEditable || event.target.closest('button,input,textarea,select'))) return;
       event.preventDefault();
       event.stopPropagation();
       if (event.repeat) return;
@@ -84,8 +86,9 @@ export function TrainingGame({ strength, avatar, onDone, fighterName = "Your fig
   }, [ready, automatic]);
   const zone = boardZone(attempt);
   const gain = 1 + Math.floor(hits / 2);
-  return <div className="activity-panel" role="dialog" aria-modal="true" aria-label="Strength training" style={{position:'absolute',inset:0,zIndex:200,background:'#171125',color:'#fff4d5',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12,padding:20,boxSizing:'border-box',overflowY:'auto',textAlign:'center',fontFamily:'Georgia, serif'}}>
-    <style>{`@keyframes dojoShake{0%,100%{transform:translate(0)}20%{transform:translate(-7px,3px)}40%{transform:translate(7px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(4px,-2px)}}
+  const content = <div className="activity-panel training-panel" role="dialog" aria-modal="true" aria-label="Strength training" style={{position:'fixed',inset:0,zIndex:450,background:'#171125',color:'#fff4d5',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',gap:12,padding:20,boxSizing:'border-box',overflowY:'auto',textAlign:'center',fontFamily:'Georgia, serif'}}>
+    <style>{`.training-panel > *{flex-shrink:0}
+      @keyframes dojoShake{0%,100%{transform:translate(0)}20%{transform:translate(-7px,3px)}40%{transform:translate(7px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(4px,-2px)}}
       @keyframes splinterFly{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--spin))}}
       @keyframes chopFlash{0%{opacity:.65}100%{opacity:0}}
       @keyframes boardShout{0%{transform:scale(.5);opacity:0}35%{transform:scale(1.16);opacity:1}100%{transform:scale(1);opacity:1}}`}</style>
@@ -114,11 +117,12 @@ export function TrainingGame({ strength, avatar, onDone, fighterName = "Your fig
       </g>)}
     </svg>
     <div>Strength {strength} · {attempt}/5 attempts · {hits} solid hits{!automatic&&` · Speed ${boardSpeed(attempt).toFixed(1)}×`}</div>
-    <div style={{visibility:ready ? 'visible' : 'hidden',position:'relative',width:'min(400px, 85%)',height:32,background:'#493858',borderRadius:10}} aria-label="Timing meter" data-speed={boardSpeed(attempt).toFixed(1)}>
+    <div style={{visibility:ready ? 'visible' : 'hidden',position:'relative',width:'min(400px, 85%)',height:32,minHeight:32,flexShrink:0,overflow:'hidden',background:'#493858',borderRadius:10}} aria-label="Timing meter" data-speed={boardSpeed(attempt).toFixed(1)}>
       <div aria-label="Gold success zone" style={{position:'absolute',left:`${zone.start}%`,width:`${zone.width}%`,height:'100%',background:'#d5a62a'}} />
-      <div style={{position:'absolute',left:`${position}%`,width:6,height:'100%',background:'white',transform:'translateX(-50%)'}} />
+      <div style={{position:'absolute',left:`clamp(0px, ${position}%, calc(100% - 6px))`,width:6,height:'100%',background:'white'}} />
     </div>
     {ready && <div key={`feedback-${attempt}`} aria-live="polite" style={{fontSize:impact ? 24 : 17,fontWeight:impact ? 700 : 400,color:impact ? '#ffe28a' : '#fff4d5',animation:impact ? 'boardShout .4s ease-out' : undefined,textShadow:impact ? '0 0 18px #f2b42b77' : undefined}}>{feedback}{combo > 1 && <div style={{fontSize:18,color:'#83e8bf'}}>{combo} HIT STREAK!</div>}</div>}
     {!ready ? null : attempt < 5 ? automatic ? <div aria-live="polite">Watch {fighterName} train…</div> : <button type="button" onClick={strike} disabled={busy.current} style={{padding:'15px 40px',fontSize:22}}>STRIKE — SPACE</button> : <><strong style={{fontSize:24,color:"#ffe28a"}}>{!automatic && hits === 5 ? "PERFECT SESSION! " : ""}{automatic ? `${fighterName}: ${hits}/5 boards broken · Strength test complete` : `Strength +${gain} · XP +${20 + hits * 5}`}</strong>{!automatic && <div>Guard unlocked: block one losing round each match.</div>}<button type="button" style={{padding:14,fontSize:20}} onClick={() => { if (!submitted.current) { submitted.current = true; onDone(hits); } }}>{automatic ? "CONTINUE" : "CONTINUE — SAVE TRAINING"}</button></>}
   </div>;
+  return typeof document === "undefined" ? content : createPortal(content, document.body);
 }
