@@ -1,4 +1,4 @@
-import { academyStateSchema, visibleAcademyIds } from "./academy-state";
+import { academyStateSchema, earnedMei, visibleAcademyIds } from "./academy-state";
 import { challengeStateSchema } from "./challenge-state";
 import { RESCUES } from "./rescue";
 import { z } from "zod";
@@ -359,7 +359,11 @@ export function parseProfile(raw: unknown): Profile {
   // Preserve attained level/progress beyond level 10 while the first nine costs are 20% lower.
   for (let i = 0; i < 200; i++) {
     const result = profileSchema.safeParse(data);
-    if (result.success) return grantTournamentGis(result.data);
+    if (result.success) {
+      const profile = grantTournamentGis(result.data);
+      if (earnedMei(profile.academy.clears) && !profile.academy.unlocks.includes('Mei')) profile.academy.unlocks.push('Mei');
+      return profile;
+    }
     for (const issue of [...result.error.issues].reverse()) {
       if (!issue.path.length) return profileSchema.parse({});
       let parent: unknown = data;

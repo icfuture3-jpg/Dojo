@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import {
   boxOdds,
+  cleanName,
   ITEMS,
   RANKS,
   TROPHIES,
@@ -329,6 +330,8 @@ const NAMES: Partial<Record<keyof Look, string[]>> = { body: BODY_NAMES, head: H
 const SWATCHES: Partial<Record<keyof Look, string[]>> = { hairColor: HAIR_COLORS, eyeColor: EYE_COLORS, skin: SKINS, outfit: OUTFIT_COLORS };
 
 export function CreatorPanel({ p, dispatch, onClose, preview }: { p: Profile; dispatch(e: DojoEvent): void; onClose(): void; preview(look: Look): React.ReactNode }) {
+  const [name, setName] = useState(p.name);
+  const [nameSaved, setNameSaved] = useState(false);
   const [tab, setTab] = useState<keyof Look>("body");
   const [look, setLook] = useState<Look>(p.look);
   const level = levelInfo(p.xp).level;
@@ -354,6 +357,18 @@ export function CreatorPanel({ p, dispatch, onClose, preview }: { p: Profile; di
   const total = LOOK_COUNTS.head * LOOK_COUNTS.hair * LOOK_COUNTS.eye;
   return (
     <Frame title="Create your fighter" onClose={onClose} p={p}>
+      <form onSubmit={event => {
+        event.preventDefault();
+        const cleaned = cleanName(name);
+        if (cleaned.length < 2) return;
+        dispatch({ type: "dojo.send", message: setNameMsg({ name: cleaned }) });
+        setName(cleaned);
+        setNameSaved(true);
+      }} style={{display:'flex',flexWrap:'wrap',gap:10,alignItems:'center',marginBottom:18}}>
+        <label>Fighter name <input aria-label="Fighter name" value={name} maxLength={14} onChange={event=>{setName(event.target.value);setNameSaved(false);}} onKeyDown={event=>event.stopPropagation()} style={{maxWidth:'100%',boxSizing:'border-box',minHeight:44,font:'18px Georgia,serif',padding:8}}/></label>
+        <button type="submit" disabled={cleanName(name).length < 2} style={small}>SAVE NAME</button>
+        <span role="status">{nameSaved ? 'Name saved on this device.' : 'Use 2–14 letters, numbers, spaces, dots, underscores or hyphens.'}</span>
+      </form>
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
         <div className="creator-try-on" style={{ width: 230, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
           <div style={{ transform: "scale(0.85)", transformOrigin: "top center", height: 270 }}>{preview(look)}</div>

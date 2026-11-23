@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { academyIds, visibleAcademyIds, type AcademyId, type AcademyRun } from './academy-state';
+import { academyIds, earnedMei, type AcademyId, type AcademyRun } from './academy-state';
 import type { Profile } from './economy';
 import { MOVES, beats, counterTo, randomMove, type Move } from './rps';
 export const ACADEMY:Record<AcademyId,{name:string;coins:number;instructions:string;xp:number}>={
@@ -50,7 +50,7 @@ function pay(p:Profile,r:AcademyRun,now:number):Profile{
  const clears={...a.clears,[r.game]:(a.clears[r.game]??0)+1};
  const unlocks=[...a.unlocks];const add=(id:string)=>{if(!unlocks.includes(id))unlocks.push(id);};
  const kinds=Object.keys(clears).length;
- if(kinds>=1)add('lanterns');if(kinds>=2)add('gold');if(kinds>=3)add('bamboo');if(kinds>=4)add('Bao');if(kinds>=6)add('cyan');if(kinds>=8||visibleAcademyIds.every(id=>(clears[id]??0)>0))add('Mei');
+ if(kinds>=1)add('lanterns');if(kinds>=2)add('gold');if(kinds>=3)add('bamboo');if(kinds>=4)add('Bao');if(kinds>=6)add('cyan');if(earnedMei(clears))add('Mei');
  const owned=[...p.owned];if(kinds>=2&&!owned.includes('gi-new-1'))owned.push('gi-new-1');if(kinds>=5&&!owned.includes('gi-new-2'))owned.push('gi-new-2');
  return {...p,owned,coins:p.coins+catalog.coins+(daily?25:0),academy:{...a,run:{...r,paid:true},xp:a.xp+catalog.xp+(daily?20:0),clears,unlocks,claimed:[...a.claimed,r.id],daily:daily?[...a.daily,key]:a.daily}};
 }
