@@ -131,6 +131,12 @@ export function OniWarriorArt() {
   </svg>;
 }
 
+// Retired from the shop only: keep catalog entries for existing ownership/equipment.
+const HIDDEN_SHOP_AURAS = new Set([
+  'aura-sakura', 'aura-storm', 'aura-new-14', 'aura-new-12',
+  'aura-new-18', 'aura-new-13', 'aura-new-6', 'aura-new-19',
+]);
+
 function ItemCard({ it, p, dispatch, onPreview }: { it: Item; p: Profile; dispatch(e: DojoEvent): void; onPreview?(it: Item): void }) {
   const owned = p.owned.includes(it.id);
   const equipped = p.equip[it.slot] === it.id;
@@ -206,7 +212,7 @@ export function ShopPanel({ p, dispatch, onClose, avatar, auraPreview }: { p: Pr
         </div>
       ) : (
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-          {ITEMS.filter((i) => i.slot === tab).map((it) => (
+          {ITEMS.filter((i) => i.slot === tab && !HIDDEN_SHOP_AURAS.has(i.id)).map((it) => (
             <ItemCard key={it.id} it={it} p={p} dispatch={dispatch} onPreview={setPreview} />
           ))}
         </div>
