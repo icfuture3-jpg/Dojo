@@ -1,3 +1,4 @@
+import { AuraArt, AURA_THEMES } from './aura-art';
 import { CONTENT } from "./content-catalog";
 import { Coin, OutfitArt } from "./catalog-art";
 import { Pattern } from "./lookart";
@@ -174,8 +175,9 @@ export function ShopPanel({ p, dispatch, onClose, avatar, auraPreview }: { p: Pr
       {preview?.slot === "finisher" && <FinisherScene item={preview} avatar={avatar} onDone={() => setPreview(null)} />}
       {preview?.slot === "aura" && <section className="aura-preview" role="dialog" aria-label={`${preview.name} preview`}>
         <h2>{preview.name}</h2>
-        <div className="aura-preview-fighter" aria-label="Your saved fighter with the preview aura">{auraPreview?.(preview.color) ?? avatar}</div>
-        <p>Preview only — your equipped aura and coins are unchanged.</p>
+        <div className="aura-preview-fighter" aria-label="Your saved fighter with the preview aura"><AuraArt key={preview.id} item={preview}/><div className="aura-preview-avatar">{auraPreview?.(preview.color) ?? avatar}</div></div>
+        <p className="aura-preview-description">{AURA_THEMES[preview.id]?.detail}</p>
+        <p>Shop effect preview only — equipped gameplay glow and coins are unchanged.</p>
         <button type="button" autoFocus style={small} onClick={() => setPreview(null)}>BACK TO AURAS</button>
       </section>}
       <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>

@@ -17,7 +17,7 @@ it('previews every aura, including locked/unaffordable ones, without changing ow
  const auras=ITEMS.filter(i=>i.slot==='aura');expect(document.querySelectorAll('[aria-label^="Preview "]')).toHaveLength(auras.length);
  for(const aura of auras){
   const b=document.querySelector<HTMLButtonElement>(`[aria-label="Preview ${aura.name}"]`)!;expect(b.disabled).toBe(false);await act(()=>b.click());
-  const dialog=document.querySelector(`[aria-label="${aura.name} preview"]`)!;expect(dialog).not.toBeNull();expect(dialog.textContent).toContain('Preview only');
+  const dialog=document.querySelector(`[aria-label="${aura.name} preview"]`)!;expect(dialog).not.toBeNull();expect(dialog.textContent).toContain('preview only');
   expect(dialog.querySelector('.cutout-fighter')).not.toBeNull();
   if(aura.color!=='#0000')expect(dialog.innerHTML).toContain(aura.color);
   await act(()=>dialog.querySelector<HTMLButtonElement>('button')!.click());expect(document.querySelector('.aura-preview')).toBeNull();
