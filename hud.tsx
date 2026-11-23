@@ -35,7 +35,6 @@ import { dayKey, findItem, levelInfo, parseProfile, peekCost, RANKS, rankIndex }
 import {
   MenuRow,
   ProfileBar,
-  RanksPanel,
   RewardPopup,
   CreatorPanel,
   ShopPanel,
@@ -819,7 +818,6 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
       )}
       {screen === "shop" && <ShopPanel avatar={myFig.avatar} p={prof} dispatch={dispatch} onClose={() => setScreen(null)} />}
       {screen === "trophies" && <TrophiesPanel p={prof} onClose={() => setScreen(null)} />}
-      {screen === "ranks" && <RanksPanel avatar={myFig.avatar} p={prof} boardData={boardData} boardId={boardId} dispatch={dispatch} onClose={() => setScreen(null)} />}
       {prof.freeBoxes > 0 && !showNotice && !screen && (phase === "matchEnd" || phase === "champion" || phase === "title") && (
         <div role="dialog" aria-modal="true" aria-label="Free victory mystery box" style={{ position: "absolute", inset: 0, zIndex: 180, background: "#130c20ee", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, color: "#fff6dc", pointerEvents: "auto", fontFamily: "Georgia, serif" }}>
           <div style={{ fontSize: 80 }}>🎁</div><h2>Victory Mystery Box!</h2>

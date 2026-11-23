@@ -4,7 +4,7 @@ import { MenuRow } from './meta';
 
 it('offers optional support through the supplied Stripe checkout without PayPal or payment inputs', () => {
   const html = renderToStaticMarkup(<MenuRow onOpen={() => {}} />);
-  expect(html).toContain('◆ RANKS</button>');
+  expect(html).not.toContain('RANKS');
   expect(html).toMatch(/<a[^>]*href="https:\/\/buy\.stripe\.com\/3cI7sL3oP74rbtf1vG2wU00"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/);
   expect(html).toContain('SUPPORT THE DOJO</a>');
   expect(html).toContain('opens Stripe checkout in a new tab');
