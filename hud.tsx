@@ -172,6 +172,7 @@ export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, 
           <rect x="104" y="280" width="40" height="12" rx="5" fill="#222" />
           <path d="M108 283H138" stroke="#fff3" strokeWidth="2" />
         </g>
+        <g className="fighter-upper-body">
         {fem ? <path d={TORSO_F} fill={color} /> : <rect x="50" y="100" width="100" height="120" rx="22" fill={color} />}
         {fem ? <path d={TORSO_F} fill={`url(#${artId}-shade)`} /> : <rect x="50" y="100" width="100" height="120" rx="22" fill={`url(#${artId}-shade)`} />}
         {look && <g clipPath={`url(#${artId}-torso)`}>{gi ? <GiDesign item={gi}/> : <Pattern i={look.pattern}/>}</g>}
@@ -193,7 +194,7 @@ export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, 
         <rect className="fighter-left-arm" x="35" y="108" width="24" height="70" rx="12" fill={`url(#${artId}-shade)`} transform={state === "throw" || state === "win" ? "rotate(30 47 112)" : ""} />
         <rect className="fighter-right-arm" x="141" y="108" width="24" height="70" rx="12" fill={`url(#${artId}-shade)`} transform={state === "throw" ? "rotate(-75 153 112)" : state === "win" ? "rotate(-30 153 112)" : ""} />
         <g className="fighter-left-arm" transform={state === "throw" || state === "win" ? "rotate(30 47 112)" : ""}><rect x="35" y="150" width="24" height="7" rx="3" fill="#fff4" /><circle cx="47" cy="182" r="9" fill={skinTone} stroke="#0003" strokeWidth="1.5" /></g>
-        <g className="fighter-right-arm" transform={state === "throw" ? "rotate(-75 153 112)" : state === "win" ? "rotate(-30 153 112)" : ""}><rect x="141" y="150" width="24" height="7" rx="3" fill="#fff4" /><circle cx="153" cy="182" r="9" fill={skinTone} stroke="#0003" strokeWidth="1.5" /></g>
+        <g className="fighter-right-arm" transform={state === "throw" ? "rotate(-75 153 112)" : state === "win" ? "rotate(-30 153 112)" : ""}><rect x="141" y="150" width="24" height="7" rx="3" fill="#fff4" /><circle className="fighter-right-fist" cx="153" cy="182" r="9" fill={skinTone} stroke="#0003" strokeWidth="1.5" /><path className="fighter-open-palm" style={{display:"none"}} d="M145 188L141 174Q140 170 143 169L147 175L145 158Q145 154 148 155L151 169L151 153Q153 150 155 154L157 169L159 157Q162 155 162 160L162 175L166 166Q170 165 169 170L163 188Q154 196 145 188Z" fill={skinTone} stroke="#0003" strokeWidth="1.5" /></g>
         {skin === "skin-oni" && <path d="M68 40 L62 6 L88 32 M132 40 L138 6 L112 32" fill="#f4ecd8" />}
         {skin === "skin-panda" && <><circle cx="68" cy="36" r="13" fill="#111" /><circle cx="132" cy="36" r="13" fill="#111" /></>}
         <HairBack i={look?.hair ?? 0} c={hairCol} />
@@ -223,6 +224,7 @@ export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, 
           </>
         )}
         <path d="M76 82 Q86 86 94 82 M106 82 Q114 86 124 82" stroke="#0002" strokeWidth="2" fill="none" />
+        </g>
       </svg>
       </div>
       {fx === "rock" && (
@@ -775,7 +777,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
       {challengeOpen && <Suspense fallback={createPortal(<section className="expansion-screen" role="status">Loading Challenge Dojo…</section>,document.body)}><ChallengeDojo p={prof} dispatch={dispatch} onExit={() => setChallengeOpen(false)} fighter={(r, state) => r ? <Fighter look={(MASTER_LOOKS.find(m=>m.name===r.name)?.look ?? seededLook([...TOWER_POOL,...NEW_RIVALS].findIndex(t=>t.name===r.name)+20))} color={r.color} belt={r.belt} move={null} state={state} flip /> : <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={myFig.color} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state={state}/>} /></Suspense>}
       {settingsOpen && createPortal(<section className="expansion-screen" aria-label="Audio settings"><header className="expansion-header"><h1>AUDIO SETTINGS</h1><button onClick={()=>setSettingsOpen(false)}>BACK TO DOJO</button></header><div className="audio-settings"><p>Saved on this device. Music and sound effects have separate controls.</p>{([['music','Music'],['sfx','Sound effects']] as const).map(([key,label])=><label key={key}>{label}: {Math.round(prof.audio[key]*100)}%<input aria-label={`${label} volume`} type="range" min="0" max="1" step="0.05" value={prof.audio[key]} onChange={e=>dispatch({type:'dojo.send',message:{send:emit=>emit('audio',{...prof.audio,[key]:Number(e.target.value)})}})}/></label>)}</div></section>,document.body)}
       {phase === "pots" && <Suspense fallback={<section className="expansion-screen" role="status">Loading pot challenges…</section>}><TreePots avatar={myFig.avatar} best={prof.potBest} onSave={(mode,hits)=>dispatch({type:"dojo.send",message:{send:send=>send("potDone",{mode,hits})}})} onExit={()=>setPhase("title")} /></Suspense>}
-      {phase === "finisher" && <FinisherScene item={findItem(prof.equip.finisher)!} avatar={myFig.avatar} onDone={() => setPhase(cut.kind === "lose" ? "loserTraining" : cut.next)} />}
+      {phase === "finisher" && createPortal(<FinisherScene item={findItem(prof.equip.finisher)!} avatar={myFig.avatar} onDone={() => setPhase(cut.kind === "lose" ? "loserTraining" : cut.next)} />, document.body)}
       <Suspense fallback={<section className="expansion-screen" role="status">Loading strength training…</section>}>
       {phase === "loserTraining" && <TrainingGame skinColor={myFig.skin} sleeveColor={myFig.color} strength={prof.training.strength} fighterName={prof.name || "Your fighter"} avatar={myFig.avatar} onDone={hits => {
         dispatch({ type: "dojo.send", message: { send: send => send("lossTrainingDone", { hits }) } });
