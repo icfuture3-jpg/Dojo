@@ -455,7 +455,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
       setRivalMove(rm);
       const hist = m === null ? history : [...history, { player: m, rival: rm }];
       setHistory(hist);
-      if (naturalTie) {
+      if (naturalTie && modeRef.current !== "ladder") {
         // A fresh hidden, legal CPU hand is committed before any clash input.
         // Another tie repeats the clash; Guard saves remain ordinary draws.
         const legal = MOVES.filter(hand => modeRef.current !== "daily" || hand !== dailyBan());
@@ -733,7 +733,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           {revealing && <div style={{ position: "absolute", left: "50%", top: "30%", transform: "translateX(-50%)", fontSize: 44, letterSpacing: 8, color: "#fff", textShadow: "0 3px 0 #000" }}>SHOOT!</div>}
           {phase === "result" && outcome && (
             <div style={{ position: "absolute", left: "50%", top: "26%", transform: "translateX(-50%)", fontSize: 72, fontWeight: 700, color: outcome === "win" ? "#2ecc71" : outcome === "lose" ? "#e74c3c" : "#f1c40f", textShadow: "0 4px 0 #000", animation: "pop 0.4s ease-out" }}>
-              {outcome === "win" ? "POINT!" : outcome === "lose" ? "STRUCK!" : "GUARD SAVED — NO POINT"}
+              {outcome === "win" ? "POINT!" : outcome === "lose" ? "STRUCK!" : "DRAW — NO POINT"}
             </div>
           )}
           {['choose','clash','reveal','result'].includes(phase) && <div role="status" aria-label="Your chosen hand" style={{position:'absolute',left:'50%',bottom:142,transform:'translateX(-50%)',padding:'8px 16px',border:'2px solid #d6b260',borderRadius:8,background:'#100c09ee',color:pick?'#90efb6':'#ffdf90',fontSize:20,textAlign:'center',zIndex:35}}>{pick ? `${selecting?'SELECTED':'YOU THREW'}: ${pick.toUpperCase()} ${MOVE_ICON[pick]}` : selecting?'CHOOSE ROCK, PAPER OR SCISSORS':'NO HAND SELECTED'}</div>}
@@ -758,7 +758,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
         <section className="expansion-screen cinematic-main-menu" style={{zIndex:200}} aria-label="Dojo main menu"><div className="title-illustration"><CinematicDojo/></div><div className="native-title">
           <ThreeHandsCrest/>
           <p className="eyebrow">THE ORIGINAL THREE HANDS</p><h1>DOJO OF THE THREE HANDS</h1>
-          <p className="intro-copy">Defeat four masters, first to three points each. Rock beats Scissors, Scissors beats Paper, Paper beats Rock. Choose during the countdown with the buttons or 1 / 2 / 3 (R / P / S). The CPU hand locks on your first choice or Peek. You can change your own hand without rerolling theirs. Both throw on SHOOT! No selection means you lose that round. Tied hands trigger a Clash: after the warning, choose a fresh hand within one second. Another tie repeats the Clash; the winner takes one point. Peek and Guard are unavailable during a Clash.</p>
+          <p className="intro-copy">Defeat four masters, first to three points each. Rock beats Scissors, Scissors beats Paper, Paper beats Rock. Choose during the countdown with the buttons or 1 / 2 / 3 (R / P / S). The CPU hand locks on your first choice or Peek. You can change your own hand without rerolling theirs. Both throw on SHOOT! No selection means you lose that round. In Enter the Dojo, a tie awards no point and restarts the normal countdown. Tower, Classic Daily and rescue ties trigger a one-second Clash after a warning; repeated ties repeat the Clash. Peek and Guard are unavailable during a Clash.</p>
           <div className="saved-fighter-identity"><div className="saved-fighter-standing" aria-label="Your saved custom character standing in the dojo">{myFig.avatar}</div><div className="profile-summary">{prof.name || 'Your character'} · Level {myLevel} · {prof.xp} XP · <Coin/> {prof.coins} coins · {prof.gems} diamonds · {RANKS[rankIndex(prof.rp)]!.name} ({prof.rp} RP) · Strength {prof.training.strength}</div></div>
           <div className="title-profile"><ProfileBar p={prof}/></div>
           <MenuRow onOpen={setScreen} />
