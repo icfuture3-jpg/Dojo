@@ -177,7 +177,7 @@ export function ShopPanel({ p, dispatch, onClose, avatar, auraPreview }: { p: Pr
         <h2>{preview.name}</h2>
         <div className="aura-preview-fighter" aria-label="Your saved fighter with the preview aura"><AuraArt key={preview.id} item={preview}/><div className="aura-preview-avatar">{auraPreview?.(preview.color) ?? avatar}</div></div>
         <p className="aura-preview-description">{AURA_THEMES[preview.id]?.detail}</p>
-        <p>Shop effect preview only — equipped gameplay glow and coins are unchanged.</p>
+        <p>Preview only — your equipped aura and coins are unchanged. Equip this aura to see its themed effect when you win a match.</p>
         <button type="button" autoFocus style={small} onClick={() => setPreview(null)}>BACK TO AURAS</button>
       </section>}
       <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>

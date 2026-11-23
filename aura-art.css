@@ -18,3 +18,7 @@
 .aura-comet{animation:auraComet 5s ease-in-out infinite alternate}
 @keyframes auraComet{from{translate:-12px -10px}to{translate:5px 10px}}
 @media(prefers-reduced-motion:reduce){.named-aura,.named-aura *{animation:none!important;transition:none!important}.named-aura{filter:none}}
+
+.victory-aura-fighter{position:relative;isolation:isolate;width:200px;height:300px;flex-shrink:0}
+.victory-aura-fighter>.named-aura{inset:auto;left:-60px;top:-30px}
+.victory-aura-fighter>.cutout-fighter{z-index:1}

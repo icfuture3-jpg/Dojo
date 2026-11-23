@@ -1,3 +1,4 @@
+import { AuraArt } from './aura-art';
 import { CutsceneFrame } from "./cutscene-frame";
 import { createRunId } from "./run-id";
 import { GiDesign } from "./gi-design";
@@ -712,7 +713,9 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           )}
           <div style={{ position: "absolute", left: "50%", bottom: "26%", transform: "translateX(-50%)", display: "flex", gap: 360, alignItems: "flex-end" }}>
             {mode === "rescue" && <div style={{ position: "absolute", left: "2%", bottom: "26%", transform: "scale(0.6)", transformOrigin: "bottom left", opacity: 0.95 }}><Fighter look={(RESCUES[level] ?? RESCUES[0]!).allyLook} color={(RESCUES[level] ?? RESCUES[0]!).allyColor} belt="#ecf0f1" move={null} state="idle" /></div>}
+            <div className="victory-aura-fighter">{phase === "result" && score.p >= WINS_NEEDED && outcome === "win" && equipAura && <AuraArt item={equipAura}/>}
             <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={(prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={pick} fx={outcome === "lose" || outcome === "tie" ? rivalMove : null} state={pState} pump={phase === "choose"} />
+            </div>
             <Fighter look={rivalLook} color={rival.color} belt={rival.belt} move={rivalMove} flip fx={outcome === "win" || outcome === "tie" ? pick : null} pump={phase === "choose"} state={rState} />
           </div>
           </div>
@@ -801,8 +804,9 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
         </div>
       )}
       {phase === "matchEnd" && (
-        <div style={overlay}>
+        <div style={{...overlay,overflowY:"auto",justifyContent:"safe center",padding:24,boxSizing:"border-box"}}>
           <div style={{ fontSize: 56, color: lost ? "#e74c3c" : "#2ecc71" }}>{lost ? "DEFEATED" : "VICTORY"}</div>
+          {!lost && <div className="victory-aura-fighter" aria-label="Your victorious fighter and equipped aura">{equipAura && <AuraArt item={equipAura}/>}<div className="aura-preview-avatar">{myFig.avatar}</div></div>}
           <div style={{ fontSize: 22 }}>{lost ? `${rival.name} wins ${score.r}–${score.p}.` : `You defeated ${rival.name} ${score.p}–${score.r}!`}</div>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center" }}>
             {mode !== "ladder" ? (
@@ -826,9 +830,10 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
         </div>
       )}
       {phase === "champion" && (
-        <div style={overlay}>
+        <div style={{...overlay,overflowY:"auto",justifyContent:"safe center",padding:24,boxSizing:"border-box"}}>
           <div style={{ fontSize: 70 }}>🏆</div>
           <div style={{ fontSize: 52, color: "#f1c40f" }}>DOJO CHAMPION</div>
+          <div className="victory-aura-fighter" aria-label="Your victorious fighter and equipped aura">{equipAura && <AuraArt item={equipAura}/>}<div className="aura-preview-avatar">{myFig.avatar}</div></div>
           <div style={{ fontSize: 22 }}>You mastered the Three Hands.</div>
           <div style={{ fontSize: 18 }}>Rounds played: {stats.rounds} · Rounds won: {stats.wins} · Win rate: {stats.rounds ? Math.round((100 * stats.wins) / stats.rounds) : 0}%</div>
           <button type="button" style={btn} onClick={() => begin("ladder", 0)}>PLAY AGAIN</button>
