@@ -61,7 +61,7 @@ export function FinisherScene({item,avatar,onDone}:{item:Item;avatar:ReactNode;o
  return <section className="activity-panel cinematic-finisher finisher-scene" role="dialog" aria-label={`${item.name} finisher`}>
   <div className="finisher-spotlight" aria-hidden="true"/>
   <header><p className="finisher-eyebrow">THE THREE HANDS · FINISHING ART</p><h2>{item.name}</h2></header>
-  <div key={item.id} className="finisher-choreography" data-finisher={item.id} style={{...styles,'--finisher-color':item.color,'--stomp-impact-delay':`${STOMP_IMPACT_MS}ms`} as CSSProperties}>
+  <div key={item.id} className="finisher-choreography" data-finisher={item.id} style={{...styles,'--finisher-color':move.effect === 'wave' ? '#00a86b' : item.color,'--stomp-impact-delay':`${STOMP_IMPACT_MS}ms`} as CSSProperties}>
    <div className="finisher-mat" aria-hidden="true"/>
    <div className={`finisher-effect finisher-effect-${move.effect}`} aria-hidden="true">
     <svg viewBox="0 0 520 380" preserveAspectRatio="xMidYMid meet">
