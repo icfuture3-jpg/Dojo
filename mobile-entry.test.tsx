@@ -62,3 +62,11 @@ it('starts academy training without randomUUID',async()=>{
  const emit=vi.fn();dispatch.mock.calls[0]![0].message.send(emit);
  expect(emit).toHaveBeenCalledWith('academy',expect.objectContaining({action:'start',id:expect.any(String)}));
 });
+
+it('keeps pause reachable at native phone size during the match intro and countdown',async()=>{
+ await mount();await click('ENDLESS TOWER');
+ const pause=[...document.querySelectorAll('button')].find(b=>b.textContent==='PAUSE MATCH');
+ expect(pause).toBeDefined();expect(pause!.closest('.cinematic-stage')).toBeNull();
+ await click('PAUSE MATCH');expect(document.querySelector('[aria-label="Match paused"]')).not.toBeNull();
+ await click('RESUME MATCH');expect(document.querySelector('[aria-label="Match paused"]')).toBeNull();
+});
