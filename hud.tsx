@@ -1,5 +1,4 @@
-import {FRIENDS,type Friend} from "./friends";
-import {FriendArt} from "./friend-art";
+import {FRIENDS} from "./friends";
 import { FriendsPanel } from "./friends-panel";
 import { epicSkin } from "./epic-skins";
 import { EpicSkinArmor } from "./epic-skin-art";
@@ -116,8 +115,8 @@ const sfx = {
 
 const TORSO_F = "M58 106 Q58 100 70 100 L130 100 Q142 100 142 106 Q140 140 134 160 Q130 172 134 190 Q142 206 148 220 L52 220 Q58 206 66 190 Q70 172 66 160 Q60 140 58 106 Z";
 
-export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, aura, skin, look, gi, companion }: {
-  companion?: Friend; look?: Look; gi?: Pick<import("./economy").Item,"name"|"pattern">;
+export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, aura, skin, look, gi }: {
+  look?: Look; gi?: Pick<import("./economy").Item,"name"|"pattern">;
   fx?: Move | null;
   band?: string; aura?: string; skin?: string;
   pump?: boolean;
@@ -154,7 +153,6 @@ export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, 
   };
   return (
     <div className="cutout-fighter" data-fighter-state={state} style={{ position: "relative", width: 200, height: 300, transformOrigin: "50% 100%" }}>
-      {companion && <div className="fighter-companion" aria-label="Your equipped friend"><FriendArt friend={companion} size={170} animated/></div>}
       {aura && aura !== "#0000" && (
         <div style={{ position: "absolute", left: -30, top: 20, width: 260, height: 290, borderRadius: "50%", background: `radial-gradient(ellipse, ${aura}aa, ${aura}33 55%, #0000 72%)`, animation: "auraPulse 1.4s ease-in-out infinite" }} />
       )}
@@ -579,7 +577,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
   useEffect(() => { if (phase === "choose" && peek === null) peekLock.current = false; }, [phase, peek]);
   const doGuard = () => { if (phase !== "choose" || pausedRef.current || guardUsed || (myLevel < 3 && prof.training.strength === 0)) return; guardRef.current = !guardRef.current; setGuardArmed(guardRef.current); };
   const equippedFriend=FRIENDS.find(f=>f.id===prof.companion&&prof.diamondWins>=f.wins);
-  const myFig = { name: prof.name, avatar: <Fighter companion={equippedFriend} gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={(prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state="idle" />, color: (prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3", belt: "#ecf0f1", skin: SKINS[prof.look.skin] ?? "#e8c39e", hair: prof.look.hair === 0 ? "" : HAIR_COLORS[prof.look.hairColor] ?? "#222", fem: prof.look.body === 1 };
+  const myFig = { companion: equippedFriend, name: prof.name, avatar: <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={(prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state="idle" />, color: (prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3", belt: "#ecf0f1", skin: SKINS[prof.look.skin] ?? "#e8c39e", hair: prof.look.hair === 0 ? "" : HAIR_COLORS[prof.look.hairColor] ?? "#222", fem: prof.look.body === 1 };
   // Scale controls uniformly, but expand the stage to the viewport instead of letterboxing.
   const portrait = size.w < 600 && size.h > size.w;
   const scale = Math.min(1, size.w / (portrait ? 760 : 1280), size.h / 800);
@@ -736,7 +734,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           <div className="duel-fighters" style={{ position: "absolute", left: "50%", bottom: compact ? Math.max(size.h * .26, 164) / scale : "26%", transform: "translateX(-50%)", display: "flex", gap: 360, alignItems: "flex-end" }}>
             {mode === "rescue" && <div style={{ position: "absolute", left: "2%", bottom: "26%", transform: "scale(0.6)", transformOrigin: "bottom left", opacity: 0.95 }}><Fighter look={(RESCUES[level] ?? RESCUES[0]!).allyLook} color={(RESCUES[level] ?? RESCUES[0]!).allyColor} belt="#ecf0f1" move={null} state="idle" /></div>}
             <div className="victory-aura-fighter">{phase === "result" && score.p >= WINS_NEEDED && outcome === "win" && equipAura && <AuraArt item={equipAura}/>}
-            <Fighter companion={equippedFriend} gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={(prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={pick} fx={outcome === "lose" || outcome === "tie" ? rivalMove : null} state={pState} pump={phase === "choose"} />
+            <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={(prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={pick} fx={outcome === "lose" || outcome === "tie" ? rivalMove : null} state={pState} pump={phase === "choose"} />
             </div>
             <Fighter look={rivalLook} color={rival.color} belt={rival.belt} move={rivalMove} flip fx={outcome === "win" || outcome === "tie" ? pick : null} pump={phase === "choose"} state={rState} />
           </div>
@@ -799,10 +797,10 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           </div><p className="expansion-note">Progress and records are on this device. One free Peek per match; extra Peeks cost coins. Original Guard, loss training, mystery boxes and all game modes remain available.</p>
         </div></section>, document.body)}
       {academyOpen && <Suspense fallback={createPortal(<section className="expansion-screen" role="status">Loading Training Hall…</section>,document.body)}><AcademyHall p={prof} dispatch={dispatch} onExit={()=>setAcademyOpen(false)} onShop={()=>{setAcademyOpen(false);setScreen("shop");}} onSound={()=>sfx.gong()} fighter={master=>master==='self'?myFig.avatar:<Fighter look={MASTER_LOOKS.find(m=>m.name.endsWith(master))?.look} color={master==='Bao'?'#a52b27':'#317e96'} belt="#202020" move={null} state="idle"/>}/></Suspense>}
-      {challengeOpen && <Suspense fallback={createPortal(<section className="expansion-screen" role="status">Loading Challenge Dojo…</section>,document.body)}><ChallengeDojo p={prof} dispatch={dispatch} onExit={() => setChallengeOpen(false)} fighter={(r, state) => r ? <Fighter look={(MASTER_LOOKS.find(m=>m.name===r.name)?.look ?? seededLook([...TOWER_POOL,...NEW_RIVALS].findIndex(t=>t.name===r.name)+20))} color={r.color} belt={r.belt} move={null} state={state} flip /> : <Fighter companion={equippedFriend} gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={myFig.color} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state={state}/>} /></Suspense>}
+      {challengeOpen && <Suspense fallback={createPortal(<section className="expansion-screen" role="status">Loading Challenge Dojo…</section>,document.body)}><ChallengeDojo p={prof} dispatch={dispatch} onExit={() => setChallengeOpen(false)} fighter={(r, state) => r ? <Fighter look={(MASTER_LOOKS.find(m=>m.name===r.name)?.look ?? seededLook([...TOWER_POOL,...NEW_RIVALS].findIndex(t=>t.name===r.name)+20))} color={r.color} belt={r.belt} move={null} state={state} flip /> : <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={myFig.color} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state={state}/>} /></Suspense>}
       {settingsOpen && createPortal(<section className="expansion-screen" aria-label="Audio settings"><header className="expansion-header"><h1>AUDIO SETTINGS</h1><button onClick={()=>setSettingsOpen(false)}>BACK TO DOJO</button></header><div className="audio-settings"><p>Saved on this device. Music and sound effects have separate controls.</p>{([['music','Music'],['sfx','Sound effects']] as const).map(([key,label])=><label key={key}>{label}: {Math.round(prof.audio[key]*100)}%<input aria-label={`${label} volume`} type="range" min="0" max="1" step="0.05" value={prof.audio[key]} onChange={e=>dispatch({type:'dojo.send',message:{send:emit=>emit('audio',{...prof.audio,[key]:Number(e.target.value)})}})}/></label>)}</div></section>,document.body)}
       {phase === "pots" && <Suspense fallback={<section className="expansion-screen" role="status">Loading pot challenges…</section>}><TreePots avatar={myFig.avatar} best={prof.potBest} onSave={(mode,hits)=>dispatch({type:"dojo.send",message:{send:send=>send("potDone",{mode,hits})}})} onExit={()=>setPhase("title")} /></Suspense>}
-      {phase === "finisher" && createPortal(<FinisherScene item={findItem(prof.equip.finisher)!} avatar={myFig.avatar} onDone={() => setPhase(cut.kind === "lose" ? "loserTraining" : cut.next)} />, document.body)}
+      {phase === "finisher" && createPortal(<FinisherScene companion={equippedFriend} item={findItem(prof.equip.finisher)!} avatar={myFig.avatar} onDone={() => setPhase(cut.kind === "lose" ? "loserTraining" : cut.next)} />, document.body)}
       <Suspense fallback={<section className="expansion-screen" role="status">Loading strength training…</section>}>
       {phase === "loserTraining" && <TrainingGame skinColor={myFig.skin} sleeveColor={myFig.color} strength={prof.training.strength} fighterName={prof.name || "Your fighter"} avatar={myFig.avatar} onDone={hits => {
         dispatch({ type: "dojo.send", message: { send: send => send("lossTrainingDone", { hits }) } });
@@ -885,11 +883,11 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
       <button type="button" aria-label="Toggle music" className="dojo-save" style={{ position: "absolute", right: 14, bottom: 14, zIndex: 70 }} onClick={() => setMuted(m => !m)}>{muted ? "🔇" : "🔊"}</button>
       {screen === "create" && (
         <CreatorPanel p={prof} dispatch={dispatch} onClose={() => setScreen(null)} preview={(look) => (
-          <Fighter companion={equippedFriend} gi={look.outfit === -1 ? equipGi : undefined} look={look.outfit === -1 && equipGi?.pattern !== undefined ? {...look,pattern:equipGi.pattern} : look} color={(look.outfit >= 0 ? OUTFIT_COLORS[look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state="idle" />
+          <Fighter gi={look.outfit === -1 ? equipGi : undefined} look={look.outfit === -1 && equipGi?.pattern !== undefined ? {...look,pattern:equipGi.pattern} : look} color={(look.outfit >= 0 ? OUTFIT_COLORS[look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state="idle" />
         )} />
       )}
-      {screen === "shop" && <ShopPanel auraPreview={color => <Fighter companion={equippedFriend} gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={myFig.color} belt="#ecf0f1" band={equipBand?.color} aura={color} skin={prof.equip.skin} move={null} state="idle" />} avatar={myFig.avatar} p={prof} dispatch={dispatch} onClose={() => setScreen(null)} />}
-      {screen === "friends" && <FriendsPanel fighter={myFig.avatar} p={prof} dispatch={dispatch} onClose={()=>setScreen(null)}/>}
+      {screen === "shop" && <ShopPanel auraPreview={color => <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={myFig.color} belt="#ecf0f1" band={equipBand?.color} aura={color} skin={prof.equip.skin} move={null} state="idle" />} avatar={myFig.avatar} p={prof} dispatch={dispatch} onClose={() => setScreen(null)} />}
+      {screen === "friends" && <FriendsPanel p={prof} dispatch={dispatch} onClose={()=>setScreen(null)}/>}
       {screen === "trophies" && <TrophiesPanel p={prof} onClose={() => setScreen(null)} />}
       {prof.freeBoxes > 0 && !showNotice && !screen && (phase === "matchEnd" || phase === "champion" || phase === "title") && (
         <div role="dialog" aria-modal="true" aria-label="Free victory mystery box" style={{ position: "absolute", inset: 0, zIndex: 180, background: "#130c20ee", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, color: "#fff6dc", pointerEvents: "auto", fontFamily: "Georgia, serif" }}>

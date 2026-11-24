@@ -1,3 +1,5 @@
+import {CutsceneFriend} from "./cutscene-friend";
+import type {Friend} from "./friends";
 import { EnergyRibbons } from "./cinematic-art";
 import { useEffect, useRef, useState, createContext, useContext } from "react";
 import type { CSSProperties, ReactNode } from "react";
@@ -81,7 +83,7 @@ const Wall = ({ c1 = "#4a2e1a", c2 = "#2a1a0e" }: { c1?: string; c2?: string }) 
   </>
 );
 
-export interface Me { name?: string; avatar?: ReactNode; color: string; belt: string; skin: string; hair: string; fem: boolean }
+export interface Me { companion?: Friend; name?: string; avatar?: ReactNode; color: string; belt: string; skin: string; hair: string; fem: boolean }
 export interface Shot { id?:string; playerAt?:{x:number;y:number;scale:number}; hidePlayerName?: boolean; shoulderLift?: boolean; playerFocus?: boolean; entrance?: boolean; caption: string; duration?: number; draw(c: string, b: string, me: Me): ReactNode }
 
 const DEFAULT_ME: Me = { color: "#2471a3", belt: "#ecf0f1", skin: "#e8c39e", hair: "", fem: false };
@@ -406,6 +408,7 @@ export function DojoMovie({ dojo, color, belt, onDone, shots: custom, label, me,
       <svg key={`shot-${i}`} viewBox="0 0 640 360" preserveAspectRatio="xMidYMid meet" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", animation: paused ? "none" : "mvfade 0.6s ease-out" }}>
         <HTMLFocus.Provider value={!!(shot.playerFocus||shot.shoulderLift||shot.playerAt) && !!me?.avatar}><g transform="translate(0 -26)">{shot.draw(color, belt, me ?? DEFAULT_ME)}</g></HTMLFocus.Provider>
       </svg>
+      <CutsceneFriend friend={me?.companion}/>
       {(shot.playerFocus||shot.shoulderLift||shot.playerAt) && me?.avatar && <FocusFighter key={`avatar-${i}`} me={me} entrance={!!shot.entrance} shoulderLift={!!shot.shoulderLift} playerAt={shot.playerAt} paused={paused} reviewMs={reviewMs}/> }
       <EnergyRibbons/>
       <div style={{ position: "absolute", inset: 0, boxShadow: "inset 0 0 160px #000c", zIndex: 1, pointerEvents: "none" }} />

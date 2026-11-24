@@ -272,12 +272,14 @@ Reduced motion shows the exact unwarped image and still ability effect. Unlocks,
 equipment and rewards are unchanged.
 
 
-### Behind-fighter companions and phone portrait layout
+### Cutscene companions and phone portrait layout
 
-Equipped, unlocked friends now appear as subtly animated companions behind the
-saved player in the dojo, creator/shop try-on, classic fights, challenges and
-victory poses. Opponents do not inherit the player's friend. Each friend preview
-pairs the saved fighter with the selected friend's live ability choreography
+Equipped, unlocked friends appear as subtly animated background companions in
+player story cutscenes (intro, rescue, victory, defeat and champion) and gameplay
+finishing scenes. They are separate from the fighter, visible in the scenery, not
+attached to the player in menus, customization or regular fights. Unequipping
+hides them; shop finisher previews do not add a companion. Each friend preview
+retains the selected friend's live ability choreography
 (water splash/leap, ward, smoke, horn light, blooms, lanterns, feather sunrise,
 roar rings, bronze tracers, vortex current, rain, bubbles, tidal wave, sun/moon).
 Previewing never changes the equipped friend or spends currency; reduced motion

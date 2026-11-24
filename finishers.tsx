@@ -1,3 +1,5 @@
+import {CutsceneFriend} from "./cutscene-friend";
+import type {Friend} from "./friends";
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import type { Item } from './economy';
 import './finishers.css';
@@ -42,7 +44,7 @@ export const FINISHER_MOTIONS = FINISHER_CHOREOGRAPHY.map(move => CHANNELS.map(c
 const DURATION = 5200;
 export const STOMP_IMPACT_MS = DURATION * .44;
 
-export function FinisherScene({item,avatar,onDone}:{item:Item;avatar:ReactNode;onDone():void}) {
+export function FinisherScene({item,avatar,onDone,companion}:{companion?:Friend;item:Item;avatar:ReactNode;onDone():void}) {
  const index = Number(item.id.split('-')[1]);
  const move = FINISHER_CHOREOGRAPHY[index] ?? FINISHER_CHOREOGRAPHY[0]!;
  const done = useRef(onDone); done.current = onDone;
@@ -59,6 +61,7 @@ export function FinisherScene({item,avatar,onDone}:{item:Item;avatar:ReactNode;o
  }, [item.id]);
  const styles = Object.fromEntries(CHANNELS.flatMap(channel => [[`--${channel}-windup`,move.windup[channel] ?? 'none'],[`--${channel}-strike`,move.strike[channel] ?? 'none']])) as CSSProperties;
  return <section className="activity-panel cinematic-finisher finisher-scene" role="dialog" aria-label={`${item.name} finisher`}>
+  <CutsceneFriend friend={companion}/>
   <div className="finisher-spotlight" aria-hidden="true"/>
   <header><p className="finisher-eyebrow">THE THREE HANDS · FINISHING ART</p><h2>{item.name}</h2></header>
   <div key={item.id} className="finisher-choreography" data-finisher={item.id} style={{...styles,'--finisher-color':move.effect === 'wave' ? '#00a86b' : item.color,'--stomp-impact-delay':`${STOMP_IMPACT_MS}ms`} as CSSProperties}>

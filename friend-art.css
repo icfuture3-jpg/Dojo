@@ -35,15 +35,6 @@
  .friend-art[data-animated=true] .friend-still{display:inline}
 }
 
-/* Companions share the fighter's local coordinates, behind its body like an aura. */
-.cutout-fighter{isolation:isolate}
-.fighter-companion{position:absolute;left:-48px;top:76px;width:170px;height:170px;z-index:0;pointer-events:none}
-.cutout-fighter>div:last-child{z-index:1}
-.saved-fighter-identity .saved-fighter-standing,.saved-fighter-shop .saved-fighter-mini{overflow:visible}
-.friend-preview-stage.with-fighter{position:relative;isolation:isolate;min-height:340px}
-.with-fighter .friend-preview-creature{position:absolute;left:calc(50% - 145px);top:68px;z-index:0}
-.friend-preview-avatar{position:relative;z-index:1;width:200px;height:300px;margin-left:76px;pointer-events:none}
-.friend-preview-avatar .fighter-companion{display:none}
 .friend-ability-effect,.friend-ability-effect *{transform-box:view-box;transform-origin:60px 60px}
 [data-ability=carp]>ellipse{animation:friendGate 2.8s ease-in-out infinite}
 [data-ability=carp]>path{animation:friendSplash 2.8s ease-out infinite}
@@ -84,12 +75,5 @@
 @keyframes friendWave{0%,100%{translate:-5px 4px;scale:1 .8}50%{translate:5px -5px;scale:1 1.1}}
 @keyframes friendSun{0%,100%{scale:.8;opacity:.35}50%{scale:1.15;opacity:1}}
 @keyframes friendMoon{0%,100%{translate:0 -3px;opacity:1}50%{translate:0 4px;opacity:.25}}
-@media(max-width:600px){.with-fighter .friend-preview-creature{left:calc(50% - 125px)}.friend-preview-avatar{margin-left:56px}}
 [data-ability=black-dragon] path{stroke-dasharray:28 8;animation:friendCurrent 1.8s linear infinite}
 @keyframes friendCurrent{to{stroke-dashoffset:-72}}
-@media(max-width:360px){
- .friend-preview-avatar{width:160px;height:240px;margin-left:40px;flex-shrink:0}
- .friend-preview-avatar>.cutout-fighter{transform:scale(.8);transform-origin:top left}
- .friend-preview-stage.with-fighter{min-height:280px}
- .with-fighter .friend-preview-creature{top:45px;left:calc(50% - 125px)}
-}
