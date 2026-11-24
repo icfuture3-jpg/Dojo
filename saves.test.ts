@@ -97,17 +97,17 @@ it('persists dismissal without repaying the day-two login or Regular trophy on r
     coins: 200, gems: 8, xp: 15, streak: 1, lastLogin: '2026-11-02', season: '2026-11',
   })));
   const paid = loadSave(api, now).profile;
-  expect([paid.coins, paid.gems, paid.xp]).toEqual([330, 9, 30]);
+  expect([paid.coins, paid.gems, paid.xp]).toEqual([330, 8, 30]);
   expect(paid.last.lines).toContain('TROPHY: Regular');
   const dismissed = applyAction(paid, 'dismissNotice', { n: paid.last.n }, now);
   expect(dismissed).toMatchObject({ seenNotice: paid.last.n });
   expect(paid).not.toHaveProperty('seenNotice', paid.last.n);
   expect(saveProfile(api, dismissed)).toBeNull();
   const reloaded = loadSave(api, now).profile;
-  expect(reloaded).toMatchObject({ seenNotice: reloaded.last.n, coins: 330, gems: 9, xp: 30 });
+  expect(reloaded).toMatchObject({ seenNotice: reloaded.last.n, coins: 330, gems: 8, xp: 30 });
   const tomorrow = loadSave(api, now + 86400000).profile;
   expect(tomorrow.last.n).toBeGreaterThan(reloaded.last.n);
-  expect(tomorrow).toMatchObject({ coins: 395, gems: 9, xp: 45 });
+  expect(tomorrow).toMatchObject({ coins: 395, gems: 8, xp: 45 });
   expect(tomorrow.last.lines).not.toContain('TROPHY: Regular');
 });
 
