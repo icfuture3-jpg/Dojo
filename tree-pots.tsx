@@ -3,8 +3,6 @@ import { potMotion, MOTION_MS, CONTACT } from "./pot-motion";
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 export type PotMode = 'throw' | 'jump' | 'chop';
 export const POT_MODES: Record<PotMode,{name:string;instructions:string;action:string}> = {
- throw:{name:'Stone Throw',instructions:'Step toward the tree, wind up, and throw a stone at the hanging pot. Press Space or THROW when the moving crosshair is inside the gold zone.',action:'THROW'},
- jump:{name:'Jump Strike',instructions:'Build your jump height. Press Space or JUMP when the height marker reaches the gold zone to fly toward the pot with an extended dragon kick.',action:'JUMP'},
  throw:{name:'Stone Throw',instructions:'Step toward the tree, wind up, and throw a stone at the hanging pot. Press Space or THROW when the white marker in the timing bar is inside the gold zone.',action:'THROW'},
  jump:{name:'Jump Strike',instructions:'Watch the white timing marker move across the bar below. Press Space or JUMP when it enters the gold zone to fly toward the pot with an extended dragon kick.',action:'JUMP'},
  chop:{name:'Timed Chop',instructions:'Walk up to the swinging pot, raise your hand, and chop down. Press Space or CHOP inside the gold zone to bring your hand down.',action:'CHOP'},
