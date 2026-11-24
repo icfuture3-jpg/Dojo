@@ -18,7 +18,7 @@ async function mount(){
 }
 const choose=async(m:string)=>act(()=>document.querySelector<HTMLButtonElement>(`[aria-label="Choose ${m}"]`)!.click());
 async function resolve(){await act(()=>vi.advanceTimersByTime(roundBeatMs('tower',0)*3+40));await act(()=>vi.advanceTimersByTime(350));}
-it.each([{roll:.1,result:'POINT!'},{roll:.9,result:'STRUCK!'}])('assists the first choice with real controls ($roll)',async({roll,result})=>{
+it.each([{roll:.1,result:'POINT!'},{roll:.525,result:'POINT!'},{roll:.9,result:'STRUCK!'}])('assists the first choice with real controls ($roll)',async({roll,result})=>{
  vi.spyOn(Math,'random').mockReturnValue(roll);await mount();await choose('rock');await resolve();expect(document.querySelector('.unified-touch-status')?.textContent).toBe(result);
 });
 it('changing your own hand never rerolls the CPU and rotation retains selection',async()=>{
