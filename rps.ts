@@ -40,14 +40,14 @@ export function randomMove(rnd: () => number): Move {
 }
 export const fairPick: Rival["pick"] = (_history, rnd) => randomMove(rnd);
 
-/** Match the first-choice assistance: 50% win, 20% draw, 30% loss.
+/** Match the first-choice assistance: 55% win, 20% draw, 25% loss.
  * When a Daily ban removes a possible result, renormalize the remaining weights.
  */
 export function playerFavoredPick(player: Move, rnd: () => number, banned?: Move): Move {
   const outcomes = [
-    {move: counterTo(counterTo(player)), weight: .5},
+    {move: counterTo(counterTo(player)), weight: .55},
     {move: player, weight: .2},
-    {move: counterTo(player), weight: .3},
+    {move: counterTo(player), weight: .25},
   ].filter(o => o.move !== banned);
   let roll = rnd() * outcomes.reduce((sum, o) => sum + o.weight, 0);
   for (const o of outcomes) { roll -= o.weight; if (roll < 0) return o.move; }
