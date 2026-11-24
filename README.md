@@ -252,3 +252,9 @@ detail. The fox uses a wider crop for the tail fan. These four have transparent
 12-pixel safety padding on every side to prevent touching/cutting the display edge.
 Screenshot-occluded details cannot be recovered from the source. Other ten images
 and all collection/equipment/reward behavior are unchanged.
+
+
+Friend PNGs are bundled from `assets/friends/` rather than served from stable
+`public/images/friends/*.png` URLs. Vite produces content-hashed filenames so
+cleaned artwork receives a new URL when its bytes change and old cached images
+are not reused. The image pixels themselves are unchanged by this loading fix.

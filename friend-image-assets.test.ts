@@ -19,7 +19,7 @@ it('ships all fourteen actual screenshot crops with transparent backgrounds and 
  expect(manifest.images.map((i:{id:string})=>i.id)).toEqual(FRIENDS.map(f=>f.id));
  const hashes:string[]=[];
  for(const crop of manifest.images){
-  const bytes=readFileSync(`public/images/friends/${crop.id}.png`);
+  const bytes=readFileSync(`assets/friends/${crop.id}.png`);
   expect(bytes.subarray(0,8).toString('hex')).toBe('89504e470d0a1a0a');
   const width=crop.outputWidth??crop.width,height=crop.outputHeight??crop.height;
   expect(bytes.readUInt32BE(16)).toBe(width);expect(bytes.readUInt32BE(20)).toBe(height);
@@ -47,7 +47,7 @@ it('excludes captured HUD words above Suanni, Xiezhi and Qilin and gives the fox
   expect(crop.padding).toBe(12);
   if(id==='fox'){expect(crop.left).toBe(674);expect(crop.width).toBe(108);}
   else expect(crop.top).toBeGreaterThanOrEqual(120); // below the screenshot status overlay
-  const bytes=readFileSync(`public/images/friends/${id}.png`),w=bytes.readUInt32BE(16),h=bytes.readUInt32BE(20),pixels=rgba(bytes);
+  const bytes=readFileSync(`assets/friends/${id}.png`),w=bytes.readUInt32BE(16),h=bytes.readUInt32BE(20),pixels=rgba(bytes);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(x<12||y<12||x>=w-12||y>=h-12)expect(pixels[(y*w+x)*4+3]).toBe(0);
  }
 });

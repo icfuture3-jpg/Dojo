@@ -4,7 +4,7 @@ import {act} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {FRIENDS} from './friends';
-import {FriendArt,FRIEND_ABILITIES} from './friend-art';
+import {FriendArt,FRIEND_ABILITIES,friendImagePath} from './friend-art';
 import {FriendsPanel} from './friends-panel';
 import {parseProfile} from './economy';
 import {readFileSync} from 'node:fs';
@@ -19,7 +19,8 @@ it('uses a different supplied PNG for every friend, identical across cards and p
   card.innerHTML=renderToStaticMarkup(<FriendArt friend={f}/>);
   const image=el.querySelector('image')!;expect(image).not.toBeNull();
   expect(image.getAttribute('href')).toBe(card.querySelector('image')!.getAttribute('href'));
-  expect(image.getAttribute('href')).toContain(`images/friends/${f.id}.png`);
+  expect(image.getAttribute('href')).toBe(friendImagePath(f));
+  expect(image.getAttribute('href')).toContain(`/assets/friends/${f.id}.png`);
   expect(el.querySelector('[data-reference-art]')!.children).toHaveLength(1);
   expect(el.querySelector('[data-reference-art] path')).toBeNull(); // no second drawn face
   paths.push(image.getAttribute('href')!);
