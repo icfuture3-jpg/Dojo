@@ -158,7 +158,8 @@ function ItemCard({ it, p, dispatch, onPreview }: { it: Item; p: Profile; dispat
       </div>
       <div style={{ fontSize: 15, textAlign: "center" }}>{it.name}</div>
       <div style={{ fontSize: 11, letterSpacing: 2, color: RARITY_COLOR[it.rarity] }}>{it.rarity.toUpperCase()}</div>
-      {it.diamondOnly && <><strong>DIAMOND TIER {it.tier} · 💎 {it.gems}</strong><p style={{fontSize:12,textAlign:"center",margin:0}}>{epicSkin(it.id)?.detail}</p><small>Diamond exclusive · No box drops</small></>}
+      {it.diamondOnly && it.slot === "skin" && <><strong>DIAMOND TIER {it.tier} · 💎 {it.gems}</strong><p style={{fontSize:12,textAlign:"center",margin:0}}>{epicSkin(it.id)?.detail}</p><small>Diamond exclusive · No box drops</small></>}
+      {it.diamondOnly && it.slot === "finisher" && <small>Diamond exclusive · No box drops</small>}
       {it.slot === "aura" && <button type="button" style={small} aria-label={`Preview ${it.name}`} onClick={() => onPreview?.(it)}>PREVIEW AURA</button>}
       {it.slot === "finisher" && <button type="button" style={small} onClick={() => onPreview?.(it)}>PREVIEW MOVE</button>}
       {owned ? (
