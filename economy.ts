@@ -70,7 +70,10 @@ export const NEW_COSMETICS: Item[] = [
   ...Array.from({length:50}, (_, i) => ({...item("gi", `gi-new-${i}`, `${GI_COLOR_NAMES[i]} ${["Stripe","Wave","Flame","Star","Dragon"][Math.floor(i/10)]} Gi`, GI_COLORS[i]!, i >= 40 ? 900 + (i-40)*100 : 100 + i*12), minRank: i >= 40 ? 3 : 0, pattern: [1,7,6,8,32][Math.floor(i/10)]!})),
   ...Array.from({length:15}, (_, i) => item("band", `band-new-${i}`, `${["Ruby","Sapphire","Emerald","Amethyst","Amber","Turquoise","Rose","Steel","Sunrise","Forest","Pearl","Copper","Indigo","Coral","Moonlight"][i]} Headband`, [...PALETTE,"#f2eddf","#b87333","#3538a0","#ff7f6e","#b9cfea"][i]!, 50+i*15)),
   ...Array.from({length:20}, (_, i) => item("aura", `aura-new-${i}`, `${["Inferno","Ocean Mist","Jade Spirit","Violet Nebula","Solar Flare","Tidal Flow","Rose Petals","Steel Storm","Golden Dawn","Bamboo Wind","Ruby Nova","Sapphire Pulse","Emerald Ring","Amethyst Cloud","Amber Spark","Teal Comet","Cherry Bloom","Silver Moon","Sun Halo","Forest Spirit"][i]} Aura`, ["#f05432","#4cbbdb","#6bdd93","#b285ed","#ffd24d","#36d0bb","#f599c3","#9daec5","#f5b85a","#83bd63","#d63062","#387bf2","#1dba7a","#8648be","#dd8b32","#29a2ac","#f4b0b4","#d3d9ef","#fce789","#468c62"][i]!, 150+i*20)),
-  ...FINISHER_NAMES.map((name,i) => item("finisher", `finisher-${i}`, name, PALETTE[i%10]!, 100+i*50)),
+  ...FINISHER_NAMES.map((name,i) => {
+    const finisher = item("finisher", `finisher-${i}`, name, PALETTE[i%10]!, 100+i*50);
+    return finisher.rarity === "epic" ? {...finisher, coins:0, gems:20+(i-6)*10, diamondOnly:true} : finisher;
+  }),
 ];
 
 export const TOURNAMENT_GIS: readonly Item[] = [

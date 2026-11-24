@@ -209,3 +209,12 @@ materials, 180×150 display scale, grounded shadows, engraved detail and wood/go
 row framing. Bronze objects retain aged patina; the pearl retains its flame motif.
 Responsive rows stack on small screens. This is a visual restyle only: unlocks,
 prices, coins, diamonds and saves are unchanged.
+
+
+## Epic finisher acquisition
+
+Epic finishers remain in Shop → Finishers, with unchanged previews and moves.
+Cyclone Kick costs 20 diamonds, Meteor Punch 30, Crane Balance 40, Victory Salute
+50, Jade Wave 60 and Starburst 70. They cost no coins and no longer drop from
+mystery boxes. Existing ownership/equipment is retained; non-Epic finishers keep
+their previous coin prices. Diamond earning rules are unchanged.
