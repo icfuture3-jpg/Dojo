@@ -8,7 +8,7 @@ import {TreasureArt} from './treasure-art';
 import {TreasuresCollection} from './treasures-panel';
 import {GameHud} from './hud';
 import {TrophiesPanel} from './meta';
-import {ShopUpgrades} from './shop-upgrades';
+import {ShopUpgrades,UpgradeArt} from './shop-upgrades';
 import {applyLogin,parseProfile,TROPHIES} from './economy';
 import {applyAction} from './actions';
 import {loadSave,saveProfile} from './saves';
@@ -74,4 +74,24 @@ it('keeps Trophies separate and opens treasures only from Shop Upgrades, with wo
  await act(()=>[...document.querySelectorAll('button')].find(b=>b.textContent?.includes('BACK'))!.click());
  expect(document.querySelector('[aria-label="Treasures collection"]')).toBeNull();
  expect(document.querySelector('[aria-label="Dojo main menu"]')).not.toBeNull();expect(dispatch).not.toHaveBeenCalled();
+});
+
+
+it('shares painted gold/jade materials, display scale and grounded presentation with purse and scroll',()=>{
+ const el=document.createElement('div');
+ el.innerHTML=renderToStaticMarkup(<><UpgradeArt kind="coin"/><UpgradeArt kind="xp"/>{TREASURES.map(t=><TreasureArt key={t.id} treasure={t}/>)}</>);
+ const all=[...el.querySelectorAll('svg')];expect(all).toHaveLength(8);
+ const stops=(svg:Element,suffix:string)=>[...svg.querySelector(`linearGradient[id$="-${suffix}"]`)!.children].map(e=>[e.getAttribute('stop-color'),e.getAttribute('offset')]);
+ for(const svg of all.slice(2)){
+  expect(svg.getAttribute('viewBox')).toBe('0 0 180 150');
+  expect(stops(svg,'gold')).toEqual(stops(all[0],'gold'));
+  expect(stops(svg,'jade')).toEqual(stops(all[1],'jade'));
+  expect(svg.querySelector('[data-ground-shadow]')).not.toBeNull();
+  expect(svg.querySelector('[data-engraving]')?.children.length).toBeGreaterThan(0);
+  expect(svg.querySelector('rect[fill="#29212e"]')).toBeNull();
+ }
+ const ids=[...el.querySelectorAll('[id]')].map(e=>e.id);expect(new Set(ids).size).toBe(ids.length);
+ for(const shape of el.querySelectorAll('[fill^="url(#"],[stroke^="url(#"]'))for(const attr of ['fill','stroke']){
+  const value=shape.getAttribute(attr);if(value?.startsWith('url(#'))expect(ids).toContain(value.slice(5,-1));
+ }
 });

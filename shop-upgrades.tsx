@@ -1,3 +1,4 @@
+import {TreasureMaterials} from "./treasure-materials";
 import { TreasuresCollection } from "./treasures-panel";
 import { Coin } from "./catalog-art";
 import { useId } from 'react';
@@ -9,11 +10,7 @@ import './shop-upgrades.css';
 export function UpgradeArt({ kind }: { kind: 'coin' | 'xp' }) {
   const id = useId().replace(/:/g, '');
   return <svg role="img" aria-label={kind === 'coin' ? 'Embroidered gold coin purse' : 'Jade scholar scroll'} viewBox="0 0 180 150" className="upgrade-art">
-    <defs>
-      <linearGradient id={`${id}-gold`} x2=".8" y2="1"><stop stopColor="#fff1b3"/><stop offset=".35" stopColor="#d5a33c"/><stop offset=".7" stopColor="#8e5919"/><stop offset="1" stopColor="#ecc36a"/></linearGradient>
-      <linearGradient id={`${id}-jade`}><stop stopColor="#163e35"/><stop offset=".5" stopColor="#77a98a"/><stop offset="1" stopColor="#163e35"/></linearGradient>
-      <linearGradient id={`${id}-paper`}><stop stopColor="#bda670"/><stop offset=".45" stopColor="#fff0ba"/><stop offset="1" stopColor="#baa06a"/></linearGradient>
-    </defs>
+    <defs><TreasureMaterials id={id}/></defs>
     <ellipse cx="90" cy="137" rx="67" ry="8" fill="#000" opacity=".25"/>
     {kind === 'coin' ? <>
       <path d="M62 44L54 17L76 24L91 9L106 24L127 17L118 46Z" fill={`url(#${id}-gold)`} stroke="#754b1c" strokeWidth="3"/>

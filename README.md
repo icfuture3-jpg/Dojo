@@ -202,3 +202,10 @@ preview. Reduced motion disables movement and retains the static character/effec
 
 Treasures live alongside Coin Purse and Scholar’s Scroll in the existing Dojo
 Treasures shop section. Trophies is a separate menu/panel again, without collectibles.
+
+
+Treasure artwork shares the Coin Purse/Scholar’s Scroll painted gold and jade
+materials, 180×150 display scale, grounded shadows, engraved detail and wood/gold
+row framing. Bronze objects retain aged patina; the pearl retains its flame motif.
+Responsive rows stack on small screens. This is a visual restyle only: unlocks,
+prices, coins, diamonds and saves are unchanged.
