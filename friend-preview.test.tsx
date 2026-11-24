@@ -60,3 +60,19 @@ it('switches the showcase to another friend without leaving an old ability behin
  expect(document.querySelectorAll('[data-ability]')).toHaveLength(1);
  expect(document.querySelector('[data-ability]')?.getAttribute('data-ability')).toBe('azure-dragon');
 });
+
+it('retains the defining features from the supplied written folklore references',()=>{
+ const parts:Partial<Record<typeof FRIENDS[number]['id'],string[]>>={
+ bixi:['shell','stone-tablet','dragon-whiskers'],xiezhi:['single-horn','dark-shaggy-fur','cloven-hooves'],
+ qilin:['antlers','qilin-hooves','scales'],fenghuang:['feather-fan','long-necked-bird','crest-and-beak'],
+ yazi:['leopard-body','yazi-dragon-horns','tiger-fangs'],taotie:['goat-bodied-taotie','underarm-eyes','tiger-teeth','raised-arms'],
+ zhulong:['torch-coils','human-face','human-nose-mouth'],
+ 'black-dragon':['coiled-serpent','whiskers'],'yellow-dragon':['cloud-dragon','whiskers'],
+ 'pearl-dragon':['pearl-serpent','long-dragon-snout','whiskers'],'azure-dragon':['wave-riding-dragon','four-claws','dragon-scales','whiskers'],
+ };
+ for(const friend of FRIENDS){
+  const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<FriendArt friend={friend} ability/>);
+  for(const part of parts[friend.id]??[])expect(el.querySelector(`[data-part="${part}"]`),`${friend.name}: ${part}`).not.toBeNull();
+  expect(el.querySelector('[data-part="winged-dragon"],[data-part="seahorse-dragon"],[data-part="bronze-mask"]')).toBeNull();
+ }
+});
