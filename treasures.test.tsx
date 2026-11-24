@@ -13,6 +13,19 @@ import {applyLogin,parseProfile,TROPHIES} from './economy';
 import {applyAction} from './actions';
 import {loadSave,saveProfile} from './saves';
 const now=Date.UTC(2026,10,24);
+it('shows treasure descriptions and win requirements directly below the count without introductory notices',()=>{
+ const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<TreasuresCollection wins={0}/>);
+ const section=el.querySelector('section')!;
+ expect(section.querySelector('h2')?.textContent).toBe('TREASURES · 0/6');
+ expect([...section.children].map(e=>e.tagName)).toEqual(['H2','DIV']);
+ expect(section.textContent).not.toContain('Collect treasures through');
+ expect(section.textContent).not.toContain('Legendary treasures are folklore-inspired');
+ for(const treasure of TREASURES){
+  const row=[...section.querySelectorAll('article')].find(a=>a.textContent?.includes(treasure.name))!;
+  expect(row.textContent).toContain(treasure.description);
+  expect(row.textContent).toContain(`Earn at ${treasure.wins} fight wins`);
+ }
+});
 it('six treasures unlock at exact fight-win boundaries without costs or new coin rules',()=>{
  expect(TREASURES.map(t=>t.wins)).toEqual([5,20,45,80,125,180]);
  expect(new Set(TREASURES.map(t=>t.id)).size).toBe(6);
