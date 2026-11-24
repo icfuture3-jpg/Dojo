@@ -1,0 +1,117 @@
+{
+  "source": "User-supplied Friends screenshot, 1024\u00d7640; crops only, no resizing or retouching.",
+  "images": [
+    {
+      "id": "carp",
+      "left": 49,
+      "top": 101,
+      "width": 104,
+      "height": 106,
+      "sha256": "276b9643f52e1ba667141ed021b619748ff2112fd2a6c44c0feeec0c5c4fc47b"
+    },
+    {
+      "id": "bixi",
+      "left": 177,
+      "top": 101,
+      "width": 104,
+      "height": 106,
+      "sha256": "2fdba76ad812cea303d740eabc191b50de722e851dc08e29a628f94f4aa92c35"
+    },
+    {
+      "id": "suanni",
+      "left": 298,
+      "top": 101,
+      "width": 104,
+      "height": 106,
+      "sha256": "8d7aba67bdacf0da1b3f0cfdc35cfac967869f97c2928dd920dc259379e37ec7"
+    },
+    {
+      "id": "xiezhi",
+      "left": 420,
+      "top": 101,
+      "width": 104,
+      "height": 106,
+      "sha256": "44cdc8eafae3455b399bc35bd59e9045cbf20997fa0783f65027d2cf7aa1108c"
+    },
+    {
+      "id": "qilin",
+      "left": 542,
+      "top": 101,
+      "width": 104,
+      "height": 106,
+      "sha256": "fb72a1c19322765fc8409ee478b7cf77b34b9ba174cc580310fcf17f6f7a5517"
+    },
+    {
+      "id": "fox",
+      "left": 663,
+      "top": 101,
+      "width": 104,
+      "height": 106,
+      "sha256": "e579e2e81810cfcd0e5ea1e62f729ac398f5e729d0fd010c539cf6a72ce535a7"
+    },
+    {
+      "id": "fenghuang",
+      "left": 789,
+      "top": 101,
+      "width": 104,
+      "height": 106,
+      "sha256": "88b362a3418c86de281e52219d6fc8051f1185beeaf9b5557cbdcaab3f7464f7"
+    },
+    {
+      "id": "yazi",
+      "left": 49,
+      "top": 399,
+      "width": 104,
+      "height": 106,
+      "sha256": "07f16663173ccecd25c0e80a3c7da416b343c3fc0c72c2ad620dc26fd8d4a835"
+    },
+    {
+      "id": "taotie",
+      "left": 177,
+      "top": 399,
+      "width": 104,
+      "height": 106,
+      "sha256": "e48a6ede7c86d2359a3d7cecde9819afafdf0109e2e97519f650772e472b4b43"
+    },
+    {
+      "id": "black-dragon",
+      "left": 298,
+      "top": 399,
+      "width": 104,
+      "height": 106,
+      "sha256": "a5c99f1238ddbb582fbceb7dcedd759e0852359506ad98ac4e173f3e7e4d70ec"
+    },
+    {
+      "id": "yellow-dragon",
+      "left": 420,
+      "top": 399,
+      "width": 104,
+      "height": 106,
+      "sha256": "a90df0dc14737b90c0d6a69baf01fcbbe53ae912c9c727fa44b08103ef57bbb1"
+    },
+    {
+      "id": "pearl-dragon",
+      "left": 542,
+      "top": 399,
+      "width": 104,
+      "height": 106,
+      "sha256": "fa04c4e0e353cc821aa998d7f141b52cd26f5875cfe00f1eaab7a4eb226cd8af"
+    },
+    {
+      "id": "azure-dragon",
+      "left": 663,
+      "top": 399,
+      "width": 104,
+      "height": 106,
+      "sha256": "efbfcb302cf98bdbff22799bca42c360340e977ff2e589b7ab9b64437eccafef"
+    },
+    {
+      "id": "zhulong",
+      "left": 789,
+      "top": 399,
+      "width": 104,
+      "height": 106,
+      "sha256": "4cb3599d7b19212e26b0d0e8d53a9132a2fb23dd70e406bb250f744942d8f1c3"
+    }
+  ]
+}

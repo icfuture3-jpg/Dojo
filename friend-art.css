@@ -1,12 +1,8 @@
-.friend-preview-stage{display:flex;align-items:center;justify-content:center;min-height:260px;border:1px solid #bba36d;border-radius:18px;background:radial-gradient(ellipse at 50% 45%,#4e4364,#1b2031 70%);overflow:hidden}
-.friend-card-art{display:flex;align-items:center;justify-content:center;min-height:160px;background:radial-gradient(ellipse,#53405a55,transparent 70%);border-radius:12px}
-.friend-preview-panel{max-width:760px;width:100%;box-sizing:border-box;margin:auto;padding:clamp(14px,4vw,28px);border:2px solid #dcc388;border-radius:18px;background:#211b30;color:#fff0d2}
+.friend-preview-stage{display:flex;align-items:center;justify-content:center;min-height:260px;border:1px solid #bba36d;border-radius:18px;background:#321c17;overflow:hidden}
+.friend-card-art{display:flex;align-items:center;justify-content:center;min-height:160px;background:transparent;border-radius:12px}
+.friend-preview-panel{max-width:760px;width:100%;box-sizing:border-box;margin:auto;padding:clamp(14px,4vw,28px);border:2px solid #dcc388;border-radius:18px;background:#321c17;color:#fff0d2}
 .friend-preview-panel h2{overflow-wrap:anywhere}
-.friend-showcase .friend-character{transform-origin:60px 70px;animation:friendBreathe 2.6s ease-in-out infinite}
 .friend-showcase .friend-ability-effect{transform-origin:60px 60px;animation:friendPower 2s ease-in-out infinite}
-.friend-showcase[data-friend=carp] .friend-character{animation:friendLeap 2.6s ease-in-out infinite}
-.friend-showcase[data-friend=fox] [data-part=nine-tails]{transform-origin:60px 90px;animation:friendFan 3s ease-in-out infinite alternate}
-.friend-showcase[data-friend=fenghuang] .friend-character,.friend-showcase[data-friend=azure-dragon] .friend-character{animation:friendHover 3s ease-in-out infinite}
 .friend-showcase[data-friend=black-dragon] .friend-ability-effect{animation:friendVortex 4s linear infinite}
 @keyframes friendBreathe{50%{transform:translateY(-3px) scale(1.025)}}
 @keyframes friendPower{50%{opacity:.45;transform:scale(.93)}}
@@ -15,3 +11,18 @@
 @keyframes friendHover{50%{transform:translateY(-7px)}}
 @keyframes friendVortex{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.friend-showcase *{animation:none!important;transition:none!important}}
+
+/* Preserve the reference pixels: no opacity, tint, masks, extra faces or grayscale locks. */
+.friend-art image{opacity:1;filter:none;image-rendering:auto}
+.friend-showcase .friend-character{animation:none}
+.friend-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px;margin-top:16px}
+.friend-reference-card{display:flex;flex-direction:column;align-items:center;min-width:0;padding:12px;text-align:center;color:#f4dfb7;background:linear-gradient(100deg,#311a15,#3e2119,#2e1814);border:2px solid #bc9c61;border-radius:6px;outline:1px solid #715133;outline-offset:-5px;box-shadow:inset 0 0 14px #1b0d0a}
+.friend-reference-card[data-equipped=true]{border-color:#b8db8e}
+.friend-reference-card .friend-card-art{min-height:130px;width:100%}
+.friend-reference-card h2{font:700 20px/1.25 Georgia,serif;color:#ffe3aa;margin:8px 0}
+.friend-reference-card p{font:13px/1.5 Georgia,serif;margin:8px 0}
+.friend-reference-card button{width:100%;border-radius:2px;font:700 12px/1.4 Georgia,serif;border:1px solid #c5a46b;background:linear-gradient(#85402a,#54271e);min-height:44px}
+.friend-reference-card button:last-child{margin-top:auto}
+.friend-reference-card button:disabled{opacity:.7}
+
+.friend-showcase .friend-character{animation:none!important}
