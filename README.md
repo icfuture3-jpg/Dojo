@@ -188,9 +188,9 @@ not reproductions or claims to possess real museum artifacts.
 
 Each of the fourteen friends has an individually drawn silhouette, not a shared
 body recolored. The river dragons are a coiled serpent, cloud-maned guardian,
-seahorse-shaped pearl dragon and fin-winged tidal dragon. The other friends retain
+long pearl serpent and wave-riding scaled dragon. The other friends retain
 species-specific fish, shell, mane, single horn, hooves, nine tails, feather fan,
-leopard, bronze-mask and torch-coil details. Larger collection cards and equipped
+leopard, horned Taotie and torch-coil details. Larger collection cards and equipped
 buddies use the same character art as the preview.
 
 Every card has **PREVIEW ABILITY**, even while locked. The large showcase animates
@@ -218,3 +218,15 @@ Cyclone Kick costs 20 diamonds, Meteor Punch 30, Crane Balance 40, Victory Salut
 50, Jade Wave 60 and Starburst 70. They cost no coins and no longer drop from
 mystery boxes. Existing ownership/equipment is retained; non-Epic finishers keep
 their previous coin prices. Diamond earning rules are unchanged.
+
+
+### Folklore-reference friend details
+The supplied written references guide the character features: Bixi carries a stone
+tablet on a turtle shell, Xiezhi has a single horn and dark shaggy fur, Qilin has
+antlers/scales/hooves, Fenghuang has a long neck and ornamental tail feathers,
+Yazi has leopard features plus dragon horns and fangs, Taotie has a goat-like body
+with underarm eyes and tiger teeth, and Zhulong has a human-like face on red coils.
+River dragons retain individual silhouettes but use long bodies, horns and whiskers
+rather than a Western winged-dragon or seahorse design. Original game-style SVG
+adaptations, not exact copies of any image; no image files accompanied these refs.
+Names, IDs, unlocks, ability previews, equipment and currency rules are unchanged.
