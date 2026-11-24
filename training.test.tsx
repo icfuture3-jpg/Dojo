@@ -6,6 +6,8 @@ it('offers interactive board breaking for the defeated player', () => {
  expect(html).toContain('How to break boards');
  expect(html).toContain('START TRAINING — SPACE');
  expect(html).toContain('five attempts');
+ expect(html).not.toContain('Every session earns strength and XP');
+ expect(html).toContain('Hold-free controls: press once for each strike.');
  expect(html).toContain('0 boards broken');
  expect(html).toContain('Custom fighter');
  expect(html.match(/aria-label="Timing meter"/g)).toHaveLength(1);

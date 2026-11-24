@@ -1,3 +1,4 @@
+import { createRunId } from "./run-id";
 import { Coin } from "./catalog-art";
 import { CONTENT, NEW_RIVALS, EVENT_IDS, scheduledEvent, type ContentId } from "./content-catalog";
 import { RescueScenery } from "./scenery";
@@ -61,7 +62,7 @@ export function ChallengeDojo({ p, dispatch, onExit, fighter }: {
             {daily && <p>Entries: {p.challenges.dailyDay === new Date(now).toISOString().slice(0, 10) ? p.challenges.dailyAttempts : 0}/3 · Daily streak: {p.challenges.dailyStreak}</p>}
             <p className="reward">{kind === 'survival' ? 'Each new personal-best win: 15 coins + 8 XP (paid when run ends).' : `${c.reward.coins} coins · ${c.reward.xp} XP · ${c.reward.gems} diamonds. ${daily ? 'Once per day, plus 10–50 streak bonus coins.' : group === 'Special Events' ? 'Once per scheduled UTC occurrence.' : 'First clear only; later runs are practice.'}`}</p>
             <p>On-device {kind === 'survival' ? `best: ${p.challenges.survivalBest} wins` : `clears: ${p.challenges.clears[kind] ?? 0}`}{claimed ? ' · reward collected' : ''}</p>
-            <button onClick={() => { send({ action: 'start', kind, id: crypto.randomUUID() }); setPage('run'); }}>{claimed ? 'PRACTICE TRIAL' : 'ENTER CHALLENGE'}</button>
+            <button onClick={() => { send({ action: 'start', kind, id: createRunId() }); setPage('run'); }}>{claimed ? 'PRACTICE TRIAL' : 'ENTER CHALLENGE'}</button>
           </article>;
         })}
       </div></section>;})}

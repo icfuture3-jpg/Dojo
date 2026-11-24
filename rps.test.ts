@@ -48,3 +48,21 @@ it('fair picks consume exactly one random draw and give each fixed player hand e
   expect(outcomes).toEqual({win:100,lose:100,draw:100});
  }
 });
+
+import { dailyRival, TOWER_POOL } from './rps';
+it('Classic Daily opponents obey every banned hand with equal odds for the two legal hands',()=>{
+ for(const banned of MOVES)for(const opponent of TOWER_POOL){
+  const daily=dailyRival(opponent,banned);
+  expect(daily.name).toBe(opponent.name);
+  for(const history of [[],...MOVES.map(player=>[{player,rival:player}])]){
+   const counts={rock:0,paper:0,scissors:0};
+   for(let i=0;i<1000;i++){
+    let calls=0;
+    const move=daily.pick(history,()=>{calls++;return(i+.5)/1000;});
+    expect(move).not.toBe(banned);expect(calls).toBe(1);counts[move]++;
+   }
+   expect(counts[banned]).toBe(0);
+   for(const allowed of MOVES.filter(m=>m!==banned))expect(counts[allowed]).toBe(500);
+  }
+ }
+});
