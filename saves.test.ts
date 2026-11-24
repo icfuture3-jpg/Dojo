@@ -128,3 +128,25 @@ it('backfills the six-game Mei unlock for returning players without changing ear
  const partial=JSON.parse(snapshot);delete partial.academy.clears.memory;
  expect(parseProfile(partial).academy.unlocks).not.toContain('Mei');
 });
+
+it('repairs tournament gis and the earned Mei unlock together across a save round trip',()=>{
+ const {api,values}=storage();
+ const original=parseProfile({saveVersion:4,coins:777,gems:23,xp:500,rp:100});
+ original.academy.clears={lightning:1,balance:1,frenzy:1,shadow:1,says:1,memory:1};
+ original.challenges.clears={beginner:1,advanced:1,world:1};
+ const snapshot=JSON.stringify(original);values.set(SAVE_KEY,snapshot);
+ const restored=parseProfile(JSON.parse(values.get(SAVE_KEY)!));
+ expect(restored.academy.unlocks).toContain('Mei');
+ const gis=['gi-champion-jade','gi-champion-storm','gi-champion-golden'];
+ expect(restored.owned).toEqual(expect.arrayContaining(gis));
+ expect([restored.coins,restored.gems,restored.xp,restored.rp]).toEqual([777,23,500,100]);
+ expect(restored.look).toEqual(original.look);
+ expect(restored.academy.clears).toEqual(original.academy.clears);
+ expect(restored.challenges.clears).toEqual(original.challenges.clears);
+ expect(saveProfile(api,restored)).toBeNull();
+ expect(values.get(BACKUP_KEY)).toBe(snapshot);
+ const again=parseProfile(JSON.parse(values.get(SAVE_KEY)!));
+ expect(again).toEqual(restored);
+ expect(again.academy.unlocks.filter(id=>id==='Mei')).toHaveLength(1);
+ for(const gi of gis)expect(again.owned.filter(id=>id===gi)).toHaveLength(1);
+});
