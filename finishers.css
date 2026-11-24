@@ -1,0 +1,55 @@
+.finisher-scene{position:fixed!important;inset:0!important;z-index:400!important;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px 12px!important;overflow:auto!important;isolation:isolate;background:radial-gradient(ellipse at 50% 55%,#344d5b,#171323 65%,#08070e)!important;color:#fff3d1;pointer-events:auto;text-align:center}
+.finisher-scene header{z-index:1;flex-shrink:0}.finisher-scene h2{font:bold clamp(24px,5vw,40px)/1.1 Georgia,serif;margin:8px 0;text-shadow:0 4px 0 #000;letter-spacing:2px}
+.finisher-eyebrow{font:11px/1.4 system-ui;letter-spacing:3px;color:#dfb66d;margin:0}
+.finisher-scene>.finisher-spotlight{position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(110deg,transparent 30%,#ffe3a515 48%,transparent 50%),linear-gradient(250deg,transparent 30%,#9cddf515 48%,transparent 50%);box-shadow:inset 0 0 100px #000b}
+.finisher-choreography{position:relative;width:min(520px,100%);height:380px;flex-shrink:0;perspective:900px}
+.finisher-mat{position:absolute;left:10%;right:10%;bottom:20px;height:45px;border:2px solid #cbaa6b99;border-radius:50%;background:radial-gradient(ellipse,#dfbf772b,transparent);box-shadow:0 12px 40px #000}
+.finisher-performer{position:absolute;left:calc(50% - 100px);bottom:35px;width:200px;height:300px;transform-origin:100px 290px;animation:finisher-body 5.2s ease-in-out both;z-index:2}
+/* Stop inherited breathing/hopping, but leave the new joint tracks in charge. */
+.finisher-performer .fighter-art,.finisher-performer .cutout-fighter{animation:none!important;transform:none!important;translate:none!important;rotate:none!important}
+.finisher-performer .fighter-upper-body{transform-box:view-box;transform-origin:100px 205px;animation:finisher-upper 5.2s ease-in-out both}
+.finisher-performer .fighter-left-arm{transform-box:view-box;transform-origin:47px 112px;animation:finisher-leftArm 5.2s ease-in-out both}
+.finisher-performer .fighter-right-arm{transform-box:view-box;transform-origin:153px 112px;animation:finisher-rightArm 5.2s ease-in-out both}
+.finisher-performer .fighter-left-leg{transform-box:view-box;transform-origin:77px 210px;animation:finisher-leftLeg 5.2s ease-in-out both}
+.finisher-performer .fighter-right-leg{transform-box:view-box;transform-origin:123px 210px;animation:finisher-rightLeg 5.2s ease-in-out both}
+@keyframes finisher-body{0%,100%{transform:none}18%,22%{transform:var(--body-windup)}44%,72%{transform:var(--body-strike)}}
+@keyframes finisher-upper{0%,100%{transform:none}18%,22%{transform:var(--upper-windup)}44%,72%{transform:var(--upper-strike)}}
+@keyframes finisher-leftArm{0%,100%{transform:none}18%,22%{transform:var(--leftArm-windup)}44%,72%{transform:var(--leftArm-strike)}}
+@keyframes finisher-rightArm{0%,100%{transform:none}18%,22%{transform:var(--rightArm-windup)}44%,72%{transform:var(--rightArm-strike)}}
+@keyframes finisher-leftLeg{0%,100%{transform:none}18%,22%{transform:var(--leftLeg-windup)}44%,72%{transform:var(--leftLeg-strike)}}
+@keyframes finisher-rightLeg{0%,100%{transform:none}18%,22%{transform:var(--rightLeg-windup)}44%,72%{transform:var(--rightLeg-strike)}}
+.finisher-choreography .finisher-effect{position:absolute;inset:0;pointer-events:none;color:var(--finisher-color);animation:finisher-effect 5.2s ease-out both;filter:drop-shadow(0 0 8px currentColor);z-index:1}
+.finisher-effect svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.finisher-effect-star svg,.finisher-effect-rays svg{fill:#ffe9a6;stroke:#fff6dc;stroke-width:2}
+.finisher-effect-shockwave{transform-origin:50% 86%}.finisher-effect-trail{opacity:.65}
+@keyframes finisher-effect{0%,25%{opacity:0;scale:.65}44%,68%{opacity:.85;scale:1}92%,100%{opacity:0;scale:1.12}}
+.finisher-cue{position:absolute;left:0;right:0;bottom:0;color:#ffe5a0;letter-spacing:3px;font:bold 18px Georgia,serif;text-shadow:2px 3px #000;animation:finisher-caption 5.2s both;z-index:3}
+@keyframes finisher-caption{0%,30%{opacity:0;translate:0 8px}44%,80%{opacity:1;translate:0 0}100%{opacity:0}}
+.finisher-action{max-width:600px;min-height:44px;margin:4px 0;font:16px/1.5 Georgia,serif;z-index:3}
+.finisher-scene>button{min-height:44px;padding:10px 28px;background:#6a2319;border:2px solid #dfb96d;color:#fff2d2;border-radius:6px;font:18px Georgia,serif;cursor:pointer;z-index:3;flex-shrink:0}
+.finisher-scene>button:focus-visible{outline:3px solid white;outline-offset:3px}
+@media(max-height:620px){.finisher-choreography{height:380px;zoom:.65}.finisher-scene{justify-content:flex-start;gap:4px}.finisher-scene h2{font-size:24px}.finisher-action{font-size:14px}}
+@media(prefers-reduced-motion:reduce){
+ .finisher-scene *{animation:none!important;transition:none!important}
+ .finisher-performer{transform:var(--body-strike)}
+ .finisher-performer .fighter-upper-body{transform:var(--upper-strike)}
+ .finisher-performer .fighter-left-arm{transform:var(--leftArm-strike)}
+ .finisher-performer .fighter-right-arm{transform:var(--rightArm-strike)}
+ .finisher-performer .fighter-left-leg{transform:var(--leftLeg-strike)}
+ .finisher-performer .fighter-right-leg{transform:var(--rightLeg-strike)}
+ .finisher-effect{opacity:.3}.finisher-cue{opacity:1}
+}
+
+.finisher-choreography[data-finisher="finisher-10"] .fighter-right-fist{display:none}
+.finisher-choreography[data-finisher="finisher-10"] .fighter-open-palm{display:block!important}
+
+.finisher-performer .fighter-shadow{display:none}
+@media(max-width:400px){.finisher-performer{scale:.8}}
+
+/* One localized lightning strike, not a strobe or full-screen flash. */
+.finisher-thunder{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:3;opacity:0;animation:stompThunder 900ms ease-out var(--stomp-impact-delay) forwards}
+.thunder-clouds{fill:#25394c;stroke:#a4c7e3;stroke-width:3}
+.thunder-bolts{fill:#e4f8ff;stroke:#65cfff;stroke-width:3;filter:drop-shadow(0 0 7px #83deff)}
+.thunder-ground{fill:none;stroke:#b8efff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+@keyframes stompThunder{0%,16%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.finisher-thunder{animation:none!important;opacity:.65}.thunder-bolts{filter:none}}

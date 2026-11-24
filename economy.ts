@@ -1,4 +1,4 @@
-import { academyStateSchema, playableAcademyIds } from "./academy-state";
+import { academyStateSchema, earnedMei, visibleAcademyIds } from "./academy-state";
 import { challengeStateSchema } from "./challenge-state";
 import { RESCUES } from "./rescue";
 import { z } from "zod";
@@ -12,6 +12,7 @@ export interface Item {
   name: string;
   slot: Slot;
   pattern?: number;
+  tournament?: "beginner" | "advanced" | "world";
   /** Colour used to draw the item. */
   color: string;
   coins: number;
@@ -62,13 +63,19 @@ const GI_COLORS = [
 ];
 const PALETTE = ["#e74c3c","#2980b9","#27ae60","#8e44ad","#f39c12","#16a085","#d2527f","#566573","#c4a64d","#356156"];
 export const NEW_COSMETICS: Item[] = [
-  ...Array.from({length:50}, (_, i) => ({...item("gi", `gi-new-${i}`, `${GI_COLOR_NAMES[i]} ${["Stripe","Wave","Flame","Star","Dragon"][Math.floor(i/10)]} Gi`, GI_COLORS[i]!, 100 + i*12), pattern: [1,7,6,8,32][Math.floor(i/10)]!})),
+  ...Array.from({length:50}, (_, i) => ({...item("gi", `gi-new-${i}`, `${GI_COLOR_NAMES[i]} ${["Stripe","Wave","Flame","Star","Dragon"][Math.floor(i/10)]} Gi`, GI_COLORS[i]!, i >= 40 ? 900 + (i-40)*100 : 100 + i*12), minRank: i >= 40 ? 3 : 0, pattern: [1,7,6,8,32][Math.floor(i/10)]!})),
   ...Array.from({length:15}, (_, i) => item("band", `band-new-${i}`, `${["Ruby","Sapphire","Emerald","Amethyst","Amber","Turquoise","Rose","Steel","Sunrise","Forest","Pearl","Copper","Indigo","Coral","Moonlight"][i]} Headband`, [...PALETTE,"#f2eddf","#b87333","#3538a0","#ff7f6e","#b9cfea"][i]!, 50+i*15)),
   ...Array.from({length:20}, (_, i) => item("aura", `aura-new-${i}`, `${["Inferno","Ocean Mist","Jade Spirit","Violet Nebula","Solar Flare","Tidal Flow","Rose Petals","Steel Storm","Golden Dawn","Bamboo Wind","Ruby Nova","Sapphire Pulse","Emerald Ring","Amethyst Cloud","Amber Spark","Teal Comet","Cherry Bloom","Silver Moon","Sun Halo","Forest Spirit"][i]} Aura`, ["#f05432","#4cbbdb","#6bdd93","#b285ed","#ffd24d","#36d0bb","#f599c3","#9daec5","#f5b85a","#83bd63","#d63062","#387bf2","#1dba7a","#8648be","#dd8b32","#29a2ac","#f4b0b4","#d3d9ef","#fce789","#468c62"][i]!, 150+i*20)),
   ...FINISHER_NAMES.map((name,i) => item("finisher", `finisher-${i}`, name, PALETTE[i%10]!, 100+i*50)),
 ];
 
+export const TOURNAMENT_GIS: readonly Item[] = [
+ {...item("gi","gi-champion-jade","Jade Champion Gi","#357963",0),pattern:7,rarity:"rare",tournament:"beginner"},
+ {...item("gi","gi-champion-storm","Storm Champion Gi","#354b79",0),pattern:8,rarity:"epic",tournament:"advanced"},
+ {...item("gi","gi-champion-golden","Golden World Champion Gi","#e3bc57",0),pattern:32,rarity:"legendary",tournament:"world"},
+];
 export const ITEMS: readonly Item[] = [
+  ...TOURNAMENT_GIS,
   ...NEW_COSMETICS,
   item("gi", "gi-blue", "Classic Blue Gi", "#2471a3", 0),
   item("gi", "gi-crimson", "Crimson Gi", "#c0392b", 120),
@@ -105,7 +112,7 @@ export const DEFAULT_EQUIP: Record<Slot, string> = {
 export function findItem(id: string): Item | undefined {
   return ITEMS.find((i) => i.id === id);
 }
-const FREE_IDS = ITEMS.filter((i) => i.coins === 0 && i.gems === 0).map((i) => i.id);
+const FREE_IDS = ITEMS.filter((i) => !i.tournament && i.coins === 0 && i.gems === 0).map((i) => i.id);
 
 export interface Upgrade {
   id: "coin" | "xp" | "eye";
@@ -118,8 +125,7 @@ export const UPGRADES: readonly Upgrade[] = [
   { id: "xp", name: "Scholar's Scroll", blurb: "+10% XP per level", costs: [150, 300, 500] },
 ];
 
-export const BOX_COST = 120;
-export const BOX_GEM_COST = 8;
+export const BOX_DUPLICATE_COINS = 60;
 const BOX_WEIGHTS: Record<Rarity, number> = { common: 60, rare: 28, epic: 10, legendary: 2 };
 
 // ---------- ranks and levels ----------
@@ -244,7 +250,7 @@ export const TROPHIES: readonly Trophy[] = [
   t("lightning-perfect", "Precision Spark", "Complete Lightning Hands with 100% accuracy", 100, 2, p => (p.academy.clears.lightning ?? 0) > 0 && p.academy.records.lightningAccuracy === 100),
   t("memory-clear", "Mind Palace", "Complete Three-Hand Memory through its six-hand sequence", 90, 2, p => (p.academy.clears.memory ?? 0) > 0),
   t("shadow-variety", "Uncopied Shadow", "Defeat Shadow Master without repeating a hand in that run", 110, 2, p => p.academy.run?.game === 'shadow' && p.academy.run.paid && p.academy.run.noRepeat),
-  t("academy-versatile", "Eight Disciplines", "Complete each of the eight playable Training Hall mini-games", 200, 4, p => playableAcademyIds.every(id => (p.academy.clears[id] ?? 0) > 0)),
+  t("academy-versatile", "Six Disciplines", "Complete each of the six Training Hall mini-games", 200, 4, p => visibleAcademyIds.every(id => (p.academy.clears[id] ?? 0) > 0)),
   t("upgrade-toolkit", "Balanced Toolkit", "Buy at least one Coin Purse and one Scholar’s Scroll upgrade", 80, 1, p => p.up.coin > 0 && p.up.xp > 0),
   t("equipped-finish", "Finishing Touch", "Equip a finisher together with a non-starter gi, headband and aura", 80, 1, p => ['gi','band','aura','finisher'].every(slot => {const id=p.equip[slot as Slot];return p.owned.includes(id) && ITEMS.some(item => item.id === id && item.slot === slot && !FREE_IDS.includes(id));})),
   t("rescue-lantern", "A Light Restored", "Rescue your first dojo in Rescue Dojos", 100, 2, p => p.stats.rescued >= 1),
@@ -353,7 +359,11 @@ export function parseProfile(raw: unknown): Profile {
   // Preserve attained level/progress beyond level 10 while the first nine costs are 20% lower.
   for (let i = 0; i < 200; i++) {
     const result = profileSchema.safeParse(data);
-    if (result.success) return result.data;
+    if (result.success) {
+      const profile = grantTournamentGis(result.data);
+      if (earnedMei(profile.academy.clears) && !profile.academy.unlocks.includes('Mei')) profile.academy.unlocks.push('Mei');
+      return profile;
+    }
     for (const issue of [...result.error.issues].reverse()) {
       if (!issue.path.length) return profileSchema.parse({});
       let parent: unknown = data;
@@ -364,6 +374,14 @@ export function parseProfile(raw: unknown): Profile {
     }
   }
   return profileSchema.parse({});
+}
+
+/** Idempotent rewards for both new clears and existing saved tournament wins. */
+export function grantTournamentGis(p: Profile): Profile {
+  for (const gi of TOURNAMENT_GIS) {
+    if (gi.tournament && (p.challenges.clears[gi.tournament] ?? 0) > 0 && !p.owned.includes(gi.id)) p.owned.push(gi.id);
+  }
+  return p;
 }
 
 function clone(p: Profile): Profile {
@@ -666,7 +684,7 @@ export function canAfford(p: Profile, coins: number, gems: number): boolean {
 
 export function buyItem(input: Profile, id: string): Profile | null {
   const it = findItem(id);
-  if (!it || input.owned.includes(id)) return null;
+  if (!it || it.tournament || input.owned.includes(id)) return null;
   if (levelInfo(input.xp).level < it.minLevel || rankIndex(input.rp) < it.minRank || !canAfford(input, it.coins, it.gems)) return null;
   const p = clone(input);
   p.coins -= it.coins;
@@ -723,22 +741,19 @@ export function buyUpgrade(input: Profile, id: string): Profile | null {
 /** Actual rank-eligible per-item weighted odds; selection and rewards are unchanged. */
 export function boxOdds(rp: number): Record<Rarity, number> {
   const totals: Record<Rarity, number> = { common: 0, rare: 0, epic: 0, legendary: 0 };
-  for (const item of ITEMS.filter(i => !FREE_IDS.includes(i.id) && rankIndex(rp) >= i.minRank)) totals[item.rarity] += BOX_WEIGHTS[item.rarity];
+  for (const item of ITEMS.filter(i => !i.tournament && !FREE_IDS.includes(i.id) && rankIndex(rp) >= i.minRank)) totals[item.rarity] += BOX_WEIGHTS[item.rarity];
   const total = Object.values(totals).reduce((a, b) => a + b, 0);
   return Object.fromEntries(Object.entries(totals).map(([rarity, weight]) => [rarity, total ? weight / total * 100 : 0])) as Record<Rarity, number>;
 }
 
 export function openBox(input: Profile, currency: "coins" | "gems" | "free", rnd: () => number): Profile | null {
-  const cost = currency === "coins" ? BOX_COST : BOX_GEM_COST;
-  if (!["coins", "gems", "free"].includes(currency)) return null;
+  if (currency !== "free" || input.freeBoxes < 1) return null;
   const random = rnd();
   if (!Number.isFinite(random) || random < 0 || random >= 1) return null;
-  if (currency === "free" ? input.freeBoxes < 1 : (currency === "coins" ? input.coins : input.gems) < cost) return null;
   const p = clone(input);
-  if (currency === "free") p.freeBoxes--;
-  else p[currency] -= cost;
+  p.freeBoxes--;
   p.stats.boxes += 1;
-  const pool = ITEMS.filter((i) => !FREE_IDS.includes(i.id) && rankIndex(p.rp) >= i.minRank);
+  const pool = ITEMS.filter((i) => !i.tournament && !FREE_IDS.includes(i.id) && rankIndex(p.rp) >= i.minRank);
   const total = pool.reduce((s, i) => s + BOX_WEIGHTS[i.rarity], 0);
   let roll = random * total;
   let won = pool[0] as Item;
@@ -751,9 +766,9 @@ export function openBox(input: Profile, currency: "coins" | "gems" | "free", rnd
   }
   const lines: string[] = [];
   if (p.owned.includes(won.id)) {
-    const refund = Math.round(BOX_COST / 2);
-    p.coins += refund;
-    lines.push(`Duplicate ${won.name}: +${refund} coins back`);
+    const bonus = BOX_DUPLICATE_COINS;
+    p.coins += bonus;
+    lines.push(`Duplicate ${won.name}: +${bonus} bonus coins`);
   } else {
     p.owned.push(won.id);
     lines.push(`You found ${won.name} (${won.rarity})!`);

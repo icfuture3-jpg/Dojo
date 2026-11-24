@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GameHud } from './hud';
 import { applyAction } from './actions';
-import { loadSave, saveProfile, SAVE_KEY, BACKUP_KEY, type SaveStorage } from './saves';
-import { parseProfile, profileSchema, type Profile } from './economy';
+import { loadSave, saveProfile, SAVE_KEY, type SaveStorage } from './saves';
 import type { DojoEvent } from './net';
 
 function browserStorage(): SaveStorage | null {
@@ -18,11 +17,8 @@ export function App() {
   const [loaded] = useState(() => loadSave(browserStorage(), Date.now()));
   const [profile, setProfile] = useState(loaded.profile);
   const [saveError, setSaveError] = useState('');
-  const [canSave, setCanSave] = useState(loaded.canSave);
+  const canSave = loaded.canSave;
   const [retry, setRetry] = useState(0);
-  const [saveTools, setSaveTools] = useState(false);
-  const [candidate, setCandidate] = useState<Profile | null>(null);
-  const [toolMessage, setToolMessage] = useState('');
   const [conflict, setConflict] = useState(false);
   const conflictRef = useRef(false);
 
@@ -74,108 +70,11 @@ export function App() {
   return (
     <>
       <GameHud
-        onSaveTools={() => setSaveTools(true)}
         dispatch={dispatch}
         profileData={JSON.stringify(profile)}
         boardData={JSON.stringify(board)}
         boardId="local"
       />
-
-      {/* Save Management Overlay */}
-      {saveTools && (
-        <section className="expansion-screen" style={{ zIndex: 900 }} aria-label="Save tools">
-          <header className="expansion-header">
-            <h1>SAVE TOOLS</h1>
-            <button onClick={() => setSaveTools(false)}>BACK TO DOJO</button>
-          </header>
-          <p>
-            Progress is stored on this device. Export a backup before importing another save. Import replaces this
-            session only after you confirm.
-          </p>
-          <button onClick={exportSave}>EXPORT PROGRESS</button>
-
-          <label style={{ display: 'block', margin: '24px 0' }}>
-            Choose a saved JSON file
-            <input
-              aria-label="Import save file"
-              type="file"
-              accept="application/json,.json"
-              onChange={async e => {
-                const file = e.target.files?.[0];
-                setCandidate(null);
-                if (!file) return;
-                if (file.size > 2000000) {
-                  setToolMessage('Save exceeds 2 MB.');
-                  return;
-                }
-                try {
-                  const raw = JSON.parse(await file.text());
-                  if (
-                    !raw ||
-                    typeof raw !== 'object' ||
-                    Array.isArray(raw) ||
-                    !['coins', 'xp', 'owned'].every(k => k in raw) ||
-                    raw.saveVersion > 4 ||
-                    !profileSchema.safeParse({ ...raw, saveVersion: 4 }).success
-                  ) {
-                    setToolMessage('This file is not a compatible complete save. Your progress has not changed.');
-                    return;
-                  }
-                  const next = parseProfile(raw);
-                  setCandidate(next);
-                  setToolMessage(
-                    `Ready to import ${next.name || 'fighter'}: ${next.coins} coins, ${next.xp} XP. Existing progress will be replaced.`
-                  );
-                } catch {
-                  setToolMessage('Invalid JSON. Your progress has not changed.');
-                }
-              }}
-            />
-          </label>
-
-          <button
-            onClick={() => {
-              try {
-                const text = browserStorage()?.getItem(BACKUP_KEY);
-                if (!text) throw new Error();
-                const raw = JSON.parse(text);
-                if (raw.saveVersion > 4 || !profileSchema.safeParse({ ...raw, saveVersion: 4 }).success) {
-                  throw new Error();
-                }
-                setCandidate(parseProfile(raw));
-                setToolMessage('Previous backup loaded for review. Confirm to replace this session.');
-              } catch {
-                setToolMessage('No valid previous backup is available.');
-              }
-            }}
-          >
-            REVIEW PREVIOUS BACKUP
-          </button>
-
-          <p role="status">{toolMessage}</p>
-
-          {candidate && (
-            <button
-              disabled={conflict}
-              onClick={() => {
-                const error = saveProfile(browserStorage(), candidate);
-                if (error) {
-                  setToolMessage(error);
-                  return;
-                }
-                setCanSave(true);
-                setProfile(candidate);
-                setCandidate(null);
-                setToolMessage('Imported and saved. Previous valid data remains in the backup.');
-              }}
-            >
-              CONFIRM REPLACE WITH THIS SAVE
-            </button>
-          )}
-
-          {conflict && <button onClick={() => window.location.reload()}>RELOAD SAVED PROGRESS</button>}
-        </section>
-      )}
 
       {/* Warning/Error Banner */}
       {warning && (
@@ -204,6 +103,7 @@ export function App() {
               RETRY SAVE
             </button>
           )}
+          {conflict && <button type="button" onClick={() => window.location.reload()} style={{ margin: '8px 8px 0 0', minHeight: 44 }}>RELOAD SAVED PROGRESS</button>}
           <button type="button" onClick={exportSave} style={{ marginTop: 8, minHeight: 44 }}>
             EXPORT THIS SESSION
           </button>
