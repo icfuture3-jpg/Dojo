@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import {readFileSync} from 'node:fs';
 import {afterEach,expect,it,vi} from 'vitest';
 import {act} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
@@ -39,7 +40,7 @@ it('uses action-specific joints rather than tipping every whole character',()=>{
  expect(lotus!.strike.leftLeg).toBe('rotate(-72deg)');expect(lotus!.strike.rightLeg).toBe('rotate(72deg)');
  expect(kick!.strike.rightLeg).toBe('rotate(-105deg)');expect(punch!.strike.rightArm).toBe('rotate(-100deg)');
  expect(crane!.strike.rightLeg).toContain('translateY(-44px)');expect(crane!.strike.leftLeg).toBeUndefined();
- expect(salute!.strike.leftArm).toBe('rotate(165deg)');expect(salute!.strike.rightArm).toBe('rotate(-165deg)');
+ expect(salute!.strike.leftArm).toBeUndefined();expect(salute!.strike.body).toBeUndefined();expect(salute!.action).toContain('right hand to the brow');
  expect(wave!.effect).toBe('wave');expect(wave!.strike.rightArm).toBe('rotate(-90deg)');
  expect(star!.strike.leftLeg).toBe('rotate(32deg)');expect(star!.strike.rightLeg).toBe('rotate(-32deg)');
 });
@@ -68,4 +69,26 @@ it('Jade Wave energy and its currentColor glow use jade green, independent of ca
  expect(el.querySelector('.finisher-effect-wave')).not.toBeNull();
  const other=document.createElement('div');other.innerHTML=renderToStaticMarkup(<FinisherScene item={{...items[0]!,color:'#ff0000'}} avatar={avatar} onDone={()=>{}}/>);
  expect(other.querySelector('.finisher-choreography')?.getAttribute('style')).toContain('--finisher-color:#ff0000');
+});
+
+
+it('Victory Salute uses a bent right elbow and flat joined hand rather than raised fists',()=>{
+ const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<FinisherScene item={items[9]!} avatar={avatar} onDone={()=>{}}/>);
+ expect(el.textContent).toContain('palm down');
+ const arm=el.querySelector('.fighter-salute-arm');expect(arm?.closest('.fighter-upper-body')).not.toBeNull();
+ expect(arm?.querySelector('.salute-upper-arm .salute-forearm .salute-flat-hand')).not.toBeNull();
+ const pose=FINISHER_CHOREOGRAPHY[9]!;expect(pose.windup).toEqual({});expect(pose.strike).toEqual({});
+});
+
+it('salute timeline raises and lowers the jointed arm and holds the pose for reduced motion',()=>{
+ const css=readFileSync('finishers.css','utf8');
+ expect(css).toContain('@keyframes militarySaluteUpper{0%,22%,100%{transform:rotate(0deg)}44%,72%{transform:rotate(-80deg)}}');
+ expect(css).toContain('@keyframes militarySaluteForearm{0%,22%,100%{transform:rotate(0deg)}44%,72%{transform:rotate(-140deg)}}');
+ expect(css).toContain('.salute-forearm{animation:none!important;transform:rotate(-140deg)}');
+ // Hand tip in the fighter viewBox: shoulder + upper-arm + bent forearm/hand.
+ const rad=(n:number)=>n*Math.PI/180;
+ const x=153-34*Math.sin(rad(-80))-77*Math.sin(rad(-220));
+ const y=112+34*Math.cos(rad(-80))+77*Math.cos(rad(-220));
+ expect(x).toBeGreaterThan(125);expect(x).toBeLessThan(142);
+ expect(y).toBeGreaterThan(48);expect(y).toBeLessThan(63);
 });
