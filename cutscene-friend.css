@@ -1,0 +1,11 @@
+/* Match the movie's contained 640×360 scene even on letterboxed portrait phones. */
+.cutscene-friend-background{position:absolute;left:50%;top:50%;width:min(100%,177.7778dvh);aspect-ratio:16/9;transform:translate(-50%,-50%);z-index:1;pointer-events:none}
+.cutscene-friend-perch{position:absolute;left:7%;bottom:14%;width:18%;max-width:150px;isolation:isolate}
+.cutscene-friend-perch:before{content:'';position:absolute;left:18%;right:18%;bottom:8%;height:8%;border-radius:50%;background:#0b101a80;z-index:-1}
+.cutscene-friend-perch>.friend-art{display:block;width:100%;height:auto}
+.cinematic-movie .movie-avatar-layer{z-index:2}
+/* Finishing scenes use their own responsive stage, not the movie letterbox. */
+.finisher-scene>.cutscene-friend-background{position:absolute;z-index:0;width:min(100%,720px)}
+.finisher-scene .cutscene-friend-perch{left:4%;bottom:20%;width:18%}
+.movie-paused .cutscene-friend-background *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.cutscene-friend-background *{animation:none!important;transition:none!important}}

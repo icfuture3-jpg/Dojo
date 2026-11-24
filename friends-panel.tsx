@@ -30,7 +30,7 @@ export function FriendsPanel({p,dispatch,onClose}:{p:Profile;dispatch(e:DojoEven
  <div className="friend-gallery">{FRIENDS.map(friend=>{
  const owned=p.diamondWins>=friend.wins,selected=p.companion===friend.id;
  return <article key={friend.id} className="friend-reference-card" data-equipped={selected}>
- <div className="friend-card-art"><FriendArt friend={friend} size={130}/></div><h2 style={{fontSize:19}}>{friend.name}</h2><p style={{fontSize:14,lineHeight:1.5}}>{friend.lore}</p>
+ <div className="friend-card-art"><FriendArt friend={friend} size={130} animated/></div><h2 style={{fontSize:19}}>{friend.name}</h2><p style={{fontSize:14,lineHeight:1.5}}>{friend.lore}</p>
  <p><strong>{FRIEND_ABILITIES[friend.id].name}</strong> · Cosmetic ability</p>
  <button aria-label={`Preview ${friend.name}`} onClick={e=>{previewButton.current=e.currentTarget;setPreview(friend);}}>PREVIEW ABILITY</button>
  <p>{friend.wins} fight wins{!owned&&` · ${friend.wins-p.diamondWins} to go`}</p>

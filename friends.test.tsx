@@ -82,7 +82,7 @@ it('Friends menu shows progress, allows only unlocked equipment and has an exit'
 });
 
 
-it('main menu opens Friends, equips a buddy, and keeps it visible when entering a fight',async()=>{
+it('main menu equips a buddy without attaching it to the player or regular fights',async()=>{
  vi.useFakeTimers();
  const initial=applyLogin(parseProfile({diamondWins:8}),now);initial.seenNotice=initial.last.n;
  function Session(){const [p,setP]=useState(initial);return <GameHud profileData={JSON.stringify(p)} boardData="[]" boardId="local" dispatch={e=>e.message.send((kind,raw)=>setP(old=>applyAction(old,kind,raw,now)))}/>;}
@@ -90,6 +90,6 @@ it('main menu opens Friends, equips a buddy, and keeps it visible when entering 
  const click=async(text:string)=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent?.includes(text));expect(b,text).toBeDefined();await act(()=>b!.click());};
  await click('FRIENDS');expect(document.querySelector('[aria-label="Mythic Friends"]')).not.toBeNull();
  await act(()=>document.querySelector<HTMLButtonElement>('[aria-label="Equip Little Bixi"]')!.click());
- await click('BACK TO DOJO');expect(document.querySelector('[aria-label="Your equipped friend"] [data-friend="bixi"]')).not.toBeNull();
- await click('ENDLESS TOWER');expect(document.querySelector('[aria-label="Your equipped friend"] [data-friend="bixi"]')).not.toBeNull();
+ await click('BACK TO DOJO');expect(document.querySelector('[data-friend]')).toBeNull();
+ await click('ENDLESS TOWER');expect(document.querySelector('[data-friend]')).toBeNull();
 });

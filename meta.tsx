@@ -98,13 +98,13 @@ export function MenuRow({ onOpen }: { onOpen(screen: Screen): void }) {
 
 function Frame({ title, onClose, p, children }: { title: string; onClose(): void; p: Profile; children: React.ReactNode }) {
   const content = (
-    <div className={`expansion-screen legacy-panel${title === "Dojo Shop" ? " shop-frame" : ""}`} style={{ position: "fixed", inset: 0, zIndex: 500, background: "#140c06f2", color: "#fff6dc", fontFamily: serif, pointerEvents: "auto", display: "flex", flexDirection: "column", padding: "18px 40px", gap: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
+    <div className={`expansion-screen legacy-panel${title === "Dojo Shop" ? " shop-frame" : title === "Create your fighter" ? " creator-frame" : ""}`} style={{ position: "fixed", inset: 0, zIndex: 500, background: "#140c06f2", color: "#fff6dc", fontFamily: serif, pointerEvents: "auto", display: "flex", flexDirection: "column", padding: "18px 40px", gap: 12 }}>
+      <div className="panel-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
         <div style={{ fontSize: 34, color: GOLD }}>{title}</div>
         <ProfileBar p={p} />
         <button type="button" style={menuButton} onClick={onClose}>✕ BACK</button>
       </div>
-      <div style={{ flex: 1, overflowY: "auto", paddingRight: 8 }}>{children}</div>
+      <div className="panel-content" style={{ flex: 1, overflowY: "auto", paddingRight: 8 }}>{children}</div>
     </div>
   );
   return typeof document === 'undefined' ? content : createPortal(content, document.body);
@@ -392,16 +392,16 @@ export function CreatorPanel({ p, dispatch, onClose, preview }: { p: Profile; di
         <button type="submit" disabled={cleanName(name).length < 2} style={small}>SAVE NAME</button>
         <span role="status">{nameSaved ? 'Name saved on this device.' : 'Use 2–14 letters, numbers, spaces, dots, underscores or hyphens.'}</span>
       </form>
-      <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+      <div className="creator-layout" style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
         <div className="creator-try-on" style={{ width: 230, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-          <div style={{ transform: "scale(0.85)", transformOrigin: "top center", height: 270 }}>{preview(look)}</div>
+          <div className="creator-model" style={{ transform: "scale(0.85)", transformOrigin: "top center", height: 270 }}>{preview(look)}</div>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" style={small} onClick={()=>dispatch({type:'dojo.send',message:setLookMsg(look)})}>APPLY LOOK</button><button type="button" style={small} onClick={()=>setLook(p.look)}>CANCEL CHANGES</button></div>
           <button type="button" style={small} onClick={randomize}>🎲 SURPRISE ME</button>
           <div style={{ fontSize: 12, opacity: 0.7, textAlign: "center" }}>
             {OUTFIT_COUNT} outfits · {LOOK_COUNTS.hair} hairstyles · {LOOK_COUNTS.hairColor} hair colours · {LOOK_COUNTS.eye} eye shapes · {LOOK_COUNTS.eyeColor} eye colours · {LOOK_COUNTS.head} head shapes · {total.toLocaleString()}+ faces
           </div>
         </div>
-        <div style={{ flex: 1, minWidth: 300 }}>
+        <div className="creator-options" style={{ flex: 1, minWidth: 300 }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
             {LOOK_TABS.map((t) => (
               <button key={t.id} type="button" style={{ ...small, background: tab === t.id ? "#c0392b" : "#3a2210" }} onClick={() => setTab(t.id)}>{t.label}</button>

@@ -242,7 +242,7 @@ records crop bounds and SHA-256 hashes. Crops are 96×94 pixels with tighter cre
 background and tiny edge debris are removed into transparency, excluding captured
 card lines/captions while preserving retained RGB colors. No recoloring, fading,
 face overlays or AI upscaling. This preserves the actual reference artwork but cannot add resolution;
-large previews can appear soft. Ability effects remain separate from the still image.
+large previews can appear soft. Ability effects remain separate from the character animation.
 Unlock thresholds, saved progress, equipment, rewards and currencies are unchanged.
 
 
@@ -258,3 +258,34 @@ Friend PNGs are bundled from `assets/friends/` rather than served from stable
 `public/images/friends/*.png` URLs. Vite produces content-hashed filenames so
 cleaned artwork receives a new URL when its bytes change and old cached images
 are not reused. The image pixels themselves are unchanged by this loading fix.
+
+
+### Animated Friends collection
+
+All fourteen Friends cards, including locked friends, and their ability showcases
+now animate the original PNG artwork with individual soft-joint cycles: swimming
+and coiling bodies, swishing tails, fanning wings, head movement and planted-stance
+shifts rather than whole-image floating. A shared-vertex SVG mesh bends the source
+image without replacing/recoloring it or drawing extra faces. Animation uses CSS,
+not per-frame React updates; the covered gallery pauses during ability previews.
+Reduced motion shows the exact unwarped image and still ability effect. Unlocks,
+equipment and rewards are unchanged.
+
+
+### Cutscene companions and phone portrait layout
+
+Equipped, unlocked friends appear as subtly animated background companions in
+player story cutscenes (intro, rescue, victory, defeat and champion) and gameplay
+finishing scenes. They are separate from the fighter, visible in the scenery, not
+attached to the player in menus, customization or regular fights. Unequipping
+hides them; shop finisher previews do not add a companion. Each friend preview
+retains the selected friend's live ability choreography
+(water splash/leap, ward, smoke, horn light, blooms, lanterns, feather sunrise,
+roar rings, bronze tracers, vortex current, rain, bubbles, tidal wave, sun/moon).
+Previewing never changes the equipped friend or spends currency; reduced motion
+keeps characters and effects still.
+
+Portrait phones use a narrower arena with visible fighters above native-size
+hand controls. Creator/shop panels have bounded native-height scrolling and
+compact headers; the creator try-on stays visible while browsing options. Aura
+and friend previews adapt to short/narrow viewports without requiring rotation.
