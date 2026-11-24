@@ -1,0 +1,7 @@
+.treasury-collection{display:grid;gap:12px}
+.treasury-row{display:grid;grid-template-columns:minmax(180px,1fr) 180px minmax(150px,.65fr);align-items:center;gap:16px;position:relative;min-height:172px;padding:14px 20px;border:2px solid #c4aa64;outline:1px solid #645030;outline-offset:-5px;background:linear-gradient(90deg,#231b11ef,#3e3020a8 45%,#20180ff5);box-shadow:inset 0 0 14px #000b,0 2px 0 #e5d19566}
+.treasury-art{width:180px;height:150px;max-width:100%;justify-self:center;filter:drop-shadow(0 6px 5px #0009);flex-shrink:0}
+.treasury-progress{text-align:right;color:#f0d797;font:13px/1.5 Georgia,serif}
+.treasury-progress strong{display:block;border:1px solid #9b895c;padding:10px;box-shadow:inset 0 0 0 3px #211a12}
+@media(max-width:800px){.treasury-row{grid-template-columns:minmax(0,1fr) 160px;padding:16px;gap:12px}.treasury-art{width:160px;height:auto}.treasury-progress{grid-column:1/-1;text-align:left}.treasury-progress p{margin-bottom:0}}
+@media(max-width:480px){.treasury-row{grid-template-columns:minmax(0,1fr)}.treasury-art{grid-row:1;width:180px}.treasury-row .upgrade-description h3{font-size:21px}.treasury-progress{grid-column:1}}
