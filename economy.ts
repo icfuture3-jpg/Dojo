@@ -1,3 +1,4 @@
+import { FRIENDS } from "./friends";
 import { EPIC_SKINS } from "./epic-skins";
 import { academyStateSchema, earnedMei, visibleAcademyIds } from "./academy-state";
 import { challengeStateSchema } from "./challenge-state";
@@ -288,6 +289,7 @@ export const profileSchema = z.object({
   coins: z.number().int().nonnegative().default(100),
   gems: z.number().int().nonnegative().default(0),
   diamondWins: z.number().int().nonnegative().default(0),
+  companion: z.string().default(""),
   xp: z.number().int().nonnegative().default(0),
   rp: z.number().int().nonnegative().default(0),
   owned: z.array(z.string()).default(() => [...FREE_IDS]),
@@ -432,8 +434,8 @@ function notice(p: Profile, title: string, lines: string[], box = ""): void {
 }
 
 /** Coins/XP only. Diamonds are minted exclusively by validated fight milestones. */
-function grant(p: Profile, r: Reward, lines: string[], scale = true): void {
-  const coins = scale ? Math.round(r.coins * (1 + 0.1 * p.up.coin)) : r.coins;
+function grant(p: Profile, r: Reward, lines: string[], scale = true, awardCoins = true): void {
+  const coins = awardCoins ? (scale ? Math.round(r.coins * (1 + 0.1 * p.up.coin)) : r.coins) : 0;
   const xp = scale ? Math.round(r.xp * (1 + 0.1 * p.up.xp)) : r.xp;
   const before = levelInfo(p.xp).level;
   p.coins += coins;
@@ -445,17 +447,17 @@ function grant(p: Profile, r: Reward, lines: string[], scale = true): void {
   if (parts.length > 0) lines.push(parts.join("  "));
   const after = levelInfo(p.xp).level;
   for (let l = before + 1; l <= after; l++) {
-    const bonus: Reward = { coins: 25 * l, gems: 0, xp: 0 };
+    const bonus: Reward = { coins: awardCoins ? 25 * l : 0, gems: 0, xp: 0 };
     p.coins += bonus.coins;
     lines.push(
-      `LEVEL UP! Level ${l}  +${bonus.coins} coins`,
+      `LEVEL UP! Level ${l}${bonus.coins ? `  +${bonus.coins} coins` : ""}`,
     );
     const unlocked = ITEMS.filter((i) => i.minLevel === l).map((i) => i.name);
     if (unlocked.length > 0) lines.push(`Unlocked in shop: ${unlocked.join(", ")}`);
   }
 }
 
-function checkTrophies(p: Profile, lines: string[]): void {
+function checkTrophies(p: Profile, lines: string[], awardCoins = true): void {
   let again = true;
   while (again) {
     again = false;
@@ -463,7 +465,7 @@ function checkTrophies(p: Profile, lines: string[]): void {
       if (!p.trophies.includes(tr.id) && tr.test(p)) {
         p.trophies.push(tr.id);
         lines.push(`TROPHY: ${tr.name}`);
-        grant(p, tr.reward, lines, false);
+        grant(p, tr.reward, lines, false, awardCoins);
         again = true;
       }
     }
@@ -471,21 +473,21 @@ function checkTrophies(p: Profile, lines: string[]): void {
 }
 
 /** Check after a successful state change; never pay the same trophy twice. */
-export function collectTrophies(input: Profile): Profile {
+export function collectTrophies(input: Profile, awardCoins = true): Profile {
   if (!TROPHIES.some(tr => !input.trophies.includes(tr.id) && tr.test(input))) return input;
   const p = clone(input), lines: string[] = [];
-  checkTrophies(p, lines);
+  checkTrophies(p, lines, awardCoins);
   notice(p, 'Trophy earned', lines);
   return p;
 }
 
-function checkMissions(p: Profile, lines: string[]): void {
+function checkMissions(p: Profile, lines: string[], awardCoins = true): void {
   for (const ms of activeMissions(p)) {
     const key = ms.kind === "daily" ? `${p.dayKey}:${ms.id}` : ms.kind === "weekly" ? `${p.weekKey}:${ms.id}` : ms.id;
     if (!p.done.includes(key) && (p.prog[key] ?? 0) >= ms.target) {
       p.done.push(key);
       lines.push(`MISSION COMPLETE: ${ms.name}`);
-      grant(p, ms.reward, lines);
+      grant(p, ms.reward, lines, true, awardCoins);
     }
   }
 }
@@ -587,7 +589,7 @@ export function applyMatch(input: Profile, r: MatchResult, now: number): Profile
 
   if (won) {
     const base: Reward = { coins: 35 + 20 * rival + (flawless ? 25 : 0) + (champ ? 100 : 0), gems: 0, xp: 40 + 15 * rival + 10 * rounds };
-    grant(p, base, lines);
+    grant(p, base, lines, true, false);
   }
   const before = rankIndex(p.rp);
   p.rp = Math.max(0, p.rp + (won ? 12 + 4 * rival : -10));
@@ -595,8 +597,8 @@ export function applyMatch(input: Profile, r: MatchResult, now: number): Profile
   lines.push(`${won ? "+" : ""}${won ? 12 + 4 * rival : -10} rank points (${RANKS[after]?.name})`);
   if (after > before) lines.push(`RANK UP: ${RANKS[after]?.name}!`);
   if (won) {
-    checkMissions(p, lines);
-    checkTrophies(p, lines);
+    checkMissions(p, lines, false);
+    checkTrophies(p, lines, false);
   }
   notice(p, won ? "Victory rewards" : "Match lost", lines);
   return p;
@@ -624,7 +626,7 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
     if (!(f >= 0) || f > p.stats.tower) return null;
     if (r.won) {
       const boss = (f + 1) % 10 === 0;
-      grant(p, { coins: 20 + 6 * f + (boss ? 100 : 0), gems: 0, xp: 25 + 4 * f }, lines);
+      grant(p, { coins: 20 + 6 * f + (boss ? 100 : 0), gems: 0, xp: 25 + 4 * f }, lines, true, false);
       if (f + 1 > p.stats.tower) p.stats.tower = f + 1;
       lines.push(boss ? `Floor ${f + 1} cleared: BOSS BONUS!` : `Floor ${f + 1} cleared`);
       notice(p, "Tower reward", lines);
@@ -641,7 +643,7 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
     if (r.won) {
       const first = i === p.stats.rescued;
       if (first) p.stats.rescued = i + 1;
-      grant(p, { coins: first ? m.coins : Math.round(m.coins / 4), gems: 0, xp: first ? 50 + 10 * i : 15 }, lines);
+      grant(p, { coins: first ? m.coins : Math.round(m.coins / 4), gems: 0, xp: first ? 50 + 10 * i : 15 }, lines, true, false);
       lines.push(`${m.dojo} is saved!`);
       notice(p, "Dojo rescued", lines);
     } else {
@@ -662,7 +664,7 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
     }
     p.dailyStreak = prevDaily === dayKey(now - DAY_MS) ? p.dailyStreak + 1 : 1;
     const streak = Math.min(7, p.dailyStreak);
-    grant(p, { coins: 80 + 15 * streak, gems: 0, xp: 60 }, lines);
+    grant(p, { coins: 80 + 15 * streak, gems: 0, xp: 60 }, lines, true, false);
     lines.push(`Daily streak: ${p.dailyStreak}`);
     notice(p, "Daily challenge cleared", lines);
     return p;
@@ -820,9 +822,9 @@ export function savePotScore(input: Profile, mode: "throw" | "jump" | "chop", hi
 }
 
 /** Challenge-only awards use the existing XP/coin upgrade and level-up machinery. */
-export function awardActivity(input: Profile, reward: Reward, title: string): Profile {
+export function awardActivity(input: Profile, reward: Reward, title: string, awardCoins = true): Profile {
   const p = clone(input); const lines: string[] = [];
-  grant(p, reward, lines); checkTrophies(p, lines); notice(p, title, lines);
+  grant(p, reward, lines, true, awardCoins); checkTrophies(p, lines, awardCoins); notice(p, title, lines);
   return p;
 }
 
@@ -833,6 +835,8 @@ export function recordMatchStreak(p: Profile, won: boolean): void {
   p.bestMatchStreak = Math.max(p.bestMatchStreak, p.matchStreak);
   if (!won) return;
   p.diamondWins++;
+  const friend = FRIENDS.find(f=>f.wins === p.diamondWins);
+  if (friend) p.last = {...p.last,n:p.last.n+1,title:"New friend!",lines:[...p.last.lines,`FRIEND UNLOCKED: ${friend.name} — equip in Friends`]};
   if (p.diamondWins % WINS_PER_DIAMOND === 0) {
     p.gems++;
     p.last = { ...p.last, n: p.last.n + 1, title: 'Fight-win diamond milestone', lines: [...p.last.lines, `${WINS_PER_DIAMOND} fight wins: +1 diamond`] };

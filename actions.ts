@@ -1,3 +1,4 @@
+import { FRIENDS } from "./friends";
 import { applyAcademy } from "./academy";
 import { checkExpansionAchievements } from "./expansion-achievements";
 import { applyChallenge } from "./challenges";
@@ -39,7 +40,7 @@ function applyActionResult(previous: Profile, kind: string, raw: unknown, now: n
       freeBoxes: next.freeBoxes + Number(eligible && result.data.won),
       lossTrainingPending: eligible && !result.data.won ? 1 : next.lossTrainingPending,
     };
-    return eligible && !result.data.won ? completed : checkExpansionAchievements(completed);
+    return eligible && !result.data.won ? completed : checkExpansionAchievements(completed, !eligible);
   }
   switch (kind) {
     case 'dismissNotice': {
@@ -47,8 +48,13 @@ function applyActionResult(previous: Profile, kind: string, raw: unknown, now: n
       return r.success && r.data.n === previous.last.n && r.data.n > previous.seenNotice
         ? { ...previous, seenNotice: r.data.n } : previous;
     }
+    case 'equipFriend': {
+      const r = z.object({id:z.string()}).safeParse(raw);
+      if (!r.success || (r.data.id !== '' && !FRIENDS.some(f=>f.id===r.data.id && previous.diamondWins>=f.wins))) return previous;
+      return previous.companion===r.data.id ? previous : {...previous,companion:r.data.id};
+    }
     case 'academy': return applyAcademy(previous,raw,now,random);
-    case 'challenge': { const next=applyChallenge(previous,raw,now); return next===previous || next.challenges.run?.phase === 'failed' ? next : checkExpansionAchievements(next); }
+    case 'challenge': { const next=applyChallenge(previous,raw,now); return next===previous || next.challenges.run?.phase === 'failed' ? next : checkExpansionAchievements(next, false); }
     case 'audio': { const r = z.object({ music: z.number().min(0).max(1), sfx: z.number().min(0).max(1) }).safeParse(raw); return r.success ? { ...previous, audio: r.data } : previous; }
     case 'potDone': { const r = pot.safeParse(raw); return r.success ? economy.savePotScore(previous, r.data.mode, r.data.hits) ?? previous : previous; }
     case 'trainingDone':
@@ -81,5 +87,7 @@ export function applyAction(previous: Profile, kind: string, raw: unknown, now: 
     : kind === 'modeDone' ? economy.modeResultSchema.safeParse(raw) : null;
   if (result?.success && !result.data.won && !('mode' in result.data && result.data.mode === 'spectate')) return next;
   if (kind === 'challenge' && next.challenges.run?.phase === 'failed') return next;
-  return economy.collectTrophies(next);
+  const fightOrTraining = ['matchDone','trainingDone','lossTrainingDone','challenge'].includes(kind)
+    || (kind === 'modeDone' && result?.success && 'mode' in result.data && result.data.mode !== 'spectate');
+  return economy.collectTrophies(next, !fightOrTraining);
 }

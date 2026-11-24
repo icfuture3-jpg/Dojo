@@ -12,7 +12,8 @@ it('rewards a win without mutating the saved profile', () => {
  expect(next.stats.won).toBe(p.stats.won + 1);
  expect(next.beaten).toContain(0);
  expect(p.stats.won).toBe(0);
- expect(next.coins).toBeGreaterThan(p.coins);
+ expect(next.coins).toBe(p.coins);
+ expect(next.xp).toBeGreaterThan(p.xp);
 });
 it('rejects unaffordable purchases and locked rescues', () => {
  expect(buyItem({...fresh(), coins:0}, 'gi-crimson')).toBeNull();
@@ -156,7 +157,7 @@ it.each(['tower', 'rescue', 'daily'] as const)('does not reward a %s loss', mode
  expect(next.stats.rescued).toBe(p.stats.rescued);
 });
 
-it('tracks mission progress on a loss but only pays it on a subsequent win', () => {
+it('tracks mission progress on a loss and grants XP, not coins, on a subsequent win', () => {
  const p = fresh();
  const mission = activeMissions(p).find(m => m.metric === 'rounds')!;
  const key = missionKey(p, mission);
@@ -167,7 +168,8 @@ it('tracks mission progress on a loss but only pays it on a subsequent win', () 
  expect([lost.coins, lost.gems, lost.xp]).toEqual([p.coins, p.gems, p.xp]);
  const won = applyMatch(lost, {rival:0, won:true, roundsWon:3, roundsLost:1, comeback:false, perfectRun:false}, now);
  expect(won.done).toContain(key);
- expect(won.coins).toBeGreaterThan(lost.coins);
+ expect(won.coins).toBe(lost.coins);
+ expect(won.xp).toBeGreaterThan(lost.xp);
 });
 
 it.each([0, 1, 2])('does not reward a tournament loss with %i rounds won', roundsWon => {
@@ -192,7 +194,7 @@ it.each(['tower', 'rescue', 'daily'] as const)('does not reward a %s loss', mode
  expect(next.stats.rescued).toBe(p.stats.rescued);
 });
 
-it('tracks mission progress on a loss but only pays it on a subsequent win', () => {
+it('tracks mission progress on a loss and grants XP, not coins, on a subsequent win', () => {
  const p = fresh();
  const mission = activeMissions(p).find(m => m.metric === 'rounds')!;
  const key = missionKey(p, mission);
@@ -203,7 +205,8 @@ it('tracks mission progress on a loss but only pays it on a subsequent win', () 
  expect([lost.coins, lost.gems, lost.xp]).toEqual([p.coins, p.gems, p.xp]);
  const won = applyMatch(lost, {rival:0, won:true, roundsWon:3, roundsLost:1, comeback:false, perfectRun:false}, now);
  expect(won.done).toContain(key);
- expect(won.coins).toBeGreaterThan(lost.coins);
+ expect(won.coins).toBe(lost.coins);
+ expect(won.xp).toBeGreaterThan(lost.xp);
 });
 
 it('backfills tournament gis from recorded clears without charging or duplicating them',()=>{

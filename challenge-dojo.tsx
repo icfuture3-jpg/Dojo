@@ -60,7 +60,7 @@ export function ChallengeDojo({ p, dispatch, onExit, fighter }: {
             {CONTENT[kind as ContentId] && <p>Bracket: {CONTENT[kind as ContentId].opponents.map(i=>i<8?['Bao','Jun','Mei','Kai','Ren','Rin','Oku','Void Sage'][i]:NEW_RIVALS[i-8]!.name).join(' → ')}</p>}
             {group === 'Special Events' && <p>UTC event ends {new Date(scheduledEvent(now).end).toISOString().replace('T',' ')}. A run must finish before then. Reward once per occurrence.</p>}
             {daily && <p>Entries: {p.challenges.dailyDay === new Date(now).toISOString().slice(0, 10) ? p.challenges.dailyAttempts : 0}/3 · Daily streak: {p.challenges.dailyStreak}</p>}
-            <p className="reward">{kind === 'survival' ? 'Each new personal-best win: 15 coins + 8 XP (paid when run ends).' : `${c.reward.coins} coins · ${c.reward.xp} XP · ${c.reward.gems} diamonds. ${daily ? 'Once per day, plus 10–50 streak bonus coins.' : group === 'Special Events' ? 'Once per scheduled UTC occurrence.' : 'First clear only; later runs are practice.'}`}</p>
+            <p className="reward">{kind === 'survival' ? 'Each new personal-best win: 8 XP. Fight wins also unlock friends.' : `${c.reward.xp} XP · No fight coins. Friends unlock through wins. ${daily ? 'Once per day.' : group === 'Special Events' ? 'Once per scheduled UTC occurrence.' : 'First clear only; later runs are practice.'}`}</p>
             <p>On-device {kind === 'survival' ? `best: ${p.challenges.survivalBest} wins` : `clears: ${p.challenges.clears[kind] ?? 0}`}{claimed ? ' · reward collected' : ''}</p>
             <button onClick={() => { send({ action: 'start', kind, id: createRunId() }); setPage('run'); }}>{claimed ? 'PRACTICE TRIAL' : 'ENTER CHALLENGE'}</button>
           </article>;

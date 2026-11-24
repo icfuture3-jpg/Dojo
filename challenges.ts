@@ -67,13 +67,12 @@ function settle(p: Profile, success: boolean, now: number): Profile {
   const key = run.eventKey || (run.kind === 'daily' ? `daily:${run.day}` : run.kind);
   if (c.claimed.includes(key)) { run.feedback += ' Practice clear — first-clear reward already collected.'; return p; }
   c.claimed.push(key);
-  let bonus = 0;
   if (run.kind === 'daily') {
     c.dailyStreak = c.dailyLastWin === dayKey(now - 86400000) ? c.dailyStreak + 1 : 1;
-    c.dailyLastWin = run.day; bonus = Math.min(5, c.dailyStreak) * 10;
-    run.feedback += ` Daily streak: ${c.dailyStreak}; +${bonus} bonus coins.`;
+    c.dailyLastWin = run.day;
+    run.feedback += ` Daily streak: ${c.dailyStreak}.`;
   }
-  return awardActivity(p, { ...CHALLENGES[run.kind].reward, coins: CHALLENGES[run.kind].reward.coins + bonus }, `${CHALLENGES[run.kind].name} cleared`);
+  return awardActivity(p, { ...CHALLENGES[run.kind].reward, coins: 0 }, `${CHALLENGES[run.kind].name} cleared`,false);
 }
 const command = z.discriminatedUnion('action', [
   z.object({ action: z.literal('start'), kind: challengeKind, id: z.string().min(1).max(160) }),
@@ -159,7 +158,7 @@ export function applyChallenge(input: Profile, raw: unknown, now: number): Profi
       p.challenges.survivalPaid = Math.max(p.challenges.survivalPaid, run.wins);
       run.phase = 'between';
       run.feedback += ` Match victory ${run.wins}! Next: ${challengeRival(run).name}.`;
-      return gain ? awardActivity(p, { coins: gain * 15, xp: gain * 8, gems:0 }, 'Survival personal best') : p;
+      return gain ? awardActivity(p, { coins: 0, xp: gain * 8, gems:0 }, 'Survival personal best',false) : p;
     }
     if ((run.kind === 'perfect' && run.wins < 3) || (spec && run.wins < spec.opponents.length)) { run.phase = 'between'; run.feedback += ` Match victory ${run.wins}! Next: ${challengeRival(run).name}.`; return p; }
     return settle(p, true, now);
