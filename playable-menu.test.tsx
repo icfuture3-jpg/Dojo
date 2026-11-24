@@ -36,3 +36,14 @@ it('hides Challenges & Events from the main menu without hiding the other game m
  expect(html).not.toMatch(/<button[^>]*>[^<]*(?:CHALLENGES|EVENTS)/);
  for(const label of ['TRAINING HALL','ENTER THE DOJO','ENDLESS TOWER','RESCUE DOJOS','CLASSIC DAILY','TREE POT CHALLENGE'])expect(html).toContain(label);
 });
+
+
+it('describes the game rules below the title without the four-master introduction',()=>{
+ vi.stubGlobal('window',{innerWidth:1280,innerHeight:800});
+ vi.stubGlobal('document',{body:{}});
+ const html=renderToStaticMarkup(<GameHud profileData={JSON.stringify(parseProfile({}))} boardData="[]" boardId="local" dispatch={()=>{}}/>);
+ const rules=html.match(/<p class="intro-copy">(.*?)<\/p>/)?.[1];
+ expect(rules).toBeDefined();
+ expect(rules).not.toContain('Defeat four masters');
+ for(const rule of ['Rock beats Scissors','Scissors beats Paper','Paper beats Rock','first to three points','No choice','ties','Clash','banned hand'])expect(rules).toContain(rule);
+});
