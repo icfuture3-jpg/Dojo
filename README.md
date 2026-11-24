@@ -238,8 +238,9 @@ Friends now use direct PNG crops of the latest user-supplied full collection ima
 not the SVG redraws. All fourteen characters share the same respective PNG across
 cards, ability previews and equipped companions. Only creature regions are included;
 browser chrome, player details and captions are excluded. `friend-image-manifest.json`
-records crop bounds and SHA-256 hashes. Crops are lossless, 104×106 pixels, with the
-original burgundy background retained. No recoloring, fading, face overlays or AI
-upscaling. This preserves the actual reference artwork but cannot add resolution;
+records crop bounds and SHA-256 hashes. Crops are 96×94 pixels with tighter creature-only bounds. Edge-connected dark
+background and tiny edge debris are removed into transparency, excluding captured
+card lines/captions while preserving retained RGB colors. No recoloring, fading,
+face overlays or AI upscaling. This preserves the actual reference artwork but cannot add resolution;
 large previews can appear soft. Ability effects remain separate from the still image.
 Unlock thresholds, saved progress, equipment, rewards and currencies are unchanged.

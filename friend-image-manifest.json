@@ -1,117 +1,159 @@
 {
-  "source": "User-supplied Friends screenshot, 1024\u00d7640; crops only, no resizing or retouching.",
+  "source": "User-supplied Friends screenshot, 1024×640; tighter creature-only crops, edge-connected dark background removed. No RGB recoloring or resizing.",
   "images": [
     {
       "id": "carp",
-      "left": 49,
-      "top": 101,
-      "width": 104,
-      "height": 106,
-      "sha256": "276b9643f52e1ba667141ed021b619748ff2112fd2a6c44c0feeec0c5c4fc47b"
+      "left": 53,
+      "top": 104,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "f5cb95b623f1d47a92b36628506cf5eb922fd47ba900cc7ecb01dfab9fc622b1",
+      "transparentPixels": 3893,
+      "opaquePixels": 5131
     },
     {
       "id": "bixi",
-      "left": 177,
-      "top": 101,
-      "width": 104,
-      "height": 106,
-      "sha256": "2fdba76ad812cea303d740eabc191b50de722e851dc08e29a628f94f4aa92c35"
+      "left": 181,
+      "top": 104,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "1b97165a2310d00956c275bced3887dd05c09c75a522ee3b0420207a6237d3de",
+      "transparentPixels": 6731,
+      "opaquePixels": 2293
     },
     {
       "id": "suanni",
-      "left": 298,
-      "top": 101,
-      "width": 104,
-      "height": 106,
-      "sha256": "8d7aba67bdacf0da1b3f0cfdc35cfac967869f97c2928dd920dc259379e37ec7"
+      "left": 302,
+      "top": 104,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "e1e15f618b77d0660bf23070b444c0509338c5aa2bdc79e2b7c25a8b61f92e2d",
+      "transparentPixels": 5284,
+      "opaquePixels": 3740
     },
     {
       "id": "xiezhi",
-      "left": 420,
-      "top": 101,
-      "width": 104,
-      "height": 106,
-      "sha256": "44cdc8eafae3455b399bc35bd59e9045cbf20997fa0783f65027d2cf7aa1108c"
+      "left": 424,
+      "top": 104,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "1c687b12fb244990eb72b71bc663c175803f2277225aeabbfb53facea93a4b2a",
+      "transparentPixels": 7229,
+      "opaquePixels": 1795
     },
     {
       "id": "qilin",
-      "left": 542,
-      "top": 101,
-      "width": 104,
-      "height": 106,
-      "sha256": "fb72a1c19322765fc8409ee478b7cf77b34b9ba174cc580310fcf17f6f7a5517"
+      "left": 550,
+      "top": 104,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "624c3174d416479165e4a466bd3b2c49120fce53e7fe2784d04c02d578722bb5",
+      "transparentPixels": 5900,
+      "opaquePixels": 3124
     },
     {
       "id": "fox",
-      "left": 663,
-      "top": 101,
-      "width": 104,
-      "height": 106,
-      "sha256": "e579e2e81810cfcd0e5ea1e62f729ac398f5e729d0fd010c539cf6a72ce535a7"
+      "left": 679,
+      "top": 104,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "24463b106c3cfc5efb070d5d15ca54a606440940307150a498ca547c66e9a365",
+      "transparentPixels": 3125,
+      "opaquePixels": 5899
     },
     {
       "id": "fenghuang",
-      "left": 789,
-      "top": 101,
-      "width": 104,
-      "height": 106,
-      "sha256": "88b362a3418c86de281e52219d6fc8051f1185beeaf9b5557cbdcaab3f7464f7"
+      "left": 802,
+      "top": 104,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "365ff7861942e453c6054ef295943ac0e421dd32750b782f0b362fbeb87c308a",
+      "transparentPixels": 4482,
+      "opaquePixels": 4542
     },
     {
       "id": "yazi",
-      "left": 49,
-      "top": 399,
-      "width": 104,
-      "height": 106,
-      "sha256": "07f16663173ccecd25c0e80a3c7da416b343c3fc0c72c2ad620dc26fd8d4a835"
+      "left": 53,
+      "top": 404,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "f33da7f1b2ea647ee033ce9afd5737e2f69c186088bfe98e4c7e1228b96f4f52",
+      "transparentPixels": 5216,
+      "opaquePixels": 3808
     },
     {
       "id": "taotie",
-      "left": 177,
-      "top": 399,
-      "width": 104,
-      "height": 106,
-      "sha256": "e48a6ede7c86d2359a3d7cecde9819afafdf0109e2e97519f650772e472b4b43"
+      "left": 181,
+      "top": 404,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "cc68c69c6b0a330f94cea3bd28885fa32a6e7cf2cfe1f18a32301d137032a707",
+      "transparentPixels": 7095,
+      "opaquePixels": 1929
     },
     {
       "id": "black-dragon",
-      "left": 298,
-      "top": 399,
-      "width": 104,
-      "height": 106,
-      "sha256": "a5c99f1238ddbb582fbceb7dcedd759e0852359506ad98ac4e173f3e7e4d70ec"
+      "left": 302,
+      "top": 404,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "94f8a91dd096ade0b783435a1472cdac400ea01857880c37c74861c373b80700",
+      "transparentPixels": 6923,
+      "opaquePixels": 2101
     },
     {
       "id": "yellow-dragon",
-      "left": 420,
-      "top": 399,
-      "width": 104,
-      "height": 106,
-      "sha256": "a90df0dc14737b90c0d6a69baf01fcbbe53ae912c9c727fa44b08103ef57bbb1"
+      "left": 424,
+      "top": 404,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "4c36890a1871e8d7ce80e2a82682eb0635148d70bc88c48127b84432f005e57d",
+      "transparentPixels": 2550,
+      "opaquePixels": 6474
     },
     {
       "id": "pearl-dragon",
-      "left": 542,
-      "top": 399,
-      "width": 104,
-      "height": 106,
-      "sha256": "fa04c4e0e353cc821aa998d7f141b52cd26f5875cfe00f1eaab7a4eb226cd8af"
+      "left": 550,
+      "top": 404,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "ba133d13342bd22d5f094998f7e13e4fb992f4c8817e0920f5ff61a0188705a9",
+      "transparentPixels": 3883,
+      "opaquePixels": 5141
     },
     {
       "id": "azure-dragon",
-      "left": 663,
-      "top": 399,
-      "width": 104,
-      "height": 106,
-      "sha256": "efbfcb302cf98bdbff22799bca42c360340e977ff2e589b7ab9b64437eccafef"
+      "left": 679,
+      "top": 404,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "8cb534d6ef98e381b50459ad660a1c63f873d5baa2d14f4db8f1a0987cdb6158",
+      "transparentPixels": 4071,
+      "opaquePixels": 4953
     },
     {
       "id": "zhulong",
-      "left": 789,
-      "top": 399,
-      "width": 104,
-      "height": 106,
-      "sha256": "4cb3599d7b19212e26b0d0e8d53a9132a2fb23dd70e406bb250f744942d8f1c3"
+      "left": 802,
+      "top": 404,
+      "width": 96,
+      "height": 94,
+      "transparent": true,
+      "sha256": "1d7a79d32ebbe5164bf26a637f275420bff1f4fe617f53f6e036b198b62dfbd4",
+      "transparentPixels": 4516,
+      "opaquePixels": 4508
     }
   ]
 }
