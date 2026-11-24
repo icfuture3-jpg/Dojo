@@ -5,12 +5,12 @@ import { beats, MOVES, RIVALS, TOWER_POOL, towerRival, type Move } from './rps';
 import { challengeKind, type ChallengeKind, type ChallengeRun } from './challenge-state';
 
 export const CHALLENGES: Record<ChallengeKind, { name: string; group: string; goal: string; reward: Reward }> = {
-  daily: { name: 'Daily Discipline', group: 'Daily Challenges', goal: 'Win a match and score at least one point with today’s focus hand. Three entries per UTC day.', reward: { coins: 70, xp: 45, gems: 2 } },
-  survival: { name: 'Survival Challenge', group: 'Survival Challenges', goal: 'Win consecutive matches. One loss ends your run. Collect rewards for each new personal-best win.', reward: { coins: 15, xp: 8, gems: 0 } },
-  perfect: { name: 'Perfect Victory', group: 'Special Trials', goal: 'Win three consecutive matches. Losing a match ends the run; losing a round does not.', reward: { coins: 100, xp: 70, gems: 3 } },
-  comeback: { name: 'Comeback Challenge', group: 'Special Trials', goal: 'Start 0–2 against Grandmaster Oku. Win the match before conceding one more point.', reward: { coins: 90, xp: 60, gems: 2 } },
+  daily: { name: 'Daily Discipline', group: 'Daily Challenges', goal: 'Win a match and score at least one point with today’s focus hand. Three entries per UTC day.', reward: { coins: 70, xp: 45, gems:0 } },
+  survival: { name: 'Survival Challenge', group: 'Survival Challenges', goal: 'Win consecutive matches. One loss ends your run. Collect rewards for each new personal-best win.', reward: { coins: 15, xp: 8, gems:0 } },
+  perfect: { name: 'Perfect Victory', group: 'Special Trials', goal: 'Win three consecutive matches. Losing a match ends the run; losing a round does not.', reward: { coins: 100, xp: 70, gems:0 } },
+  comeback: { name: 'Comeback Challenge', group: 'Special Trials', goal: 'Start 0–2 against Grandmaster Oku. Win the match before conceding one more point.', reward: { coins: 90, xp: 60, gems:0 } },
   ...CONTENT,
-  master: { name: 'Three Hands Master', group: 'Special Trials', goal: 'Win a match with a scoring Rock, Paper AND Scissors. Ties do not count as scoring hands.', reward: { coins: 85, xp: 55, gems: 2 } },
+  master: { name: 'Three Hands Master', group: 'Special Trials', goal: 'Win a match with a scoring Rock, Paper AND Scissors. Ties do not count as scoring hands.', reward: { coins: 85, xp: 55, gems:0 } },
 };
 export function dayNumber(now: number) { return Math.floor(now / 86400000); }
 export function dailyHand(now: number): Move { return MOVES[((dayNumber(now) % 3) + 3) % 3]!; }
@@ -159,7 +159,7 @@ export function applyChallenge(input: Profile, raw: unknown, now: number): Profi
       p.challenges.survivalPaid = Math.max(p.challenges.survivalPaid, run.wins);
       run.phase = 'between';
       run.feedback += ` Match victory ${run.wins}! Next: ${challengeRival(run).name}.`;
-      return gain ? awardActivity(p, { coins: gain * 15, xp: gain * 8, gems: 0 }, 'Survival personal best') : p;
+      return gain ? awardActivity(p, { coins: gain * 15, xp: gain * 8, gems:0 }, 'Survival personal best') : p;
     }
     if ((run.kind === 'perfect' && run.wins < 3) || (spec && run.wins < spec.opponents.length)) { run.phase = 'between'; run.feedback += ` Match victory ${run.wins}! Next: ${challengeRival(run).name}.`; return p; }
     return settle(p, true, now);

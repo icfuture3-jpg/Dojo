@@ -1,3 +1,4 @@
+import { EPIC_SKINS } from "./epic-skins";
 import { academyStateSchema, earnedMei, visibleAcademyIds } from "./academy-state";
 import { challengeStateSchema } from "./challenge-state";
 import { RESCUES } from "./rescue";
@@ -12,6 +13,8 @@ export interface Item {
   name: string;
   slot: Slot;
   pattern?: number;
+  diamondOnly?: boolean;
+  tier?: number;
   tournament?: "beginner" | "advanced" | "world";
   /** Colour used to draw the item. */
   color: string;
@@ -75,6 +78,7 @@ export const TOURNAMENT_GIS: readonly Item[] = [
  {...item("gi","gi-champion-golden","Golden World Champion Gi","#e3bc57",0),pattern:32,rarity:"legendary",tournament:"world"},
 ];
 export const ITEMS: readonly Item[] = [
+  ...EPIC_SKINS.map((skin,index):Item=>({...item("skin",skin.id,skin.name,skin.color,0,1,skin.gems),rarity:index<4?"epic":"legendary",diamondOnly:true,tier:index+1})),
   ...TOURNAMENT_GIS,
   ...NEW_COSMETICS,
   item("gi", "gi-blue", "Classic Blue Gi", "#2471a3", 0),
@@ -180,8 +184,7 @@ const m = (
   target: number,
   coins: number,
   xp: number,
-  gems = 0,
-): Mission => ({ id, kind, name, metric, target, reward: { coins, gems, xp } });
+): Mission => ({ id, kind, name, metric, target, reward: { coins, gems: 0, xp } });
 
 export const DAILY_POOL: readonly Mission[] = [
   m("d-win2", "daily", "Win 2 matches", "won", 2, 60, 40),
@@ -192,18 +195,18 @@ export const DAILY_POOL: readonly Mission[] = [
   m("d-rounds10", "daily", "Win 10 rounds", "rounds", 10, 70, 45),
 ];
 export const WEEKLY_POOL: readonly Mission[] = [
-  m("w-win10", "weekly", "Win 10 matches", "won", 10, 250, 150, 3),
-  m("w-rounds30", "weekly", "Win 30 rounds", "rounds", 30, 220, 120, 2),
-  m("w-champ", "weekly", "Clear the whole ladder", "champs", 1, 300, 200, 5),
+  m("w-win10", "weekly", "Win 10 matches", "won", 10, 250, 150),
+  m("w-rounds30", "weekly", "Win 30 rounds", "rounds", 30, 220, 120),
+  m("w-champ", "weekly", "Clear the whole ladder", "champs", 1, 300, 200),
 ];
 export const SPECIAL: readonly Mission[] = [
-  m("s-flawless3", "special", "Win 3 flawless matches", "flawless", 3, 200, 120, 3),
-  m("s-comeback", "special", "Win a match after trailing 0–2", "comeback", 1, 150, 100, 2),
-  m("s-win8", "special", "Win 8 matches in total", "won", 8, 250, 150, 4),
-  m("s-rounds40", "special", "Win 40 rounds in total", "rounds", 40, 300, 180, 5),
-  m("s-flawless6", "special", "Win 6 flawless matches", "flawless", 6, 400, 250, 8),
-  m("s-comeback3", "special", "Win 3 matches after trailing 0–2", "comeback", 3, 350, 220, 8),
-  m("s-champs3", "special", "Become champion 3 times", "champs", 3, 400, 300, 8),
+  m("s-flawless3", "special", "Win 3 flawless matches", "flawless", 3, 200, 120),
+  m("s-comeback", "special", "Win a match after trailing 0–2", "comeback", 1, 150, 100),
+  m("s-win8", "special", "Win 8 matches in total", "won", 8, 250, 150),
+  m("s-rounds40", "special", "Win 40 rounds in total", "rounds", 40, 300, 180),
+  m("s-flawless6", "special", "Win 6 flawless matches", "flawless", 6, 400, 250),
+  m("s-comeback3", "special", "Win 3 matches after trailing 0–2", "comeback", 3, 350, 220),
+  m("s-champs3", "special", "Become champion 3 times", "champs", 3, 400, 300),
 ];
 
 export interface Trophy {
@@ -218,42 +221,41 @@ const t = (
   name: string,
   blurb: string,
   coins: number,
-  gems: number,
   test: (p: Profile) => boolean,
-): Trophy => ({ id, name, blurb, reward: { coins, gems, xp: 0 }, test });
+): Trophy => ({ id, name, blurb, reward: { coins, gems: 0, xp: 0 }, test });
 
 export const TROPHIES: readonly Trophy[] = [
-  t("first-win", "First Blood", "Win your first match", 30, 0, (p) => p.stats.won >= 1),
-  t("win-10", "Triple Victory", "Win 3 matches", 120, 2, (p) => p.stats.won >= 3),
-  t("win-25", "Dojo Veteran", "Win 8 matches", 300, 5, (p) => p.stats.won >= 8),
-  t("rounds-50", "Hand Like Thunder", "Win 15 rounds", 150, 2, (p) => p.stats.rounds >= 15),
-  t("flawless", "Untouchable", "Win a flawless match or win 3 matches", 100, 1, (p) => p.stats.flawless >= 1 || p.stats.won >= 3),
-  t("comeback", "Never Give Up", "Win a comeback or complete 5 matches", 100, 1, (p) => p.stats.comeback >= 1 || p.stats.played >= 5),
-  t("boss", "Boss Slayer", "Defeat Grandmaster Oku", 250, 4, (p) => p.stats.champs >= 1),
-  t("perfect", "Perfect Path", "Become tournament champion", 400, 8, (p) => p.stats.champs >= 1),
-  t("silver", "Silver Belt", "Reach Silver rank", 80, 1, (p) => rankIndex(p.rp) >= 1),
-  t("plat", "Platinum Palm", "Reach Gold rank", 250, 5, (p) => rankIndex(p.rp) >= 2),
-  t("grand", "Grand Master", "Reach Platinum rank", 1000, 25, (p) => rankIndex(p.rp) >= 3),
-  t("win-50", "Dojo Legend", "Win 15 matches", 600, 12, (p) => p.stats.won >= 15),
-  t("flawless-5", "Ghost Hands", "Win 2 flawless matches or 8 matches", 300, 6, (p) => p.stats.flawless >= 2 || p.stats.won >= 8),
-  t("champ-5", "Returning Champion", "Become champion 2 times", 700, 15, (p) => p.stats.champs >= 2),
-  t("box-10", "Lucky Hands", "Open 3 mystery boxes", 200, 4, (p) => p.stats.boxes >= 3),
-  t("level-5", "Rising Student", "Reach level 2", 100, 1, (p) => levelInfo(p.xp).level >= 2),
-  t("level-10", "Sensei", "Reach level 5", 300, 5, (p) => levelInfo(p.xp).level >= 5),
-  t("gold", "Gold Belt", "Reach Gold rank", 150, 3, (p) => rankIndex(p.rp) >= 2),
-  t("diamond", "Diamond Fist", "Reach Platinum rank", 500, 10, (p) => rankIndex(p.rp) >= 3),
-  t("collector", "Wardrobe", "Own 6 items", 150, 2, (p) => p.owned.length >= 6),
-  t("box", "Mystery Seeker", "Open a mystery box", 50, 1, (p) => p.stats.boxes >= 1),
-  t("streak-3", "Regular", "Log in 2 days in a row", 80, 1, (p) => p.streak >= 2),
-  t("streak-7", "Devoted", "Log in 4 days in a row", 250, 5, (p) => p.streak >= 4),
-  t("pot-triad", "Three Arts of the Tree", "Score 5 hits in each Tree Pot mode: throw, kick and chop", 120, 2, p => Object.values(p.potBest).every(score => score === 5)),
-  t("lightning-perfect", "Precision Spark", "Complete Lightning Hands with 100% accuracy", 100, 2, p => (p.academy.clears.lightning ?? 0) > 0 && p.academy.records.lightningAccuracy === 100),
-  t("memory-clear", "Mind Palace", "Complete Three-Hand Memory through its six-hand sequence", 90, 2, p => (p.academy.clears.memory ?? 0) > 0),
-  t("shadow-variety", "Uncopied Shadow", "Defeat Shadow Master without repeating a hand in that run", 110, 2, p => p.academy.run?.game === 'shadow' && p.academy.run.paid && p.academy.run.noRepeat),
-  t("academy-versatile", "Six Disciplines", "Complete each of the six Training Hall mini-games", 200, 4, p => visibleAcademyIds.every(id => (p.academy.clears[id] ?? 0) > 0)),
-  t("upgrade-toolkit", "Balanced Toolkit", "Buy at least one Coin Purse and one Scholar’s Scroll upgrade", 80, 1, p => p.up.coin > 0 && p.up.xp > 0),
-  t("equipped-finish", "Finishing Touch", "Equip a finisher together with a non-starter gi, headband and aura", 80, 1, p => ['gi','band','aura','finisher'].every(slot => {const id=p.equip[slot as Slot];return p.owned.includes(id) && ITEMS.some(item => item.id === id && item.slot === slot && !FREE_IDS.includes(id));})),
-  t("rescue-lantern", "A Light Restored", "Rescue your first dojo in Rescue Dojos", 100, 2, p => p.stats.rescued >= 1),
+  t("first-win", "First Blood", "Win your first match", 30, (p) => p.stats.won >= 1),
+  t("win-10", "Triple Victory", "Win 3 matches", 120, (p) => p.stats.won >= 3),
+  t("win-25", "Dojo Veteran", "Win 8 matches", 300, (p) => p.stats.won >= 8),
+  t("rounds-50", "Hand Like Thunder", "Win 15 rounds", 150, (p) => p.stats.rounds >= 15),
+  t("flawless", "Untouchable", "Win a flawless match or win 3 matches", 100, (p) => p.stats.flawless >= 1 || p.stats.won >= 3),
+  t("comeback", "Never Give Up", "Win a comeback or complete 5 matches", 100, (p) => p.stats.comeback >= 1 || p.stats.played >= 5),
+  t("boss", "Boss Slayer", "Defeat Grandmaster Oku", 250, (p) => p.stats.champs >= 1),
+  t("perfect", "Perfect Path", "Become tournament champion", 400, (p) => p.stats.champs >= 1),
+  t("silver", "Silver Belt", "Reach Silver rank", 80, (p) => rankIndex(p.rp) >= 1),
+  t("plat", "Platinum Palm", "Reach Gold rank", 250, (p) => rankIndex(p.rp) >= 2),
+  t("grand", "Grand Master", "Reach Platinum rank", 1000, (p) => rankIndex(p.rp) >= 3),
+  t("win-50", "Dojo Legend", "Win 15 matches", 600, (p) => p.stats.won >= 15),
+  t("flawless-5", "Ghost Hands", "Win 2 flawless matches or 8 matches", 300, (p) => p.stats.flawless >= 2 || p.stats.won >= 8),
+  t("champ-5", "Returning Champion", "Become champion 2 times", 700, (p) => p.stats.champs >= 2),
+  t("box-10", "Lucky Hands", "Open 3 mystery boxes", 200, (p) => p.stats.boxes >= 3),
+  t("level-5", "Rising Student", "Reach level 2", 100, (p) => levelInfo(p.xp).level >= 2),
+  t("level-10", "Sensei", "Reach level 5", 300, (p) => levelInfo(p.xp).level >= 5),
+  t("gold", "Gold Belt", "Reach Gold rank", 150, (p) => rankIndex(p.rp) >= 2),
+  t("diamond", "Diamond Fist", "Reach Platinum rank", 500, (p) => rankIndex(p.rp) >= 3),
+  t("collector", "Wardrobe", "Own 6 items", 150, (p) => p.owned.length >= 6),
+  t("box", "Mystery Seeker", "Open a mystery box", 50, (p) => p.stats.boxes >= 1),
+  t("streak-3", "Regular", "Log in 2 days in a row", 80, (p) => p.streak >= 2),
+  t("streak-7", "Devoted", "Log in 4 days in a row", 250, (p) => p.streak >= 4),
+  t("pot-triad", "Three Arts of the Tree", "Score 5 hits in each Tree Pot mode: throw, kick and chop", 120, p => Object.values(p.potBest).every(score => score === 5)),
+  t("lightning-perfect", "Precision Spark", "Complete Lightning Hands with 100% accuracy", 100, p => (p.academy.clears.lightning ?? 0) > 0 && p.academy.records.lightningAccuracy === 100),
+  t("memory-clear", "Mind Palace", "Complete Three-Hand Memory through its six-hand sequence", 90, p => (p.academy.clears.memory ?? 0) > 0),
+  t("shadow-variety", "Uncopied Shadow", "Defeat Shadow Master without repeating a hand in that run", 110, p => p.academy.run?.game === 'shadow' && p.academy.run.paid && p.academy.run.noRepeat),
+  t("academy-versatile", "Six Disciplines", "Complete each of the six Training Hall mini-games", 200, p => visibleAcademyIds.every(id => (p.academy.clears[id] ?? 0) > 0)),
+  t("upgrade-toolkit", "Balanced Toolkit", "Buy at least one Coin Purse and one Scholar’s Scroll upgrade", 80, p => p.up.coin > 0 && p.up.xp > 0),
+  t("equipped-finish", "Finishing Touch", "Equip a finisher together with a non-starter gi, headband and aura", 80, p => ['gi','band','aura','finisher'].every(slot => {const id=p.equip[slot as Slot];return p.owned.includes(id) && ITEMS.some(item => item.id === id && item.slot === slot && !FREE_IDS.includes(id));})),
+  t("rescue-lantern", "A Light Restored", "Rescue your first dojo in Rescue Dojos", 100, p => p.stats.rescued >= 1),
 ];
 
 // ---------- profile ----------
@@ -284,7 +286,8 @@ export const profileSchema = z.object({
   lossTrainingPending: z.number().int().nonnegative().default(0),
   name: z.string().default(""),
   coins: z.number().int().nonnegative().default(100),
-  gems: z.number().int().nonnegative().default(5),
+  gems: z.number().int().nonnegative().default(0),
+  diamondWins: z.number().int().nonnegative().default(0),
   xp: z.number().int().nonnegative().default(0),
   rp: z.number().int().nonnegative().default(0),
   owned: z.array(z.string()).default(() => [...FREE_IDS]),
@@ -428,27 +431,24 @@ function notice(p: Profile, title: string, lines: string[], box = ""): void {
   p.last = { n: p.last.n + 1, title, lines, box };
 }
 
-/** Adds a reward, handling level-ups. Appends readable lines. */
+/** Coins/XP only. Diamonds are minted exclusively by validated fight milestones. */
 function grant(p: Profile, r: Reward, lines: string[], scale = true): void {
   const coins = scale ? Math.round(r.coins * (1 + 0.1 * p.up.coin)) : r.coins;
   const xp = scale ? Math.round(r.xp * (1 + 0.1 * p.up.xp)) : r.xp;
   const before = levelInfo(p.xp).level;
   p.coins += coins;
-  p.gems += r.gems;
   p.xp += xp;
   const parts = [
     coins > 0 ? `+${coins} coins` : "",
-    r.gems > 0 ? `+${r.gems} gems` : "",
     xp > 0 ? `+${xp} XP` : "",
   ].filter(Boolean);
   if (parts.length > 0) lines.push(parts.join("  "));
   const after = levelInfo(p.xp).level;
   for (let l = before + 1; l <= after; l++) {
-    const bonus: Reward = { coins: 25 * l, gems: l % 5 === 0 ? 3 : 0, xp: 0 };
+    const bonus: Reward = { coins: 25 * l, gems: 0, xp: 0 };
     p.coins += bonus.coins;
-    p.gems += bonus.gems;
     lines.push(
-      `LEVEL UP! Level ${l}  +${bonus.coins} coins${bonus.gems ? `  +${bonus.gems} gems` : ""}`,
+      `LEVEL UP! Level ${l}  +${bonus.coins} coins`,
     );
     const unlocked = ITEMS.filter((i) => i.minLevel === l).map((i) => i.name);
     if (unlocked.length > 0) lines.push(`Unlocked in shop: ${unlocked.join(", ")}`);
@@ -503,7 +503,7 @@ export function applyLogin(input: Profile, now: number): Profile {
   if (p.season !== "" && p.season !== season) {
     const idx = rankIndex(p.rp);
     lines.push(`SEASON ENDED. You finished ${RANKS[idx]?.name}.`);
-    grant(p, { coins: 100 * idx, gems: 4 * idx, xp: 0 }, lines, false);
+    grant(p, { coins: 100 * idx, gems: 0, xp: 0 }, lines, false);
     p.rp = Math.floor(p.rp / 2);
   }
   p.season = season;
@@ -519,7 +519,7 @@ export function applyLogin(input: Profile, now: number): Profile {
     p.lastLogin = today;
     const day = Math.min(p.streak, 7);
     lines.unshift(`Daily login — day ${p.streak} streak`);
-    grant(p, { coins: 20 + 15 * day, gems: p.streak % 7 === 0 ? 3 : 0, xp: 15 }, lines, false);
+    grant(p, { coins: 20 + 15 * day, gems: 0, xp: 15 }, lines, false);
     checkTrophies(p, lines);
     notice(p, "Welcome back!", lines);
   } else {
@@ -586,7 +586,7 @@ export function applyMatch(input: Profile, r: MatchResult, now: number): Profile
   bump("comeback", comeback ? 1 : 0);
 
   if (won) {
-    const base: Reward = { coins: 35 + 20 * rival + (flawless ? 25 : 0) + (champ ? 100 : 0), gems: champ ? 5 : 0, xp: 40 + 15 * rival + 10 * rounds };
+    const base: Reward = { coins: 35 + 20 * rival + (flawless ? 25 : 0) + (champ ? 100 : 0), gems: 0, xp: 40 + 15 * rival + 10 * rounds };
     grant(p, base, lines);
   }
   const before = rankIndex(p.rp);
@@ -624,7 +624,7 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
     if (!(f >= 0) || f > p.stats.tower) return null;
     if (r.won) {
       const boss = (f + 1) % 10 === 0;
-      grant(p, { coins: 20 + 6 * f + (boss ? 100 : 0), gems: boss ? 3 : 0, xp: 25 + 4 * f }, lines);
+      grant(p, { coins: 20 + 6 * f + (boss ? 100 : 0), gems: 0, xp: 25 + 4 * f }, lines);
       if (f + 1 > p.stats.tower) p.stats.tower = f + 1;
       lines.push(boss ? `Floor ${f + 1} cleared: BOSS BONUS!` : `Floor ${f + 1} cleared`);
       notice(p, "Tower reward", lines);
@@ -641,7 +641,7 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
     if (r.won) {
       const first = i === p.stats.rescued;
       if (first) p.stats.rescued = i + 1;
-      grant(p, { coins: first ? m.coins : Math.round(m.coins / 4), gems: first ? m.gems : 0, xp: first ? 50 + 10 * i : 15 }, lines);
+      grant(p, { coins: first ? m.coins : Math.round(m.coins / 4), gems: 0, xp: first ? 50 + 10 * i : 15 }, lines);
       lines.push(`${m.dojo} is saved!`);
       notice(p, "Dojo rescued", lines);
     } else {
@@ -662,7 +662,7 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
     }
     p.dailyStreak = prevDaily === dayKey(now - DAY_MS) ? p.dailyStreak + 1 : 1;
     const streak = Math.min(7, p.dailyStreak);
-    grant(p, { coins: 80 + 15 * streak, gems: 2, xp: 60 }, lines);
+    grant(p, { coins: 80 + 15 * streak, gems: 0, xp: 60 }, lines);
     lines.push(`Daily streak: ${p.dailyStreak}`);
     notice(p, "Daily challenge cleared", lines);
     return p;
@@ -738,10 +738,10 @@ export function buyUpgrade(input: Profile, id: string): Profile | null {
   return p;
 }
 
-/** Actual rank-eligible per-item weighted odds; selection and rewards are unchanged. */
+/** Rank-eligible box odds, excluding tournament and diamond-exclusive items. */
 export function boxOdds(rp: number): Record<Rarity, number> {
   const totals: Record<Rarity, number> = { common: 0, rare: 0, epic: 0, legendary: 0 };
-  for (const item of ITEMS.filter(i => !i.tournament && !FREE_IDS.includes(i.id) && rankIndex(rp) >= i.minRank)) totals[item.rarity] += BOX_WEIGHTS[item.rarity];
+  for (const item of ITEMS.filter(i => !i.tournament && !i.diamondOnly && !FREE_IDS.includes(i.id) && rankIndex(rp) >= i.minRank)) totals[item.rarity] += BOX_WEIGHTS[item.rarity];
   const total = Object.values(totals).reduce((a, b) => a + b, 0);
   return Object.fromEntries(Object.entries(totals).map(([rarity, weight]) => [rarity, total ? weight / total * 100 : 0])) as Record<Rarity, number>;
 }
@@ -753,7 +753,7 @@ export function openBox(input: Profile, currency: "coins" | "gems" | "free", rnd
   const p = clone(input);
   p.freeBoxes--;
   p.stats.boxes += 1;
-  const pool = ITEMS.filter((i) => !i.tournament && !FREE_IDS.includes(i.id) && rankIndex(p.rp) >= i.minRank);
+  const pool = ITEMS.filter((i) => !i.tournament && !i.diamondOnly && !FREE_IDS.includes(i.id) && rankIndex(p.rp) >= i.minRank);
   const total = pool.reduce((s, i) => s + BOX_WEIGHTS[i.rarity], 0);
   let roll = random * total;
   let won = pool[0] as Item;
@@ -822,13 +822,15 @@ export function awardActivity(input: Profile, reward: Reward, title: string): Pr
   return p;
 }
 
-/** Mutates only an already cloned result. Bonus every five consecutive match wins. */
+export const WINS_PER_DIAMOND = 10;
+/** A validated, deduplicated fight result; losses reset streaks, not diamond progress. */
 export function recordMatchStreak(p: Profile, won: boolean): void {
   p.matchStreak = won ? p.matchStreak + 1 : 0;
   p.bestMatchStreak = Math.max(p.bestMatchStreak, p.matchStreak);
-  if (won && p.matchStreak % 5 === 0) {
-    const gems = Math.min(5, 1 + p.matchStreak / 5);
-    p.gems += gems;
-    p.last = { ...p.last, n: p.last.n + 1, title: 'Five-win diamond milestone', lines: [...p.last.lines, `${p.matchStreak} consecutive wins: +${gems} diamonds`] };
+  if (!won) return;
+  p.diamondWins++;
+  if (p.diamondWins % WINS_PER_DIAMOND === 0) {
+    p.gems++;
+    p.last = { ...p.last, n: p.last.n + 1, title: 'Fight-win diamond milestone', lines: [...p.last.lines, `${WINS_PER_DIAMOND} fight wins: +1 diamond`] };
   }
 }

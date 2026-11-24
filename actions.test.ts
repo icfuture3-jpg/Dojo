@@ -84,7 +84,7 @@ it('a supplied random draw produces repeatable earned-box transitions', () => {
 it('displays the exact weighted eligible-pool rarity probabilities without changing selection', () => {
   const weights = { common: 60, rare: 28, epic: 10, legendary: 2 };
   for (const rp of [0, 200, 500, 900, 1500, 2400]) {
-    const pool = ITEMS.filter(i => (i.coins || i.gems) && i.minRank <= [0, 200, 500, 900, 1500, 2400].filter(n => n <= rp).length - 1);
+    const pool = ITEMS.filter(i => !i.diamondOnly && !i.tournament && (i.coins || i.gems) && i.minRank <= [0, 200, 500, 900, 1500, 2400].filter(n => n <= rp).length - 1);
     const total = pool.reduce((sum, i) => sum + weights[i.rarity], 0);
     const odds = boxOdds(rp);
     expect(Object.values(odds).reduce((a, b) => a + b, 0)).toBeCloseTo(100);

@@ -1,3 +1,5 @@
+import { epicSkin } from "./epic-skins";
+import { EpicSkinArmor } from "./epic-skin-art";
 import { AuraArt } from './aura-art';
 import { CutsceneFrame } from "./cutscene-frame";
 import { createRunId } from "./run-id";
@@ -14,7 +16,7 @@ import "./expansion.css";
 const TreePots=lazy(()=>import("./tree-pots").then(m=>({default:m.TreePots})));
 import { FinisherScene } from "./finishers";
 const TrainingGame=lazy(()=>import("./training").then(m=>({default:m.TrainingGame})));
-import { trainingDue } from "./economy";
+import { WINS_PER_DIAMOND, trainingDue } from "./economy";
 import { useCallback, useEffect, useMemo, useRef, useState, useId, lazy, Suspense } from "react";
 import type { CSSProperties } from "react";
 import {
@@ -119,6 +121,7 @@ export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, 
   color: string; belt: string; move: Move | null; flip?: boolean;
   state: "idle" | "throw" | "win" | "lose"; hint?: Move | null;
 }) {
+  const premiumSkin=epicSkin(skin);
   const artId=useId().replace(/:/g,'');
   const fem = look?.body === 1;
   const bx = fem ? 62 : 50;
@@ -225,6 +228,7 @@ export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, 
           </>
         )}
         <path d="M76 82 Q86 86 94 82 M106 82 Q114 86 124 82" stroke="#0002" strokeWidth="2" fill="none" />
+        {premiumSkin && <EpicSkinArmor skin={premiumSkin}/>}
         </g>
       </svg>
       </div>
@@ -764,7 +768,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           <ThreeHandsCrest/>
           <p className="eyebrow">THE ORIGINAL THREE HANDS</p><h1>DOJO OF THE THREE HANDS</h1>
           <p className="intro-copy">Defeat four masters, first to three points each. Rock beats Scissors, Scissors beats Paper, Paper beats Rock. Choose during the countdown with the buttons or 1 / 2 / 3 (R / P / S). The CPU hand locks on your first choice or Peek. You can change your own hand without rerolling theirs. Both throw on SHOOT! No selection means you lose that round. In Enter the Dojo, a tie awards no point and restarts the normal countdown. Tower, Classic Daily and rescue ties trigger a one-second Clash after a warning; repeated ties repeat the Clash. Peek and Guard are unavailable during a Clash.</p>
-          <div className="saved-fighter-identity"><div className="saved-fighter-standing" aria-label="Your saved custom character standing in the dojo">{myFig.avatar}</div><div className="profile-summary">{prof.name || 'Your character'} · Level {myLevel} · {prof.xp} XP · <Coin/> {prof.coins} coins · {prof.gems} diamonds · {RANKS[rankIndex(prof.rp)]!.name} ({prof.rp} RP) · Strength {prof.training.strength}</div></div>
+          <div className="saved-fighter-identity"><div className="saved-fighter-standing" aria-label="Your saved custom character standing in the dojo">{myFig.avatar}</div><div className="profile-summary">{prof.name || 'Your character'} · Level {myLevel} · {prof.xp} XP · <Coin/> {prof.coins} coins · {prof.gems} diamonds · Diamond progress {prof.diamondWins % WINS_PER_DIAMOND}/{WINS_PER_DIAMOND} wins · {RANKS[rankIndex(prof.rp)]!.name} ({prof.rp} RP) · Strength {prof.training.strength}</div></div>
           <div className="title-profile"><ProfileBar p={prof}/></div>
           <MenuRow onOpen={setScreen} />
           <div className="title-actions"><button onClick={() => setAcademyOpen(true)}>TRAINING HALL</button><button onClick={() => { sfx.gong(); begin("ladder", 0); }}>ENTER THE DOJO</button></div>

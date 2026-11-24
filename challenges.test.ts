@@ -65,7 +65,7 @@ it('Perfect Victory requires three match wins and ends at the first lost match',
 });
 it('trial first-clear reward is credited once and later practice has no extra reward',()=>{
  const first=playToEnd(start('perfect'));const original=first.coins;
- expect(first.gems).toBe(fresh().gems+3);
+ expect(first.gems).toBe(fresh().gems);
  const again=playToEnd(start('perfect','practice',first));expect(again.coins).toBe(original);expect(again.challenges.clears.perfect).toBe(2);
  expect(send(again,'finish')).toBe(again);
 });
@@ -90,7 +90,7 @@ it('daily completion pays once, records streak bonus, and locks same-day reentry
  // Search deterministic IDs/days for a scoring-hand-complete objective.
  let p=dailyWin(fresh());
  if(p.challenges.run!.phase!=='complete'){p=dailyWin(fresh(),now+86400000);}
- expect(p.challenges.run!.phase).toBe('complete');expect(p.challenges.dailyStreak).toBe(1);expect(p.challenges.dailyLastWin).toBe(p.challenges.run!.day);expect(p.gems).toBe(fresh().gems+2);expect(dailyAvailable(p,Date.parse(p.challenges.run!.day)+3600000)).toBe(false);
+ expect(p.challenges.run!.phase).toBe('complete');expect(p.challenges.dailyStreak).toBe(1);expect(p.challenges.dailyLastWin).toBe(p.challenges.run!.day);expect(p.gems).toBe(fresh().gems);expect(dailyAvailable(p,Date.parse(p.challenges.run!.day)+3600000)).toBe(false);
 });
 it('daily UTC rollover expires yesterday’s unfinished run without rewards',()=>{
  const p=start('daily');const next=send(p,'begin',{},now+86400000);expect(next.challenges.run!.phase).toBe('failed');expect(next.gems).toBe(p.gems);expect(dailyAvailable(next,now+86400000)).toBe(true);
@@ -209,4 +209,16 @@ it('awards the Beginner Champion gi only after winning the complete tournament',
  expect(p.challenges.run!.feedback).toContain('Earned Jade Champion Gi');
  const replay=playToEnd(start('beginner','champion-gi-again',p));
  expect(replay.owned.filter(id=>id==='gi-champion-jade')).toHaveLength(1);
+});
+
+
+it('counts each full Challenge Dojo fight toward the shared ten-win diamond milestone once',()=>{
+ let p=start('perfect','diamond-trial',parseProfile({diamondWins:9,gems:8}));
+ p=round(p);p=round(p);
+ expect([p.gems,p.diamondWins]).toEqual([8,9]); // individual throws are not wins
+ p=round(p);
+ expect([p.gems,p.diamondWins]).toEqual([9,10]);
+ expect(p.challenges.run!.wins).toBe(1);
+ const r=p.challenges.run!;
+ expect(send(p,'throw',{turn:r.turn-1,move:'rock'},r.deadline)).toBe(p);
 });

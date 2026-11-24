@@ -114,3 +114,24 @@ No Aura remains clear. A short description names the visible effect. Artwork is
 bounded SVG/CSS, without external assets or animation frame loops; reduced motion
 shows static artwork. The equipped aura also shows its themed effect on match-winning hits and
 winning result/champion screens in classic duels. Regular-round glows remain unchanged. Previewing still never purchases or equips.
+
+
+## Diamond skins and fight milestones
+
+Seven new diamond-exclusive armor skins have tier prices of **20 / 50 / 100 / 200 /
+350 / 500 / 650 diamonds**: Ember Knight, Frost Warden, Thunder Ronin, Jade Dragon,
+Solar Phoenix, Void Emperor and Celestial Sovereign. Each has a different vector
+helmet/mask and chest crest visible on the equipped fighter. Tiers 1–4 are Epic,
+5–7 Legendary. They cannot drop from mystery boxes. Legacy skins/prices,
+ownership, equipped cosmetics and existing diamond balances are kept.
+
+Starting with this update, earn **1 diamond for every 10 new fight wins** across
+classic ladder, Tower, Daily, rescue and Challenge Dojo matches. These are match
+wins, not individual throws. Losses reset the existing win streak but do not erase
+diamond progress. Progress persists across reloads and duplicate results cannot
+pay twice. Past win totals are not cashed in retroactively. A new player starts
+with zero diamonds; login, season, level-up, trophy, mission and activity completion
+bonuses now pay coins/XP only. Academy drills, pots and spectating do not count.
+Shop → Skins shows progress to the next diamond. From zero, the 20-diamond tier
+takes 200 wins and the 650-diamond tier takes 6,500 wins (before other purchases).
+Saves remain device-local, not server-verified or cheat-proof.

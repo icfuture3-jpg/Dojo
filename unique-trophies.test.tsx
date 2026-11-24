@@ -27,7 +27,7 @@ it('each new trophy requires its own goal, rewards once and survives reload',()=
  for(const [id,qualify] of cases){const p=baseline();expect(TROPHIES.find(t=>t.id===id)!.test(p)).toBe(false);qualify(p);const next=collectTrophies(p);expect(next.trophies).toContain(id);expect(p.trophies).not.toContain(id);const loaded=parseProfile(JSON.parse(JSON.stringify(next)));expect(collectTrophies(loaded)).toBe(loaded);expect(loaded.coins).toBe(next.coins);}
 });
 it('pot trophy unlocks immediately through real score actions, not only on next login',()=>{
- let p=baseline();p=applyAction(p,'potDone',{mode:'throw',hits:5},1);p=applyAction(p,'potDone',{mode:'jump',hits:5},2);expect(p.trophies).not.toContain('pot-triad');const old=p;p=applyAction(p,'potDone',{mode:'chop',hits:5},3);expect(p.trophies).toContain('pot-triad');expect(p.coins-old.coins).toBe(120);expect(p.gems-old.gems).toBe(2);expect(applyAction(p,'potDone',{mode:'chop',hits:5},4).coins).toBe(p.coins);
+ let p=baseline();p=applyAction(p,'potDone',{mode:'throw',hits:5},1);p=applyAction(p,'potDone',{mode:'jump',hits:5},2);expect(p.trophies).not.toContain('pot-triad');const old=p;p=applyAction(p,'potDone',{mode:'chop',hits:5},3);expect(p.trophies).toContain('pot-triad');expect(p.coins-old.coins).toBe(120);expect(p.gems-old.gems).toBe(0);expect(applyAction(p,'potDone',{mode:'chop',hits:5},4).coins).toBe(p.coins);
 });
 it('academy clears award memory and lightning trophies immediately, without duplicate payouts',()=>{
  for(const game of ['memory','lightning'] as const){let p=baseline(),now=100;

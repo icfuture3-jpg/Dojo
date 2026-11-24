@@ -57,8 +57,8 @@ it('20-percent cheaper early levels leave later incremental costs unchanged and 
  for(let l=1;l<10;l++)expect(xpToNext(l)).toBe((80+40*l)*.8);for(const l of [10,11,25,100])expect(xpToNext(l)).toBe(80+40*l);
  const migrated=parseProfile({saveVersion:3,xp:3000,coins:1000,owned:['gi-blue','gi-crimson']});expect(levelInfo(migrated.xp)).toEqual({level:11,into:0,need:520});expect(migrated.coins).toBe(1000);expect(migrated.owned).toContain('gi-crimson');expect(parseProfile(JSON.parse(JSON.stringify(migrated))).xp).toBe(migrated.xp);
 });
-it('five-match win milestones vary, cap and reset on a loss without duplicate event payouts',()=>{
- const p=unlocked();const start=p.gems;for(let i=0;i<25;i++)recordMatchStreak(p,true);expect(p.gems-start).toBe(2+3+4+5+5);expect(p.bestMatchStreak).toBe(25);recordMatchStreak(p,false);expect(p.matchStreak).toBe(0);for(let i=0;i<5;i++)recordMatchStreak(p,true);expect(p.gems-start).toBe(21);
+it('ten-fight diamond milestones survive losses without duplicate event payouts',()=>{
+ const p=unlocked();const start=p.gems;for(let i=0;i<25;i++)recordMatchStreak(p,true);expect(p.gems-start).toBe(2);expect(p.bestMatchStreak).toBe(25);recordMatchStreak(p,false);expect(p.matchStreak).toBe(0);for(let i=0;i<5;i++)recordMatchStreak(p,true);expect(p.gems-start).toBe(3);
  let next=applyAction(unlocked(),'matchDone',{completionId:'one',rival:0,won:true,roundsWon:3,roundsLost:1,comeback:false,perfectRun:false},now);const streak=next.matchStreak;next=applyAction(next,'matchDone',{completionId:'one',rival:0,won:true,roundsWon:3,roundsLost:1,comeback:false,perfectRun:false},now);expect(next.matchStreak).toBe(streak);
 });
 it('all additive achievements award once and preserve original trophies and ownership',()=>{
