@@ -99,12 +99,12 @@ it('survival continues with tighter timing and rewards only newly reached person
  let p=start('survival');for(let i=0;i<6;i++)p=round(p);expect(p.challenges.run!.wins).toBe(2);expect(choiceWindow(p.challenges.run!)).toBeLessThan(7200);const coins=p.coins;
  p=send(p,'finish');expect(p.challenges.survivalBest).toBe(2);expect(p.challenges.survivalPaid).toBe(2);expect(p.coins).toBe(coins);
  let repeat=start('survival','repeat',p);for(let i=0;i<3;i++)repeat=round(repeat);repeat=send(repeat,'finish');expect(repeat.coins).toBe(p.coins);
- let best=start('survival','new-best',repeat);for(let i=0;i<9;i++)best=round(best);best=send(best,'finish');expect(best.coins).toBe(p.coins);expect(best.challenges.survivalBest).toBe(3);
+ let best=start('survival','new-best',repeat);for(let i=0;i<9;i++)best=round(best);best=send(best,'finish');expect(best.coins).toBe(p.coins+15);expect(best.challenges.survivalBest).toBe(3);
 });
 it('survival pays new records on wins, never on a loss, and ignores repeat settlement',()=>{
  let p=start('survival'); const coins=p.coins;
  for(let i=0;i<3;i++)p=round(p);
- expect(p.coins).toBe(coins); expect(p.challenges.survivalPaid).toBe(1);
+ expect(p.coins).toBe(coins+15); expect(p.challenges.survivalPaid).toBe(1);
  const beforeLoss=p;
  for(let i=0;i<3;i++)p=round(p,'lose');
  expect([p.coins,p.gems,p.xp]).toEqual([beforeLoss.coins,beforeLoss.gems,beforeLoss.xp]);
@@ -142,14 +142,14 @@ function successfulDaily(input:Profile,at:number){
  }
  throw new Error('No successful daily seed found');
 }
-it('consecutive UTC daily wins retain streak records without coins and a missed day resets it',()=>{
+it('consecutive UTC daily wins increase streak bonus and a missed day resets it',()=>{
  const one=successfulDaily(fresh(),now);
- const two=successfulDaily(one,now+86400000);expect(two.challenges.dailyStreak).toBe(2);expect(two.coins).toBe(one.coins);expect(two.challenges.claimed).toHaveLength(2);
+ const two=successfulDaily(one,now+86400000);expect(two.challenges.dailyStreak).toBe(2);expect(two.coins-one.coins).toBeGreaterThanOrEqual(90);expect(two.challenges.claimed).toHaveLength(2);
  const gap=successfulDaily(two,now+3*86400000);expect(gap.challenges.dailyStreak).toBe(1);
 });
-it('daily streak remains saved without adding coins',()=>{
+it('daily streak bonus caps at 50 coins without resetting its stored streak',()=>{
  const p=fresh();p.challenges.dailyLastWin=new Date(now-86400000).toISOString().slice(0,10);p.challenges.dailyStreak=8;
- const next=successfulDaily(p,now);expect(next.challenges.dailyStreak).toBe(9);expect(next.coins).toBe(p.coins);
+ const next=successfulDaily(p,now);expect(next.challenges.dailyStreak).toBe(9);expect(next.coins-p.coins).toBe(120);
 });
 it('a corrupted new run does not erase legacy currency or inventory',()=>{
  const p=start('perfect');const raw=JSON.parse(JSON.stringify(p));raw.challenges.run.turn='broken';raw.coins=777;

@@ -9,11 +9,11 @@ export const EXPANSION_ACHIEVEMENTS: {id:string;name:string;goal:string;coins:nu
  {id:'exp-dojos',name:'Keeper of Six Dojos',goal:'Complete all six new rescue-dojo activities.',coins:200,gems:0,test:p=>DOJO_IDS.every(k=>p.challenges.clears[k]>0)},
  {id:'exp-grandmaster',name:'Three Hands Grandmaster',goal:'Win every tournament, rival encounter and dojo activity; clear Master trial and win 100 matches.',coins:400,gems:0,test:p=>[...TOURNAMENT_IDS,...RIVAL_IDS,...DOJO_IDS,'master'].every(k=>p.challenges.clears[k]>0)&&p.stats.won+p.challenges.victories>=100},
 ];
-export function checkExpansionAchievements(input:Profile, awardCoins=true):Profile {
+export function checkExpansionAchievements(input:Profile):Profile {
  let p=input;
  for(const a of EXPANSION_ACHIEVEMENTS)if(!p.expansionAchievements.includes(a.id)&&a.test(p)){
   p={...p,expansionAchievements:[...p.expansionAchievements,a.id]};
-  p=awardActivity(p,{coins:a.coins,gems:a.gems,xp:0},`Achievement: ${a.name}`,awardCoins);
+  p=awardActivity(p,{coins:a.coins,gems:a.gems,xp:0},`Achievement: ${a.name}`);
  }
  return p;
 }

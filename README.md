@@ -147,14 +147,12 @@ new three-match milestones can still offer normal practice. A loss practice sess
 also covers a scheduled milestone, so returning to the dojo does not repeat it.
 
 
-## Mythic Friends and fewer fight coins
+## Mythic Friends and board-only coin restriction
 
-Fight wins now unlock cosmetic friends instead of adding coins. Normal ladder,
-Tower, Daily, rescue and Challenge Dojo awards (including level-up, mission,
-trophy and achievement awards triggered by those actions) do not mint coins.
-Board-breaking keeps its strength/XP reward but no coin rewards. Existing balances,
-shop prices, diamond rules, XP/rank progression, boxes and saved records are kept.
-Login, Academy activities, spectator rewards and box duplicate coins are unchanged.
+Fight wins keep their original coin rewards and also unlock cosmetic friends.
+Ladder, Tower, Daily, rescue and Challenge Dojo fight rewards, including bonuses,
+are unchanged. Board-breaking grants strength/XP but no coins, including from
+training-triggered trophies. Existing balances, prices, diamonds and saves are kept.
 
 Open **FRIENDS** on the main menu to see/equip/unequip your collection. Fourteen
 friends unlock at 3, 8, 15, 25, 40, 60, 85, 110, 140, 175, 210, 250, 300 and 365

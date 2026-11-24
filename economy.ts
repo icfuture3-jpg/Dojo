@@ -589,7 +589,7 @@ export function applyMatch(input: Profile, r: MatchResult, now: number): Profile
 
   if (won) {
     const base: Reward = { coins: 35 + 20 * rival + (flawless ? 25 : 0) + (champ ? 100 : 0), gems: 0, xp: 40 + 15 * rival + 10 * rounds };
-    grant(p, base, lines, true, false);
+    grant(p, base, lines);
   }
   const before = rankIndex(p.rp);
   p.rp = Math.max(0, p.rp + (won ? 12 + 4 * rival : -10));
@@ -597,8 +597,8 @@ export function applyMatch(input: Profile, r: MatchResult, now: number): Profile
   lines.push(`${won ? "+" : ""}${won ? 12 + 4 * rival : -10} rank points (${RANKS[after]?.name})`);
   if (after > before) lines.push(`RANK UP: ${RANKS[after]?.name}!`);
   if (won) {
-    checkMissions(p, lines, false);
-    checkTrophies(p, lines, false);
+    checkMissions(p, lines);
+    checkTrophies(p, lines);
   }
   notice(p, won ? "Victory rewards" : "Match lost", lines);
   return p;
@@ -626,7 +626,7 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
     if (!(f >= 0) || f > p.stats.tower) return null;
     if (r.won) {
       const boss = (f + 1) % 10 === 0;
-      grant(p, { coins: 20 + 6 * f + (boss ? 100 : 0), gems: 0, xp: 25 + 4 * f }, lines, true, false);
+      grant(p, { coins: 20 + 6 * f + (boss ? 100 : 0), gems: 0, xp: 25 + 4 * f }, lines);
       if (f + 1 > p.stats.tower) p.stats.tower = f + 1;
       lines.push(boss ? `Floor ${f + 1} cleared: BOSS BONUS!` : `Floor ${f + 1} cleared`);
       notice(p, "Tower reward", lines);
@@ -643,7 +643,7 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
     if (r.won) {
       const first = i === p.stats.rescued;
       if (first) p.stats.rescued = i + 1;
-      grant(p, { coins: first ? m.coins : Math.round(m.coins / 4), gems: 0, xp: first ? 50 + 10 * i : 15 }, lines, true, false);
+      grant(p, { coins: first ? m.coins : Math.round(m.coins / 4), gems: 0, xp: first ? 50 + 10 * i : 15 }, lines);
       lines.push(`${m.dojo} is saved!`);
       notice(p, "Dojo rescued", lines);
     } else {
@@ -664,7 +664,7 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
     }
     p.dailyStreak = prevDaily === dayKey(now - DAY_MS) ? p.dailyStreak + 1 : 1;
     const streak = Math.min(7, p.dailyStreak);
-    grant(p, { coins: 80 + 15 * streak, gems: 0, xp: 60 }, lines, true, false);
+    grant(p, { coins: 80 + 15 * streak, gems: 0, xp: 60 }, lines);
     lines.push(`Daily streak: ${p.dailyStreak}`);
     notice(p, "Daily challenge cleared", lines);
     return p;

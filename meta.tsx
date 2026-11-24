@@ -231,7 +231,7 @@ export function ShopPanel({ p, dispatch, onClose, avatar, auraPreview }: { p: Pr
 export function TrophiesPanel({ p, onClose }: { p: Profile; onClose(): void }) {
   return (
     <Frame title={`Trophies ${p.trophies.length}/${TROPHIES.length}`} onClose={onClose} p={p}>
-      <p>Fight and board-training trophy unlocks do not award coins. Coin amounts below apply only when earned through other activities.</p>
+      <p>Board-training trophy unlocks do not award coins. Fight and other activity rewards are unchanged.</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
         {TROPHIES.map((tr) => {
           const got = p.trophies.includes(tr.id);

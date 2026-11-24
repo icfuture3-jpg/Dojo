@@ -18,7 +18,7 @@ it('unlocks each friend at its exact saved fight-win threshold, without spending
   expect(friendsAtWins(f.wins-1)).not.toContain(f.id);expect(friendsAtWins(f.wins)).toContain(f.id);
   const p=applyLogin(parseProfile({coins:777,gems:23,diamondWins:f.wins-1}),now);
   const next=applyAction(p,'matchDone',{...win,completionId:f.id},now);
-  expect(friendsAtWins(next.diamondWins)).toContain(f.id);expect(next.coins).toBe(p.coins);
+  expect(friendsAtWins(next.diamondWins)).toContain(f.id);expect(next.coins).toBeGreaterThan(p.coins);
   expect(applyAction(next,'matchDone',{...win,completionId:f.id},now)).toBe(next);
   const equipped=applyAction(next,'equipFriend',{id:f.id},now);
   expect(equipped.companion).toBe(f.id);expect(equipped.gems).toBe(next.gems);expect(equipped.coins).toBe(next.coins);
@@ -41,18 +41,22 @@ it('losses, individual throws, spectating and board practice do not unlock frien
  const spectate=applyAction(p,'modeDone',{completionId:'s',mode:'spectate',floor:0,won:true,correct:true},now);
  for(const next of [loss,board,spectate])expect(friendsAtWins(next.diamondWins)).toEqual([]);
 });
-it.each(['tower','daily','rescue'] as const)('%s wins unlock friends without coin gains',mode=>{
+it.each(['tower','daily','rescue'] as const)('%s wins unlock friends and retain coin rewards',mode=>{
  const p=applyLogin(parseProfile({coins:777,diamondWins:2}),now);
  const next=applyAction(p,'modeDone',{completionId:mode,mode,floor:0,won:true},now);
- expect(friendsAtWins(next.diamondWins)).toContain('carp');expect(next.coins).toBe(p.coins);
+ expect(friendsAtWins(next.diamondWins)).toContain('carp');expect(next.coins).toBeGreaterThan(p.coins);
 });
-it('fight level-ups/trophies/missions/achievements and training trophies cannot add coins',()=>{
+it('fight coins are preserved but board-training trophies cannot add coins',()=>{
  const p=applyLogin(parseProfile({coins:777,xp:95,diamondWins:9,stats:{played:9,won:2}}),now);
  const next=applyAction(p,'matchDone',{...win,completionId:'big'},now);
- expect(next.coins).toBe(p.coins);expect(next.xp).toBeGreaterThan(p.xp);expect(next.trophies.length).toBeGreaterThan(p.trophies.length);
- expect(next.last.lines.join(' ')).not.toMatch(/\+\d+ coins/);
- const board=applyAction(parseProfile({coins:777,xp:95,lossTrainingPending:1}),'lossTrainingDone',{hits:5},now);
- expect(board.coins).toBe(777);expect(board.xp).toBe(140);expect(board.training.strength).toBe(3);
+ expect(next.coins).toBeGreaterThan(p.coins);expect(next.xp).toBeGreaterThan(p.xp);
+ for(const kind of ['trainingDone','lossTrainingDone']){
+  const board=applyAction(parseProfile({coins:777,xp:95,lossTrainingPending:1,training:{matches:3},stats:{won:3}}),kind,{hits:5},now);
+  expect(board.coins).toBe(777);expect(board.xp).toBe(140);expect(board.training.strength).toBe(3);
+  expect(board.trophies).toContain('win-10'); // earned trophy, no training coin windfall
+  expect(board.last.lines.join(' ')).not.toMatch(/\+\d+ coins/);
+  expect(applyAction(board,kind,{hits:5},now)).toBe(board);
+ }
 });
 it('all friends have unique artwork, including nine fox tails and visible equipped companions',()=>{
  const html=FRIENDS.map(friend=>renderToStaticMarkup(<FriendArt friend={friend}/>));expect(new Set(html).size).toBe(14);

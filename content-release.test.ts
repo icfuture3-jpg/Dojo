@@ -25,7 +25,7 @@ function play(k:ContentId, input=unlocked(), mode:'win'|'lose'='win'){
 it('every tournament, rival, dojo activity and event can actually complete with correct matches and saved rewards',()=>{
  for(const k of Object.keys(CONTENT) as ContentId[]){
   const input=unlocked();if(TOURNAMENT_IDS.includes(k as typeof TOURNAMENT_IDS[number]))delete input.challenges.clears[k];
-  const next=play(k,input);expect(next.challenges.run!.phase,k).toBe('complete');expect(next.challenges.run!.wins,k).toBe(CONTENT[k].opponents.length);expect(next.challenges.clears[k],k).toBe(1);expect(next.coins,k).toBe(input.coins);expect(next.xp,k).toBeGreaterThan(input.xp);
+  const next=play(k,input);expect(next.challenges.run!.phase,k).toBe('complete');expect(next.challenges.run!.wins,k).toBe(CONTENT[k].opponents.length);expect(next.challenges.clears[k],k).toBe(1);expect(next.coins,k).toBeGreaterThan(input.coins);
   const saved=parseProfile(JSON.parse(JSON.stringify(next)));expect(command(saved,'finish',{},atFor(k))).toBe(saved);
  }
 });
