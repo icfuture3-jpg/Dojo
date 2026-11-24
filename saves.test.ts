@@ -110,3 +110,21 @@ it('persists dismissal without repaying the day-two login or Regular trophy on r
   expect(tomorrow).toMatchObject({ coins: 395, gems: 9, xp: 45 });
   expect(tomorrow.last.lines).not.toContain('TROPHY: Regular');
 });
+
+it('backfills the six-game Mei unlock for returning players without changing earned balances or records',()=>{
+ const {api,values}=storage();
+ const clears={lightning:1,balance:1,frenzy:1,shadow:1,says:1,memory:1};
+ const raw={...parseProfile({saveVersion:4,coins:777,gems:23,xp:500,rp:100}),academy:{...parseProfile({}).academy,clears,xp:400,unlocks:['Bao','cyan']}};
+ const snapshot=JSON.stringify(raw);values.set(SAVE_KEY,snapshot);
+ const restored=parseProfile(raw);
+ expect(restored.academy.unlocks).toContain('Mei');
+ expect(restored.academy.clears).toEqual(clears);
+ expect({...restored.academy,unlocks:raw.academy.unlocks}).toEqual(raw.academy);
+ for(const key of ['coins','gems','xp','rp','owned','look','trophies'] as const)expect(restored[key]).toEqual(raw[key]);
+ expect(saveProfile(api,restored)).toBeNull();
+ expect(values.get(BACKUP_KEY)).toBe(snapshot);
+ const again=parseProfile(JSON.parse(values.get(SAVE_KEY)!));
+ expect(again).toEqual(restored);expect(again.academy.unlocks.filter(v=>v==='Mei')).toHaveLength(1);
+ const partial=JSON.parse(snapshot);delete partial.academy.clears.memory;
+ expect(parseProfile(partial).academy.unlocks).not.toContain('Mei');
+});
