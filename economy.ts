@@ -1,4 +1,4 @@
-import { academyStateSchema, playableAcademyIds } from "./academy-state";
+import { academyStateSchema, earnedMei, visibleAcademyIds } from "./academy-state";
 import { challengeStateSchema } from "./challenge-state";
 import { RESCUES } from "./rescue";
 import { z } from "zod";
@@ -125,8 +125,7 @@ export const UPGRADES: readonly Upgrade[] = [
   { id: "xp", name: "Scholar's Scroll", blurb: "+10% XP per level", costs: [150, 300, 500] },
 ];
 
-export const BOX_COST = 120;
-export const BOX_GEM_COST = 8;
+export const BOX_DUPLICATE_COINS = 60;
 const BOX_WEIGHTS: Record<Rarity, number> = { common: 60, rare: 28, epic: 10, legendary: 2 };
 
 // ---------- ranks and levels ----------
@@ -251,7 +250,7 @@ export const TROPHIES: readonly Trophy[] = [
   t("lightning-perfect", "Precision Spark", "Complete Lightning Hands with 100% accuracy", 100, 2, p => (p.academy.clears.lightning ?? 0) > 0 && p.academy.records.lightningAccuracy === 100),
   t("memory-clear", "Mind Palace", "Complete Three-Hand Memory through its six-hand sequence", 90, 2, p => (p.academy.clears.memory ?? 0) > 0),
   t("shadow-variety", "Uncopied Shadow", "Defeat Shadow Master without repeating a hand in that run", 110, 2, p => p.academy.run?.game === 'shadow' && p.academy.run.paid && p.academy.run.noRepeat),
-  t("academy-versatile", "Eight Disciplines", "Complete each of the eight playable Training Hall mini-games", 200, 4, p => playableAcademyIds.every(id => (p.academy.clears[id] ?? 0) > 0)),
+  t("academy-versatile", "Six Disciplines", "Complete each of the six Training Hall mini-games", 200, 4, p => visibleAcademyIds.every(id => (p.academy.clears[id] ?? 0) > 0)),
   t("upgrade-toolkit", "Balanced Toolkit", "Buy at least one Coin Purse and one Scholar’s Scroll upgrade", 80, 1, p => p.up.coin > 0 && p.up.xp > 0),
   t("equipped-finish", "Finishing Touch", "Equip a finisher together with a non-starter gi, headband and aura", 80, 1, p => ['gi','band','aura','finisher'].every(slot => {const id=p.equip[slot as Slot];return p.owned.includes(id) && ITEMS.some(item => item.id === id && item.slot === slot && !FREE_IDS.includes(id));})),
   t("rescue-lantern", "A Light Restored", "Rescue your first dojo in Rescue Dojos", 100, 2, p => p.stats.rescued >= 1),
@@ -337,6 +336,8 @@ export const profileSchema = z.object({
   prog: z.record(z.string(), z.number()).default(() => ({})),
   /** Mission ids already paid out. */
   done: z.array(z.string()).default(() => []),
+  /** Last acknowledged reward notice; persisted so reloads do not replay it. */
+  seenNotice: z.number().int().nonnegative().default(0),
   /** The latest reward notice for the HUD: bump n, list what happened. */
   last: z
     .object({
@@ -359,6 +360,11 @@ export function parseProfile(raw: unknown): Profile {
   for (let i = 0; i < 200; i++) {
     const result = profileSchema.safeParse(data);
     if (result.success) return grantTournamentGis(result.data);
+    if (result.success) {
+      const profile = grantTournamentGis(result.data);
+      if (earnedMei(profile.academy.clears) && !profile.academy.unlocks.includes('Mei')) profile.academy.unlocks.push('Mei');
+      return profile;
+    }
     for (const issue of [...result.error.issues].reverse()) {
       if (!issue.path.length) return profileSchema.parse({});
       let parent: unknown = data;
@@ -580,18 +586,20 @@ export function applyMatch(input: Profile, r: MatchResult, now: number): Profile
   bump("champs", champ ? 1 : 0);
   bump("comeback", comeback ? 1 : 0);
 
-  const base: Reward = won
-    ? { coins: 35 + 20 * rival + (flawless ? 25 : 0) + (champ ? 100 : 0), gems: champ ? 5 : 0, xp: 40 + 15 * rival + 10 * rounds }
-    : { coins: 4 * rounds, gems: 0, xp: 10 * rounds + 5 };
-  grant(p, base, lines);
+  if (won) {
+    const base: Reward = { coins: 35 + 20 * rival + (flawless ? 25 : 0) + (champ ? 100 : 0), gems: champ ? 5 : 0, xp: 40 + 15 * rival + 10 * rounds };
+    grant(p, base, lines);
+  }
   const before = rankIndex(p.rp);
   p.rp = Math.max(0, p.rp + (won ? 12 + 4 * rival : -10));
   const after = rankIndex(p.rp);
   lines.push(`${won ? "+" : ""}${won ? 12 + 4 * rival : -10} rank points (${RANKS[after]?.name})`);
   if (after > before) lines.push(`RANK UP: ${RANKS[after]?.name}!`);
-  checkMissions(p, lines);
-  checkTrophies(p, lines);
-  notice(p, won ? "Victory rewards" : "Match rewards", lines);
+  if (won) {
+    checkMissions(p, lines);
+    checkTrophies(p, lines);
+  }
+  notice(p, won ? "Victory rewards" : "Match lost", lines);
   return p;
 }
 
@@ -622,7 +630,6 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
       lines.push(boss ? `Floor ${f + 1} cleared: BOSS BONUS!` : `Floor ${f + 1} cleared`);
       notice(p, "Tower reward", lines);
     } else {
-      grant(p, { coins: 2 * f, gems: 0, xp: 5 + f }, lines);
       lines.push(`The climb ends on floor ${f + 1}. Best: floor ${p.stats.tower}`);
       notice(p, "Tower run over", lines);
     }
@@ -639,7 +646,6 @@ export function applyMode(input: Profile, r: ModeResult, now: number): Profile |
       lines.push(`${m.dojo} is saved!`);
       notice(p, "Dojo rescued", lines);
     } else {
-      grant(p, { coins: 5, gems: 0, xp: 5 }, lines);
       lines.push(`${m.dojo} still needs you.`);
       notice(p, "Dojo in danger", lines);
     }
@@ -742,14 +748,11 @@ export function boxOdds(rp: number): Record<Rarity, number> {
 }
 
 export function openBox(input: Profile, currency: "coins" | "gems" | "free", rnd: () => number): Profile | null {
-  const cost = currency === "coins" ? BOX_COST : BOX_GEM_COST;
-  if (!["coins", "gems", "free"].includes(currency)) return null;
+  if (currency !== "free" || input.freeBoxes < 1) return null;
   const random = rnd();
   if (!Number.isFinite(random) || random < 0 || random >= 1) return null;
-  if (currency === "free" ? input.freeBoxes < 1 : (currency === "coins" ? input.coins : input.gems) < cost) return null;
   const p = clone(input);
-  if (currency === "free") p.freeBoxes--;
-  else p[currency] -= cost;
+  p.freeBoxes--;
   p.stats.boxes += 1;
   const pool = ITEMS.filter((i) => !i.tournament && !FREE_IDS.includes(i.id) && rankIndex(p.rp) >= i.minRank);
   const total = pool.reduce((s, i) => s + BOX_WEIGHTS[i.rarity], 0);
@@ -764,9 +767,9 @@ export function openBox(input: Profile, currency: "coins" | "gems" | "free", rnd
   }
   const lines: string[] = [];
   if (p.owned.includes(won.id)) {
-    const refund = Math.round(BOX_COST / 2);
-    p.coins += refund;
-    lines.push(`Duplicate ${won.name}: +${refund} coins back`);
+    const bonus = BOX_DUPLICATE_COINS;
+    p.coins += bonus;
+    lines.push(`Duplicate ${won.name}: +${bonus} bonus coins`);
   } else {
     p.owned.push(won.id);
     lines.push(`You found ${won.name} (${won.rarity})!`);

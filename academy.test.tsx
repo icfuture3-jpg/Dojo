@@ -2,7 +2,7 @@ import { it,expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { applyAction } from './actions';
 import { ACADEMY, applyAcademy, academyWindow, beltInfo, chooseAcademyRival, dailyAcademy } from './academy';
-import { playableAcademyIds as academyIds,type AcademyId } from './academy-state';
+import { playableAcademyIds as academyIds,visibleAcademyIds,type AcademyId } from './academy-state';
 import { parseProfile,TROPHIES,type Profile } from './economy';
 import { beats,counterTo,MOVES,type Move } from './rps';
 import { AcademyHall } from './academy-hall';
@@ -84,8 +84,8 @@ it('rejects stale turns, forged wins, bad hands, repeated start IDs and nonfinit
  const h=harness('balance');h.command('begin');const p=h.p;const r=h.r;for(const data of [{action:'answer',hand:'laser',id:r.id,turn:r.turn},{action:'answer',hand:'rock',id:r.id,turn:r.turn-1},{action:'win',id:r.id,turn:r.turn}])expect(applyAction(p,'academy',data,time,.1)).toBe(p);
  expect(applyAction(p,'academy',{action:'tick',id:r.id,turn:r.turn},NaN,.1)).toBe(p);
 });
-it('renders all eight real activity entries and no Tree Pot review control',()=>{
- const html=renderToStaticMarkup(<AcademyHall p={parseProfile({})} dispatch={()=>{}} onExit={()=>{}} onShop={()=>{}} onSound={()=>{}} fighter={()=><div>Saved avatar</div>}/>);for(const id of academyIds)expect(html).toContain(ACADEMY[id].name);expect(html).not.toContain('Dummy Destroyer');expect(html).not.toContain('Sensei');expect(html).not.toContain('academy-difficulty');expect(html).toContain('PLAY A MINI-GAME');expect(html).not.toContain('MINI-GAME CHALLENGES</button>');
+it('renders the six remaining activity entries and no Tree Pot review control',()=>{
+ const html=renderToStaticMarkup(<AcademyHall p={parseProfile({})} dispatch={()=>{}} onExit={()=>{}} onShop={()=>{}} onSound={()=>{}} fighter={()=><div>Saved avatar</div>}/>);for(const id of visibleAcademyIds)expect(html).toContain(ACADEMY[id].name);for(const id of ['trial','grandmaster'] as const)expect(html).not.toContain(ACADEMY[id].name);expect(html).not.toContain('Dummy Destroyer');expect(html).not.toContain('Sensei');expect(html).not.toContain('academy-difficulty');expect(html).toContain('PLAY A MINI-GAME');expect(html).not.toContain('MINI-GAME CHALLENGES</button>');
  const pot=renderToStaticMarkup(<TreePots avatar={<div/>} best={{throw:0,jump:0,chop:0}} onSave={()=>{}} onExit={()=>{}}/>);expect(pot).not.toContain('Review attached-limb');
 });
 it('pausing the memory reveal preserves its active sequence position and excludes paused time from reaction scoring',()=>{
@@ -100,9 +100,9 @@ it('daily Shadow objective with a repeated hand cannot claim its bonus',()=>{
 
 it('shows one playable card per training game, with no no-op tabs, duplicated daily launches or locked rewards',()=>{
  const html=renderToStaticMarkup(<AcademyHall p={parseProfile({})} dispatch={()=>{}} onExit={()=>{}} onShop={()=>{}} onSound={()=>{}} fighter={()=><div/>}/>);
- expect((html.match(/data-academy-game=/g)||[])).toHaveLength(8);
- expect((html.match(/>PLAY: /g)||[])).toHaveLength(8);
- for(const id of academyIds)expect(html.split(`data-academy-game="${id}"`)).toHaveLength(2);
+ expect((html.match(/data-academy-game=/g)||[])).toHaveLength(6);
+ expect((html.match(/>PLAY: /g)||[])).toHaveLength(6);
+ for(const id of visibleAcademyIds)expect(html.split(`data-academy-game="${id}"`)).toHaveLength(2);
  for(const text of ['MINI-GAME CHALLENGES</button>','START DAILY OBJECTIVE','BELT PROGRESSION</button>','>GRANDMASTER SURVIVAL</button>','LOCKED','TRAINING EQUIPMENT'])expect(html).not.toContain(text);
 });
 for(const game of academyIds)it(`${game}: menu launch enters live play immediately and accepts a real answer`,()=>{
@@ -142,4 +142,19 @@ it('rejects Sensei starts, removes its daily objective, and preserves earned Sen
  for(let day=0;day<9;day++)expect(dailyAcademy(time+day*86400000)).not.toContain('sensei');
  const h=harness('lightning');h.command('begin');const raw=JSON.parse(JSON.stringify(h.p));raw.academy.run.game='sensei';raw.academy.clears.sensei=2;raw.academy.records.sensei=5;raw.academy.xp=200;
  const migrated=parseProfile(raw);expect(migrated.academy.run).toBeNull();expect(migrated.academy.clears.sensei).toBe(2);expect(migrated.academy.records.sensei).toBe(5);expect(migrated.academy.xp).toBe(200);expect(migrated.coins).toBe(h.p.coins);
+});
+
+it('keeps daily objectives and completion unlocks reachable from the six-game menu',()=>{
+ for(let day=0;day<30;day++)for(const id of dailyAcademy(time+day*86400000))expect(visibleAcademyIds).toContain(id);
+ let p=parseProfile({saveVersion:4});
+ for(const game of visibleAcademyIds){const h=harness(game,p);complete(h);p=h.p;h.command('exit');p=h.p;}
+ expect(p.academy.unlocks).toEqual(expect.arrayContaining(['Mei','cyan','Bao']));
+ expect(p.trophies).toContain('academy-versatile');
+});
+it('preserves records, ownership, rank points and existing runs for removed menu activities',()=>{
+ for(const game of ['trial','grandmaster'] as const){
+  const h=harness(game,parseProfile({saveVersion:4,rp:123,coins:800}));h.command('begin');h.command('pause');
+  const raw=JSON.parse(JSON.stringify(h.p));raw.academy.clears[game]=3;raw.academy.records[game]=9;
+  const p=parseProfile(raw);expect(p.academy.run?.game).toBe(game);expect(p.academy.clears[game]).toBe(3);expect(p.academy.records[game]).toBe(9);expect(p.rp).toBe(123);expect(p.coins).toBe(800);expect(p.owned).toEqual(h.p.owned);
+ }
 });

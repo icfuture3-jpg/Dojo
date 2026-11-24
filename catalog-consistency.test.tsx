@@ -15,7 +15,7 @@ it('shop outfit artwork uses exactly the equipped pattern rather than a generic 
  for(const [suffix,pattern]of [['Stripe',1],['Wave',7],['Flame',6],['Star',8],['Dragon',32]]as const)for(const item of NEW_COSMETICS.filter(i=>i.slot==='gi'&&i.name.includes(` ${suffix} Gi`)))expect(item.pattern).toBe(pattern);
 });
 it('Missions is removed from navigation, leaving actual working menus intact',()=>{
- const html=renderToStaticMarkup(<MenuRow onOpen={()=>{}}/>);expect(html).not.toContain('MISSIONS');for(const title of ['CREATE','SHOP','TROPHIES','RANKS'])expect(html).toContain(title);
+ const html=renderToStaticMarkup(<MenuRow onOpen={()=>{}}/>);expect(html).not.toContain('MISSIONS');expect(html).not.toContain('RANKS');for(const title of ['CREATE','SHOP','TROPHIES'])expect(html).toContain(title);
 });
 it('coins are drawn SVG disks not platform emoji and repeated resources are unique',()=>{
  const html=renderToStaticMarkup(<><Coin/><Coin/></>);expect(html).toContain('aria-label="coins"');expect(html).toContain('<circle');expect(html).not.toContain('🪙');const ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);expect(new Set(ids).size).toBe(ids.length);
