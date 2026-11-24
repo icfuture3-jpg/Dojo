@@ -165,3 +165,20 @@ Friends use the existing saved `diamondWins` total, so already recorded qualifyi
 wins count. Wins predating that counter are not invented. No random drops, payments,
 buffs or currency costs. Companions appear beside the fighter on the main menu and
 in classic arenas. Equipment persists per browser; this remains local-only saving.
+
+
+## Treasures collection
+
+Trophies & Treasures now includes six illustrated display-only collectibles earned
+at qualifying fight-win milestones: Dragon’s Flaming Pearl (5), Ruyi Jingu Bang
+(20), Gold-Sewn Jade Burial Suit (45), Sanxingdui Protruding-Eye Mask (80), Bronze
+Tiger Tally/Hufu (125), and Jade Ruyi Scepter (180). The collection uses the saved
+diamondWins counter, like Friends. Already recorded wins count; wins predating
+that counter are not fabricated. No currency costs, equipment, buffs, random drops
+or changes to fight coins, board training, friends or diamonds. Locked cards show
+the remaining wins; collected state persists with the saved win total.
+
+Legendary objects and historical artifact types are explicitly labeled separately.
+The burial suit is funerary ceremonial clothing, not combat armor. The Sanxingdui
+mask’s interpretation is uncertain. These original SVG illustrations are stylized,
+not reproductions or claims to possess real museum artifacts.
