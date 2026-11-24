@@ -4,17 +4,11 @@
 .friend-preview-panel h2{overflow-wrap:anywhere}
 .friend-showcase .friend-ability-effect{transform-origin:60px 60px;animation:friendPower 2s ease-in-out infinite}
 .friend-showcase[data-friend=black-dragon] .friend-ability-effect{animation:friendVortex 4s linear infinite}
-@keyframes friendBreathe{50%{transform:translateY(-3px) scale(1.025)}}
 @keyframes friendPower{50%{opacity:.45;transform:scale(.93)}}
-@keyframes friendLeap{0%,100%{transform:translateY(8px) rotate(-8deg)}50%{transform:translateY(-12px) rotate(12deg)}}
-@keyframes friendFan{to{transform:scaleX(1.07) rotate(3deg)}}
-@keyframes friendHover{50%{transform:translateY(-7px)}}
 @keyframes friendVortex{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.friend-showcase *{animation:none!important;transition:none!important}}
 
 /* Preserve the reference pixels: no opacity, tint, masks, extra faces or grayscale locks. */
 .friend-art image{opacity:1;filter:none;image-rendering:auto}
-.friend-showcase .friend-character{animation:none}
 .friend-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px;margin-top:16px}
 .friend-reference-card{display:flex;flex-direction:column;align-items:center;min-width:0;padding:12px;text-align:center;color:#f4dfb7;background:linear-gradient(100deg,#311a15,#3e2119,#2e1814);border:2px solid #bc9c61;border-radius:6px;outline:1px solid #715133;outline-offset:-5px;box-shadow:inset 0 0 14px #1b0d0a}
 .friend-reference-card[data-equipped=true]{border-color:#b8db8e}
@@ -25,4 +19,22 @@
 .friend-reference-card button:last-child{margin-top:auto}
 .friend-reference-card button:disabled{opacity:.7}
 
-.friend-showcase .friend-character{animation:none!important}
+
+/* Shared-vertex patches flex the actual artwork; the entire sprite never bobs. */
+.friend-motion-mesh{display:none}
+.friend-art[data-animated=true] .friend-still{display:none}
+.friend-art[data-animated=true] .friend-motion-mesh{display:inline}
+.friend-motion-patch{transform-origin:0 0;transform-box:view-box;animation:friendArticulate var(--friend-duration) linear infinite}
+@keyframes friendArticulate{
+ 0%,100%{transform:var(--friend-pose-0)}
+ 25%{transform:var(--friend-pose-1)}
+ 50%{transform:var(--friend-pose-2)}
+ 75%{transform:var(--friend-pose-3)}
+}
+/* Stop the covered gallery while the larger showcase is open. */
+.mythic-friends [inert] .friend-motion-patch{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){
+ .friend-art *{animation:none!important;transition:none!important}
+ .friend-art[data-animated=true] .friend-motion-mesh{display:none}
+ .friend-art[data-animated=true] .friend-still{display:inline}
+}

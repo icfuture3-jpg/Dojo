@@ -242,7 +242,7 @@ records crop bounds and SHA-256 hashes. Crops are 96×94 pixels with tighter cre
 background and tiny edge debris are removed into transparency, excluding captured
 card lines/captions while preserving retained RGB colors. No recoloring, fading,
 face overlays or AI upscaling. This preserves the actual reference artwork but cannot add resolution;
-large previews can appear soft. Ability effects remain separate from the still image.
+large previews can appear soft. Ability effects remain separate from the character animation.
 Unlock thresholds, saved progress, equipment, rewards and currencies are unchanged.
 
 
@@ -258,3 +258,15 @@ Friend PNGs are bundled from `assets/friends/` rather than served from stable
 `public/images/friends/*.png` URLs. Vite produces content-hashed filenames so
 cleaned artwork receives a new URL when its bytes change and old cached images
 are not reused. The image pixels themselves are unchanged by this loading fix.
+
+
+### Animated Friends collection
+
+All fourteen Friends cards, including locked friends, and their ability showcases
+now animate the original PNG artwork with individual soft-joint cycles: swimming
+and coiling bodies, swishing tails, fanning wings, head movement and planted-stance
+shifts rather than whole-image floating. A shared-vertex SVG mesh bends the source
+image without replacing/recoloring it or drawing extra faces. Animation uses CSS,
+not per-frame React updates; the covered gallery pauses during ability previews.
+Reduced motion shows the exact unwarped image and still ability effect. Equipped
+companions outside this section, unlocks, equipment and rewards are unchanged.

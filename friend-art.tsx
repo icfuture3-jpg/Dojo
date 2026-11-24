@@ -1,5 +1,6 @@
-import type {ReactNode} from 'react';
+import {useId,type CSSProperties,type ReactNode} from 'react';
 import type {Friend} from './friends';
+import {FRIEND_MESH,FRIEND_MESH_STYLES,FRIEND_MOTIONS} from './friend-motion';
 import './friend-art.css';
 export const FRIEND_ABILITIES:Record<Friend['id'],{name:string;detail:string}>={
  carp:{name:'Dragon Gate Leap',detail:'Leaps through a golden water ring with a splash.'},
@@ -27,7 +28,8 @@ export function friendImagePath(friend:Friend){
  return image;
 }
 /** Direct lossless crops of the user-supplied reference. Never redraw or recolor faces. */
-export function FriendArt({friend,size=104,ability=false}:{friend:Friend;size?:number;ability?:boolean}){
+export function FriendArt({friend,size=104,ability=false,animated=ability}:{friend:Friend;size?:number;ability?:boolean;animated?:boolean}){
+ const imageId=`friend-${useId()}`;
  let effect:ReactNode;
  switch(friend.id){
  case 'carp':effect=<><ellipse cx="57" cy="56" rx="28" ry="39" fill="none" stroke="#ffe28b" strokeWidth="5"/><path d="M17 94Q43 74 61 94T107 94" fill="none" stroke="#94eaff" strokeWidth="5"/></>;break;
@@ -45,10 +47,13 @@ export function FriendArt({friend,size=104,ability=false}:{friend:Friend;size?:n
  case 'azure-dragon':effect=<path d="M5 99Q22 75 41 92Q28 94 31 104Q55 92 77 102T116 99" fill="none" stroke="#8ef4f3" strokeWidth="5"/>;break;
  case 'zhulong':effect=<><circle cx="22" cy="22" r="13" fill="#ffcf69"/><path d="M108 9A15 15 0 1 0 109 35A12 12 0 0 1 108 9" fill="#cddaff"/></>;break;
  }
- return <svg role="img" aria-label={friend.name} data-friend={friend.id} className={ability?'friend-art friend-showcase':'friend-art'} viewBox="-12 -10 144 140" width={size} height={size} style={{maxWidth:'100%',height:'auto'}}>
- <g className="friend-character" data-reference-art={friend.id}>
- <image href={friendImagePath(friend)} x="0" y="0" width="120" height="120" preserveAspectRatio="xMidYMid meet"/>
- </g>
+ return <svg role="img" aria-label={friend.name} data-friend={friend.id} data-animated={animated} className={ability?'friend-art friend-showcase':'friend-art'} viewBox="-12 -10 144 140" width={size} height={size} style={{maxWidth:'100%',height:'auto','--friend-duration':`${FRIEND_MOTIONS[friend.id].duration}s`} as CSSProperties}>
+ <defs>
+ <g data-reference-art={friend.id}><image id={imageId} href={friendImagePath(friend)} x="0" y="0" width="120" height="120" preserveAspectRatio="xMidYMid meet"/></g>
+ {animated&&FRIEND_MESH.map(({clip},i)=><clipPath key={i} id={`${imageId}-patch-${i}`} clipPathUnits="userSpaceOnUse"><polygon points={clip}/></clipPath>)}
+ </defs>
+ <use className="friend-still" href={`#${imageId}`}/>
+ {animated&&<g className="friend-motion-mesh" aria-hidden="true">{FRIEND_MESH.map((_,i)=><g key={i} className="friend-motion-patch" style={FRIEND_MESH_STYLES[friend.id][i]}><use href={`#${imageId}`} clipPath={`url(#${imageId}-patch-${i})`}/></g>)}</g>}
  {ability&&<g className="friend-ability-effect" data-ability={friend.id}>{effect}</g>}
  </svg>;
 }
