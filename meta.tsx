@@ -28,7 +28,7 @@ import {
 import { MASTER_LOOKS, BODY_NAMES, EYE_COLORS, EYE_NAMES, HAIR_COLORS, HAIR_COLOR_NAMES, HAIR_NAMES, HEAD_NAMES, LOOK_COUNTS, OUTFIT_COLORS, OUTFIT_COLOR_NAMES, OUTFIT_COUNT, PATTERN_NAMES, SKINS, patternMinLevel, type Look } from "./look";
 import { type DojoEvent, setLookMsg, buyItemMsg, equipItemMsg, openBoxMsg, refreshBoardMsg, setNameMsg } from "./net";
 
-export type Screen = "create" | "shop" | "trophies";
+export type Screen = "create" | "shop" | "trophies" | "friends";
 
 const GOLD = "#f1c40f";
 const RARITY_COLOR = { common: "#bdc3c7", rare: "#5dade2", epic: "#a569bd", legendary: "#f39c12" };
@@ -80,6 +80,7 @@ export function MenuRow({ onOpen }: { onOpen(screen: Screen): void }) {
     ["create", "🎨 CREATE"],
     ["shop", "🛍 SHOP"],
     ["trophies", "🏆 TROPHIES"],
+    ["friends", "🐾 FRIENDS"],
   ];
   return (
     <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -230,6 +231,7 @@ export function ShopPanel({ p, dispatch, onClose, avatar, auraPreview }: { p: Pr
 export function TrophiesPanel({ p, onClose }: { p: Profile; onClose(): void }) {
   return (
     <Frame title={`Trophies ${p.trophies.length}/${TROPHIES.length}`} onClose={onClose} p={p}>
+      <p>Board-training trophy unlocks do not award coins. Fight and other activity rewards are unchanged.</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
         {TROPHIES.map((tr) => {
           const got = p.trophies.includes(tr.id);

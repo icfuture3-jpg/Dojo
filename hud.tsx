@@ -1,3 +1,4 @@
+import { FriendsPanel, EquippedFriend } from "./friends-panel";
 import { epicSkin } from "./epic-skins";
 import { EpicSkinArmor } from "./epic-skin-art";
 import { AuraArt } from './aura-art';
@@ -701,6 +702,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
             </div>
             <div style={{ textAlign: "right" }}><div style={{ fontSize: 22 }}>{rival.name.toUpperCase()}</div><div style={{ display: "flex", justifyContent: "flex-end" }}>{pips(score.r, "#e74c3c")}</div></div>
           </div>
+          <div style={{position:"absolute",left:compact?12:50,bottom:compact?210:180,zIndex:15,pointerEvents:"none"}}><EquippedFriend p={prof} compact/></div>
           <div key={phase === "result" ? `r${flash}` : "calm"} className={`duel-impact ${hitStop || combatPaused ? "duel-hit-stop" : ""}`} data-hit-stop={hitStop} style={{ position: "absolute", inset: 0, animation: phase === "result" && outcome && outcome !== "tie" ? "duelShake 0.24s linear" : "none" }}>
           {phase === "result" && outcome && outcome !== "tie" && (
             <div className="duel-impact-ink" aria-hidden="true" key={`fx${flash}`} style={{ position: "absolute", left: "50%", bottom: "46%", width: 0, height: 0, zIndex: 20, pointerEvents: "none" }}>
@@ -769,6 +771,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
           <p className="eyebrow">THE ORIGINAL THREE HANDS</p><h1>DOJO OF THE THREE HANDS</h1>
           <p className="intro-copy">Defeat four masters, first to three points each. Rock beats Scissors, Scissors beats Paper, Paper beats Rock. Choose during the countdown with the buttons or 1 / 2 / 3 (R / P / S). The CPU hand locks on your first choice or Peek. You can change your own hand without rerolling theirs. Both throw on SHOOT! No selection means you lose that round. In Enter the Dojo, a tie awards no point and restarts the normal countdown. Tower, Classic Daily and rescue ties trigger a one-second Clash after a warning; repeated ties repeat the Clash. Peek and Guard are unavailable during a Clash.</p>
           <div className="saved-fighter-identity"><div className="saved-fighter-standing" aria-label="Your saved custom character standing in the dojo">{myFig.avatar}</div><div className="profile-summary">{prof.name || 'Your character'} · Level {myLevel} · {prof.xp} XP · <Coin/> {prof.coins} coins · {prof.gems} diamonds · Diamond progress {prof.diamondWins % WINS_PER_DIAMOND}/{WINS_PER_DIAMOND} wins · {RANKS[rankIndex(prof.rp)]!.name} ({prof.rp} RP) · Strength {prof.training.strength}</div></div>
+          <EquippedFriend p={prof}/>
           <div className="title-profile"><ProfileBar p={prof}/></div>
           <MenuRow onOpen={setScreen} />
           <div className="title-actions"><button onClick={() => setAcademyOpen(true)}>TRAINING HALL</button><button onClick={() => { sfx.gong(); begin("ladder", 0); }}>ENTER THE DOJO</button></div>
@@ -871,6 +874,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatc
         )} />
       )}
       {screen === "shop" && <ShopPanel auraPreview={color => <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={myFig.color} belt="#ecf0f1" band={equipBand?.color} aura={color} skin={prof.equip.skin} move={null} state="idle" />} avatar={myFig.avatar} p={prof} dispatch={dispatch} onClose={() => setScreen(null)} />}
+      {screen === "friends" && <FriendsPanel p={prof} dispatch={dispatch} onClose={()=>setScreen(null)}/>}
       {screen === "trophies" && <TrophiesPanel p={prof} onClose={() => setScreen(null)} />}
       {prof.freeBoxes > 0 && !showNotice && !screen && (phase === "matchEnd" || phase === "champion" || phase === "title") && (
         <div role="dialog" aria-modal="true" aria-label="Free victory mystery box" style={{ position: "absolute", inset: 0, zIndex: 180, background: "#130c20ee", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, color: "#fff6dc", pointerEvents: "auto", fontFamily: "Georgia, serif" }}>

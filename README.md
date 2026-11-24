@@ -145,3 +145,23 @@ milestones, paying strength/XP once for the five attempts actually played. Old s
 backlogs no longer force consecutive sessions. New losses can trigger a new session;
 new three-match milestones can still offer normal practice. A loss practice session
 also covers a scheduled milestone, so returning to the dojo does not repeat it.
+
+
+## Mythic Friends and board-only coin restriction
+
+Fight wins keep their original coin rewards and also unlock cosmetic friends.
+Ladder, Tower, Daily, rescue and Challenge Dojo fight rewards, including bonuses,
+are unchanged. Board-breaking grants strength/XP but no coins, including from
+training-triggered trophies. Existing balances, prices, diamonds and saves are kept.
+
+Open **FRIENDS** on the main menu to see/equip/unequip your collection. Fourteen
+friends unlock at 3, 8, 15, 25, 40, 60, 85, 110, 140, 175, 210, 250, 300 and 365
+qualifying fight wins: Dragon-Gate Carp, Bixi, Suanni, Xiezhi, Qilin, Nine-Tailed Fox,
+Fenghuang, Yazi, Taotie, four river dragons, and Zhulong. These are playful original
+SVG adaptations inspired by Chinese folklore, not literal depictions of a single
+historical text. Cultural reference: https://www.christies.com/en/stories/mythical-creatures-in-the-life-and-art-of-ancient-china-c1c2d296024540649dddefa739e53cb4 .
+
+Friends use the existing saved `diamondWins` total, so already recorded qualifying
+wins count. Wins predating that counter are not invented. No random drops, payments,
+buffs or currency costs. Companions appear beside the fighter on the main menu and
+in classic arenas. Equipment persists per browser; this remains local-only saving.

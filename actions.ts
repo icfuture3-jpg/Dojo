@@ -1,3 +1,4 @@
+import { FRIENDS } from "./friends";
 import { applyAcademy } from "./academy";
 import { checkExpansionAchievements } from "./expansion-achievements";
 import { applyChallenge } from "./challenges";
@@ -47,6 +48,11 @@ function applyActionResult(previous: Profile, kind: string, raw: unknown, now: n
       return r.success && r.data.n === previous.last.n && r.data.n > previous.seenNotice
         ? { ...previous, seenNotice: r.data.n } : previous;
     }
+    case 'equipFriend': {
+      const r = z.object({id:z.string()}).safeParse(raw);
+      if (!r.success || (r.data.id !== '' && !FRIENDS.some(f=>f.id===r.data.id && previous.diamondWins>=f.wins))) return previous;
+      return previous.companion===r.data.id ? previous : {...previous,companion:r.data.id};
+    }
     case 'academy': return applyAcademy(previous,raw,now,random);
     case 'challenge': { const next=applyChallenge(previous,raw,now); return next===previous || next.challenges.run?.phase === 'failed' ? next : checkExpansionAchievements(next); }
     case 'audio': { const r = z.object({ music: z.number().min(0).max(1), sfx: z.number().min(0).max(1) }).safeParse(raw); return r.success ? { ...previous, audio: r.data } : previous; }
@@ -81,5 +87,5 @@ export function applyAction(previous: Profile, kind: string, raw: unknown, now: 
     : kind === 'modeDone' ? economy.modeResultSchema.safeParse(raw) : null;
   if (result?.success && !result.data.won && !('mode' in result.data && result.data.mode === 'spectate')) return next;
   if (kind === 'challenge' && next.challenges.run?.phase === 'failed') return next;
-  return economy.collectTrophies(next);
+  return economy.collectTrophies(next, !['trainingDone','lossTrainingDone'].includes(kind));
 }
