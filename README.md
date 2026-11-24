@@ -182,3 +182,20 @@ Legendary objects and historical artifact types are explicitly labeled separatel
 The burial suit is funerary ceremonial clothing, not combat armor. The Sanxingdui
 mask’s interpretation is uncertain. These original SVG illustrations are stylized,
 not reproductions or claims to possess real museum artifacts.
+
+
+## Friend artwork and ability previews
+
+Each of the fourteen friends has an individually drawn silhouette, not a shared
+body recolored. The river dragons are a coiled serpent, cloud-maned guardian,
+seahorse-shaped pearl dragon and fin-winged tidal dragon. The other friends retain
+species-specific fish, shell, mane, single horn, hooves, nine tails, feather fan,
+leopard, bronze-mask and torch-coil details. Larger collection cards and equipped
+buddies use the same character art as the preview.
+
+Every card has **PREVIEW ABILITY**, even while locked. The large showcase animates
+its signature visual effect (water leap, shield, smoke, beacon, blossoms, spirit
+lights, feather glow, roar, bronze light, vortex, rain, bubbles, wave or daybreak).
+These are cosmetic demonstrations only: no combat powers, purchases, currency
+costs, reward changes or automatic equipping. Back to Friends or Escape closes the
+preview. Reduced motion disables movement and retains the static character/effect.

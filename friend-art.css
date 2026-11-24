@@ -1,0 +1,17 @@
+.friend-preview-stage{display:flex;align-items:center;justify-content:center;min-height:260px;border:1px solid #bba36d;border-radius:18px;background:radial-gradient(ellipse at 50% 45%,#4e4364,#1b2031 70%);overflow:hidden}
+.friend-card-art{display:flex;align-items:center;justify-content:center;min-height:160px;background:radial-gradient(ellipse,#53405a55,transparent 70%);border-radius:12px}
+.friend-preview-panel{max-width:760px;width:100%;box-sizing:border-box;margin:auto;padding:clamp(14px,4vw,28px);border:2px solid #dcc388;border-radius:18px;background:#211b30;color:#fff0d2}
+.friend-preview-panel h2{overflow-wrap:anywhere}
+.friend-showcase .friend-character{transform-origin:60px 70px;animation:friendBreathe 2.6s ease-in-out infinite}
+.friend-showcase .friend-ability-effect{transform-origin:60px 60px;animation:friendPower 2s ease-in-out infinite}
+.friend-showcase[data-friend=carp] .friend-character{animation:friendLeap 2.6s ease-in-out infinite}
+.friend-showcase[data-friend=fox] [data-part=nine-tails]{transform-origin:60px 90px;animation:friendFan 3s ease-in-out infinite alternate}
+.friend-showcase[data-friend=fenghuang] .friend-character,.friend-showcase[data-friend=azure-dragon] .friend-character{animation:friendHover 3s ease-in-out infinite}
+.friend-showcase[data-friend=black-dragon] .friend-ability-effect{animation:friendVortex 4s linear infinite}
+@keyframes friendBreathe{50%{transform:translateY(-3px) scale(1.025)}}
+@keyframes friendPower{50%{opacity:.45;transform:scale(.93)}}
+@keyframes friendLeap{0%,100%{transform:translateY(8px) rotate(-8deg)}50%{transform:translateY(-12px) rotate(12deg)}}
+@keyframes friendFan{to{transform:scaleX(1.07) rotate(3deg)}}
+@keyframes friendHover{50%{transform:translateY(-7px)}}
+@keyframes friendVortex{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.friend-showcase *{animation:none!important;transition:none!important}}
