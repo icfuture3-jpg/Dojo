@@ -152,7 +152,7 @@ function ItemCard({ it, p, dispatch, onPreview }: { it: Item; p: Profile; dispat
   const price = it.gems > 0 ? <span>💎 {it.gems}</span> : it.coins > 0 ? <span className="catalog-price"><Coin size={20}/> {it.coins}</span> : "Free";
   return (
     <div className={it.slot === "gi" ? "outfit-shop-card" : undefined} style={{ width: 190, padding: 10, borderRadius: 8, background: "#2a1a0e", border: `2px solid ${equipped ? "#2ecc71" : RARITY_COLOR[it.rarity]}`, display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
-      <div className={it.slot === "gi" ? "outfit-frame" : undefined} style={{ height: it.diamondOnly ? 150 : 64, width: it.diamondOnly ? 150 : 64, borderRadius: it.slot === "aura" ? 32 : 10, background: it.slot === "aura" ? `radial-gradient(${it.color}, #0000 70%)` : it.color, border: "2px solid #fff6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>
+      <div className={it.slot === "gi" ? "outfit-frame" : undefined} style={{ height: 64, width: 64, borderRadius: it.slot === "aura" ? 32 : 10, background: it.slot === "aura" ? `radial-gradient(${it.color}, #0000 70%)` : it.color, border: "2px solid #fff6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>
         {it.slot === "finisher" ? <span style={{fontSize:22,fontWeight:700}}>{Number(it.id.split("-")[1])+1}</span> : it.slot === "gi" ? <OutfitArt item={it}/> : it.slot === "skin" ? (epicSkin(it.id) ? <EpicSkinPortrait skin={epicSkin(it.id)!}/> : it.id === "skin-ninja" ? "🥷" : it.id === "skin-oni" ? <OniWarriorArt /> : it.id === "skin-panda" ? "🐼" : "🥋") : ""}
       </div>
       <div style={{ fontSize: 15, textAlign: "center" }}>{it.name}</div>

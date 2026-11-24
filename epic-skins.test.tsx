@@ -30,11 +30,30 @@ it('shows all seven prices, rarity tiers, affordability and next-diamond progres
  expect(document.body.textContent).toContain('3 wins to your next diamond');
  for(const [i,skin] of EPIC_SKINS.entries()){
   expect(document.body.textContent).toContain(`DIAMOND TIER ${i+1} · 💎 ${skin.gems}`);
-  expect(document.querySelector(`[aria-label="${skin.name} skin"]`)).not.toBeNull();
+  const portrait=document.querySelector(`[aria-label="${skin.name} skin"]`)!;
+  expect(portrait).not.toBeNull();
+  expect((portrait.parentElement as HTMLElement).style.width).toBe("64px");
+  expect((portrait.parentElement as HTMLElement).style.height).toBe("64px");
  }
  const buys=[...document.querySelectorAll('button')].filter(b=>b.textContent?.startsWith('BUY 💎'));
  expect(buys.filter(b=>!b.disabled)).toHaveLength(1);
  await act(()=>buys.find(b=>!b.disabled)!.click());
  const emit=vi.fn();dispatch.mock.calls[0][0].message.send(emit);
  expect(emit).toHaveBeenCalledWith('buyItem',{id:EPIC_SKINS[0].id});
+});
+
+
+it('uses compact shaded character portraits rather than outline armor diagrams',()=>{
+ for(const skin of EPIC_SKINS){
+  const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<EpicSkinPortrait skin={skin}/>);
+  const svg=el.querySelector('svg')!;
+  expect(svg.getAttribute('width')).toBe('56');expect(svg.getAttribute('height')).toBe('56');
+  expect(svg.getAttribute('viewBox')).toBe('0 0 100 100');
+  for(const part of ['shoulders','hood','eyes','mask','crown'])expect(svg.querySelector(`[data-portrait-part="${part}"]`)).not.toBeNull();
+  expect(svg.querySelectorAll('linearGradient,radialGradient').length).toBe(3);
+  expect(svg.querySelector('[data-epic-skin]')).toBeNull(); // no reused armor diagram
+ }
+ const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<>{EPIC_SKINS.map(s=><EpicSkinPortrait key={s.id} skin={s}/>)}</>);
+ const ids=[...el.querySelectorAll('[id]')].map(e=>e.id);expect(new Set(ids).size).toBe(ids.length);
+ for(const shape of el.querySelectorAll('[fill^="url(#"]'))expect(ids).toContain(shape.getAttribute('fill')!.slice(5,-1));
 });
