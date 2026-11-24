@@ -1,6 +1,13 @@
 import { z } from 'zod';
 export const academyIds = ['dummy','sensei','lightning','balance','frenzy','shadow','says','memory','trial','grandmaster'] as const;
 export const playableAcademyIds = academyIds.filter((id):id is Exclude<typeof academyIds[number],'dummy'|'sensei'>=>id!=='dummy'&&id!=='sensei');
+// Keep legacy activity rules and saved runs; only these six remain in the hall menu.
+export const visibleAcademyIds = playableAcademyIds.filter(id => id !== 'trial' && id !== 'grandmaster');
+/** Preserve legacy eligibility while supporting the six remaining disciplines. */
+export function earnedMei(clears: Record<string, number>): boolean {
+ return Object.keys(clears).length >= 8
+  || visibleAcademyIds.every(id => (clears[id] ?? 0) > 0);
+}
 export type AcademyId = typeof academyIds[number];
 const count = z.number().int().nonnegative();
 const hand = z.enum(['rock','paper','scissors']);

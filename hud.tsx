@@ -1,3 +1,6 @@
+import { AuraArt } from './aura-art';
+import { CutsceneFrame } from "./cutscene-frame";
+import { createRunId } from "./run-id";
 import { GiDesign } from "./gi-design";
 import { Coin } from "./catalog-art";
 import { PauseTimers } from "./pause-timers";
@@ -17,6 +20,8 @@ import type { CSSProperties } from "react";
 import {
   MOVES,
   roundBeatMs,
+  createRoundPlan,
+  dailyRival,
   towerRival,
   MOVE_ICON,
   RIVALS,
@@ -31,14 +36,13 @@ import { dayKey, findItem, levelInfo, parseProfile, peekCost, RANKS, rankIndex }
 import {
   MenuRow,
   ProfileBar,
-  RanksPanel,
   RewardPopup,
   CreatorPanel,
   ShopPanel,
   TrophiesPanel,
   type Screen,
 } from "./meta";
-import { matchDone, modeDoneMsg, buyPeekMsg, openBoxMsg, type DojoEvent } from "./net";
+import { matchDone, modeDoneMsg, buyPeekMsg, openBoxMsg, dismissNoticeMsg, type DojoEvent } from "./net";
 import { setMusicIntensity, setMusicMuted, startMusic, setMusicVolume, setEffectsVolume, getEffectsVolume, stopMusic } from "./music";
 import { RESCUES } from "./rescue";
 import { RescueScenery } from "./scenery";
@@ -49,7 +53,7 @@ const CutScene=lazy(()=>import("./movie").then(m=>({default:m.CutScene})));
 const DojoMovie=lazy(()=>import("./movie").then(m=>({default:m.DojoMovie})));
 const RescueMovie=lazy(()=>import("./movie").then(m=>({default:m.RescueMovie})));
 
-type Phase = "title" | "movie" | "cutscene" | "pots" | "finisher" | "loserTraining" | "intro" | "choose" | "reveal" | "result" | "matchEnd" | "champion";
+type Phase = "title" | "movie" | "cutscene" | "pots" | "finisher" | "loserTraining" | "intro" | "choose" | "clashIntro" | "clash" | "reveal" | "result" | "matchEnd" | "champion";
 type Mode = "ladder" | "tower" | "daily" | "rescue";
 const EMOTES = [["🙇", "Bow"], ["💪", "Flex"], ["🤷", "Shrug"]] as const;
 const todayKey = () => dayKey(Date.now());
@@ -58,7 +62,7 @@ const dailyBan = (): Move => MOVES[dailySeed() % 3] as Move;
 function rivalFor(mode: Mode, lvl: number): Rival {
   if (mode === "rescue") return TOWER_POOL[(RESCUES[lvl] ?? RESCUES[0]!).invader] as Rival;
   if (mode === "tower") return towerRival(lvl);
-  if (mode === "daily") return TOWER_POOL[dailySeed() % TOWER_POOL.length] as Rival;
+  if (mode === "daily") return dailyRival(TOWER_POOL[dailySeed() % TOWER_POOL.length]!, dailyBan());
   return RIVALS[lvl] as Rival;
 }
 function rivalLookFor(mode: Mode, lvl: number): Look {
@@ -99,7 +103,7 @@ function tone(freq: number, dur = 0.25, type: OscillatorType = "sine", vol = 0.1
 const sfx = {
   gong() { tone(110, 1.4, "sine", 0.25); tone(165, 1.2, "triangle", 0.1); },
   whoosh() { tone(900, 0.4, "sawtooth", 0.05, -700); },
-  hit() { tone(140, 0.2, "square", 0.15, -90); },
+  hit() { tone(95, 0.18, "sine", 0.24, -60); tone(190, 0.09, "triangle", 0.12, -120); },
   win() { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.35, "triangle", 0.14), i * 140)); },
   lose() { [330, 262, 196].forEach((f, i) => setTimeout(() => tone(f, 0.4, "sawtooth", 0.08), i * 200)); },
   tick() { tone(660, 0.08, "square", 0.05); },
@@ -169,6 +173,7 @@ export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, 
           <rect x="104" y="280" width="40" height="12" rx="5" fill="#222" />
           <path d="M108 283H138" stroke="#fff3" strokeWidth="2" />
         </g>
+        <g className="fighter-upper-body">
         {fem ? <path d={TORSO_F} fill={color} /> : <rect x="50" y="100" width="100" height="120" rx="22" fill={color} />}
         {fem ? <path d={TORSO_F} fill={`url(#${artId}-shade)`} /> : <rect x="50" y="100" width="100" height="120" rx="22" fill={`url(#${artId}-shade)`} />}
         {look && <g clipPath={`url(#${artId}-torso)`}>{gi ? <GiDesign item={gi}/> : <Pattern i={look.pattern}/>}</g>}
@@ -190,7 +195,7 @@ export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, 
         <rect className="fighter-left-arm" x="35" y="108" width="24" height="70" rx="12" fill={`url(#${artId}-shade)`} transform={state === "throw" || state === "win" ? "rotate(30 47 112)" : ""} />
         <rect className="fighter-right-arm" x="141" y="108" width="24" height="70" rx="12" fill={`url(#${artId}-shade)`} transform={state === "throw" ? "rotate(-75 153 112)" : state === "win" ? "rotate(-30 153 112)" : ""} />
         <g className="fighter-left-arm" transform={state === "throw" || state === "win" ? "rotate(30 47 112)" : ""}><rect x="35" y="150" width="24" height="7" rx="3" fill="#fff4" /><circle cx="47" cy="182" r="9" fill={skinTone} stroke="#0003" strokeWidth="1.5" /></g>
-        <g className="fighter-right-arm" transform={state === "throw" ? "rotate(-75 153 112)" : state === "win" ? "rotate(-30 153 112)" : ""}><rect x="141" y="150" width="24" height="7" rx="3" fill="#fff4" /><circle cx="153" cy="182" r="9" fill={skinTone} stroke="#0003" strokeWidth="1.5" /></g>
+        <g className="fighter-right-arm" transform={state === "throw" ? "rotate(-75 153 112)" : state === "win" ? "rotate(-30 153 112)" : ""}><rect x="141" y="150" width="24" height="7" rx="3" fill="#fff4" /><circle className="fighter-right-fist" cx="153" cy="182" r="9" fill={skinTone} stroke="#0003" strokeWidth="1.5" /><path className="fighter-open-palm" style={{display:"none"}} d="M145 188L141 174Q140 170 143 169L147 175L145 158Q145 154 148 155L151 169L151 153Q153 150 155 154L157 169L159 157Q162 155 162 160L162 175L166 166Q170 165 169 170L163 188Q154 196 145 188Z" fill={skinTone} stroke="#0003" strokeWidth="1.5" /></g>
         {skin === "skin-oni" && <path d="M68 40 L62 6 L88 32 M132 40 L138 6 L112 32" fill="#f4ecd8" />}
         {skin === "skin-panda" && <><circle cx="68" cy="36" r="13" fill="#111" /><circle cx="132" cy="36" r="13" fill="#111" /></>}
         <HairBack i={look?.hair ?? 0} c={hairCol} />
@@ -220,6 +225,7 @@ export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, 
           </>
         )}
         <path d="M76 82 Q86 86 94 82 M106 82 Q114 86 124 82" stroke="#0002" strokeWidth="2" fill="none" />
+        </g>
       </svg>
       </div>
       {fx === "rock" && (
@@ -330,7 +336,7 @@ const btn: CSSProperties = {
   borderRadius: 6, letterSpacing: 1,
 };
 
-export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools }: { onSaveTools?():void; dispatch(e: DojoEvent): void; profileData: string; boardData: string; boardId: string }) {
+export function GameHud({ dispatch, profileData, boardData, boardId }: { dispatch(e: DojoEvent): void; profileData: string; boardData: string; boardId: string }) {
   const prof = useMemo(() => parseProfile(profileData ? JSON.parse(profileData) : {}), [profileData]);
   const [trainingNext, setTrainingNext] = useState<Phase>("matchEnd");
   const finishCutscene = () => { setTrainingNext(cut.next); setPhase(prof.equip.finisher ? "finisher" : cut.kind === "lose" ? "loserTraining" : cut.next); };
@@ -352,14 +358,13 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
   const guardRef = useRef(false);
   const [size, setSize] = useState({ w: window.innerWidth, h: window.innerHeight });
   const [screen, setScreen] = useState<Screen | null>(null);
-  const [seenNotice, setSeenNotice] = useState(0);
   const ladderLost = useRef(false);
   const trailed = useRef(false);
   const equipGi = findItem(prof.equip.gi);
   const playerLook = prof.look.outfit === -1 && equipGi?.pattern !== undefined ? { ...prof.look, pattern: equipGi.pattern } : prof.look;
   const equipBand = findItem(prof.equip.band);
   const equipAura = findItem(prof.equip.aura);
-  const showNotice = prof.last.n > seenNotice && (prof.last.lines.length > 1 || !/^(Purchase|Upgrade)$/.test(prof.last.title));
+  const showNotice = prof.last.n > prof.seenNotice && (prof.last.lines.length > 1 || !/^(Purchase|Upgrade)$/.test(prof.last.title));
   const [phase, setPhase] = useState<Phase>("title");
   const [level, setLevel] = useState(0);
   const [score, setScore] = useState({ p: 0, r: 0 });
@@ -371,27 +376,29 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
   const chosen = useRef<Move | null>(null);
   const [stats, setStats] = useState({ rounds: 0, wins: 0 });
   const [flash, setFlash] = useState(0);
+  const [hitStop, setHitStop] = useState(false);
+  const roundClosed = useRef(false);
   const rival = rivalFor(mode, level);
   const beatMs = roundBeatMs(mode, level);
   const shootMs = beatMs * 3;
   const rivalLook = rivalLookFor(mode, level);
   const myLevel = levelInfo(prof.xp).level;
-  const planned = useRef<Move>("rock");
+  const planned = useRef(createRoundPlan());
   const completionId = useRef("");
   const combatTimers=useRef(new PauseTimers());
   const [combatPaused,setCombatPaused]=useState(false);
   const pausedRef=useRef(false);
   const pauseCombat=()=>{pausedRef.current=true;combatTimers.current.pause();setCombatPaused(true);};
   const resumeCombat=()=>{pausedRef.current=false;combatTimers.current.resume();setCombatPaused(false);};
-  useEffect(()=>{if(!['intro','choose','reveal','result'].includes(phase))return;const hide=()=>{if(document.hidden)pauseCombat();};document.addEventListener('visibilitychange',hide);return()=>document.removeEventListener('visibilitychange',hide);},[phase]);
+  useEffect(()=>{if(!['intro','choose','clashIntro','clash','reveal','result'].includes(phase))return;const hide=()=>{if(document.hidden)pauseCombat();};document.addEventListener('visibilitychange',hide);return()=>document.removeEventListener('visibilitychange',hide);},[phase]);
   const later = (fn: () => void, ms: number) => { combatTimers.current.add(fn,ms); };
   useEffect(() => () => combatTimers.current.clear(), []);
 
   const startRound = useCallback((hist: Round[], lvl: number) => {
     const r = rivalFor(modeRef.current, lvl);
-    planned.current = r.pick(hist, Math.random);
+    planned.current.reset(r.pick(hist, Math.random));
     setPick(null); setRivalMove(null); setOutcome(null); setPeek(null);
-    chosen.current = null;
+    chosen.current = null; roundClosed.current = false; setHitStop(false);
     setElapsed(0);
     setPhase("choose");
     sfx.gong();
@@ -403,7 +410,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
   }, [startRound]);
 
   const startMatch = (lvl: number, replay = false) => {
-    completionId.current = crypto.randomUUID();
+    completionId.current = createRunId();
     setLevel(lvl); setScore({ p: 0, r: 0 }); setHistory([]); trailed.current = false;
     setPeekUsed(false); setGuardUsed(false); setGuardArmed(false); guardRef.current = false;
     if (replay || (modeRef.current !== "ladder" && modeRef.current !== "rescue")) beginIntro(lvl); else setPhase("movie");
@@ -416,25 +423,62 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
     setStats({ rounds: 0, wins: 0 });
     startMatch(lvl);
   };
+  const returnToDojo = () => {
+    combatTimers.current.clear();
+    combatTimers.current.resume();
+    pausedRef.current = false; setCombatPaused(false);
+    chosen.current = null; roundClosed.current = true; setHitStop(false); setPick(null); setPeek(null); setPhase("title");
+  };
+  const forfeitMatch = () => {
+    if (score.p >= WINS_NEEDED || score.r >= WINS_NEEDED) return;
+    // An unfinished attempt is a loss, not a free Daily retry or a reward.
+    if (modeRef.current === "ladder") dispatch({type:"dojo.send",message:matchDone({completionId:completionId.current,rival:level,won:false,roundsWon:score.p,roundsLost:WINS_NEEDED,comeback:false,perfectRun:false})});
+    else dispatch({type:"dojo.send",message:modeDoneMsg({completionId:completionId.current,mode:modeRef.current as "tower"|"daily"|"rescue",floor:modeRef.current === "daily" ? 0 : level,won:false,correct:false})});
+    returnToDojo();
+  };
   const selectMove = useCallback((m: Move) => {
-    if (phase !== "choose" || pausedRef.current) return;
+    if ((phase !== "choose" && phase !== "clash") || pausedRef.current || roundClosed.current) return;
     if (modeRef.current === "daily" && m === dailyBan()) return;
+    if (phase === "choose") planned.current.select(m, Math.random, modeRef.current === "daily" ? dailyBan() : undefined);
     chosen.current = m;
     setPick(m);
-  }, [phase]);const throwMove = useCallback((m: Move | null) => {
-    if (phase !== "choose" || pausedRef.current) return;
+  }, [phase]);
+
+  const throwMove = useCallback((m: Move | null) => {
+    if ((phase !== "choose" && phase !== "clash") || pausedRef.current || roundClosed.current) return;
+    roundClosed.current = true;
     setPick(m);
     setPhase("reveal");
     sfx.whoosh();
-    const rm = planned.current;
+    const rm = planned.current.move;
     let res: "win" | "lose" | "tie" = m === null ? "lose" : m === rm ? "tie" : beats(m, rm) ? "win" : "lose";
-    if (res === "lose" && guardRef.current) { res = "tie"; guardRef.current = false; setGuardArmed(false); setGuardUsed(true); }
+    const naturalTie = res === "tie";
+    if (phase === "choose" && res === "lose" && guardRef.current) { res = "tie"; guardRef.current = false; setGuardArmed(false); setGuardUsed(true); }
     later(() => {
-      setRivalMove(rm); setOutcome(res); setFlash((f) => f + 1);
-      sfx.hit();
-      if (res === "win") sfx.win(); else if (res === "lose") sfx.lose();
+      setRivalMove(rm);
       const hist = m === null ? history : [...history, { player: m, rival: rm }];
       setHistory(hist);
+      if (naturalTie && modeRef.current !== "ladder") {
+        // A fresh hidden, legal CPU hand is committed before any clash input.
+        // Another tie repeats the clash; Guard saves remain ordinary draws.
+        const legal = MOVES.filter(hand => modeRef.current !== "daily" || hand !== dailyBan());
+        planned.current.reset(legal[Math.floor(Math.random() * legal.length)]!);
+        planned.current.peek();
+        setPhase("clashIntro"); setPeek(null); setOutcome(null);
+        later(() => {
+          chosen.current = null; roundClosed.current = false;
+          setPick(null); setRivalMove(null); setElapsed(0); setPhase("clash");
+          sfx.tick();
+        }, 1200);
+        return;
+      }
+      setOutcome(res); setFlash((f) => f + 1);
+      if (res !== "tie") {
+        setHitStop(true);
+        later(() => setHitStop(false), 100);
+        sfx.hit();
+      }
+      if (res === "win") sfx.win(); else if (res === "lose") sfx.lose();
       setStats((s) => ({ rounds: s.rounds + 1, wins: s.wins + (res === "win" ? 1 : 0) }));
       const ns = { p: score.p + (res === "win" ? 1 : 0), r: score.r + (res === "lose" ? 1 : 0) };
       setScore(ns);
@@ -455,7 +499,8 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
   }, [phase, history, score, level, startRound, dispatch]);
 
   useEffect(() => {
-    if (phase !== "choose" || pausedRef.current) return;
+    if ((phase !== "choose" && phase !== "clash") || pausedRef.current || roundClosed.current) return;
+    const deadline = phase === "clash" ? 1000 : shootMs;
     let t0 = performance.now();
     let previousTick=t0;
     let lastBeat = -1;
@@ -464,12 +509,12 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
       if(pausedRef.current){t0+=tick-previousTick;previousTick=tick;return;}
       previousTick=tick;
       const el = tick - t0;
-      setElapsed(Math.min(el, shootMs));
+      setElapsed(Math.min(el, deadline));
       const b = Math.min(3, Math.floor(el / beatMs));
-      if (b !== lastBeat) { lastBeat = b; sfx.tick(); }
+      if (phase === "choose" && b !== lastBeat) { lastBeat = b; sfx.tick(); }
       // The rival throws on SHOOT! no matter what. The game never picks for
       // you: if you have not chosen by then, you were too slow and lose the round.
-      if (el >= shootMs) {
+      if (el >= deadline) {
         clearInterval(id);
         throwMove(chosen.current);
       }
@@ -479,6 +524,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLElement && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))) return;
       const m = KEYS[e.code];
       if (m) selectMove(m);
     };
@@ -504,17 +550,21 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
   const peekPrice = peekCost(level);
   const canPeek = phase === "choose" && peek === null && (!peekUsed || prof.coins >= peekPrice);
   const doPeek = () => {
-    if (!canPeek || peekLock.current) return;
+    if (!canPeek || peekLock.current || pausedRef.current) return;
     peekLock.current = true;
     if (peekUsed) dispatch({ type: "dojo.send", message: buyPeekMsg({ level }) });
     setPeekUsed(true);
-    setPeek(planned.current);
+    setPeek(planned.current.peek());
   };
   useEffect(() => { if (phase === "choose" && peek === null) peekLock.current = false; }, [phase, peek]);
-  const doGuard = () => { if (guardUsed || (myLevel < 3 && prof.training.strength === 0)) return; guardRef.current = !guardRef.current; setGuardArmed(guardRef.current); };
+  const doGuard = () => { if (phase !== "choose" || pausedRef.current || guardUsed || (myLevel < 3 && prof.training.strength === 0)) return; guardRef.current = !guardRef.current; setGuardArmed(guardRef.current); };
   const myFig = { name: prof.name, avatar: <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={(prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state="idle" />, color: (prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3", belt: "#ecf0f1", skin: SKINS[prof.look.skin] ?? "#e8c39e", hair: prof.look.hair === 0 ? "" : HAIR_COLORS[prof.look.hairColor] ?? "#222", fem: prof.look.body === 1 };
   // Scale controls uniformly, but expand the stage to the viewport instead of letterboxing.
   const scale = Math.min(1, size.w / 1280, size.h / 800);
+  const compact = size.w < 900 || size.h < 600;
+  const selecting = phase === "choose" || phase === "clash";
+  const activeRound = ["choose", "clashIntro", "clash", "reveal", "result"].includes(phase);
+  const clashStatus = phase === "clashIntro" ? "TIE → CLASH! One second to throw. Ties repeat. No choice = loss. No Peek or Guard." : phase === "clash" ? `CLASH! ${((1000 - elapsed) / 1000).toFixed(1)}s · ${pick ? `Selected ${pick}` : "Choose a NEW hand!"}` : null;
   const lost = score.r >= WINS_NEEDED;
   const revealing = phase === "reveal";
   const slowmo = revealing || phase === "result";
@@ -635,7 +685,6 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
       <div className="cinematic-light" aria-hidden="true" />
       <div className="cinematic-floor" aria-hidden="true" />
       {phase !== "title" && <EnergyRibbons key={`energy-${flash}`} move={pick} active={phase === "reveal" || phase === "result"}/> }
-      {flash > 0 && <div key={flash} style={{ position: "absolute", inset: 0, background: "#fff", animation: "flash 0.5s ease-out forwards" }} />}
 
       {phase !== "title" && (
         <>
@@ -644,34 +693,37 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 14, opacity: 0.8, letterSpacing: 3 }}>{mode === "rescue" ? `RESCUE · ${(RESCUES[level] ?? RESCUES[0]!).dojo.toUpperCase()}` : mode === "tower" ? `TOWER · FLOOR ${level + 1}` : mode === "daily" ? `DAILY CHALLENGE · NO ${dailyBan().toUpperCase()}` : `MATCH ${level + 1} OF ${RIVALS.length}`}</div>
               <div style={{ fontSize: 26, color: "#f1c40f" }}>{rival.title}</div>
+              {mode === "daily" && <div style={{ fontSize: 14 }}>Banned hand applies to both fighters.</div>}
             </div>
             <div style={{ textAlign: "right" }}><div style={{ fontSize: 22 }}>{rival.name.toUpperCase()}</div><div style={{ display: "flex", justifyContent: "flex-end" }}>{pips(score.r, "#e74c3c")}</div></div>
           </div>
-          <div key={phase === "result" ? `r${flash}` : "calm"} style={{ position: "absolute", inset: 0, animation: phase === "result" && outcome ? "shake 0.45s linear 0.4s" : "none" }}>
-          {phase === "result" && outcome && (
-            <div key={`fx${flash}`} style={{ position: "absolute", left: "50%", bottom: "46%", width: 0, height: 0, zIndex: 20, pointerEvents: "none" }}>
-              <div style={{ position: "absolute", left: 0, top: 0, width: 360, height: 360, background: "conic-gradient(from 0deg, #f1c40f 0 6deg, #0000 6deg 18deg, #f1c40f 18deg 24deg, #0000 24deg 36deg, #fff 36deg 42deg, #0000 42deg 54deg, #f1c40f 54deg 60deg, #0000 60deg 72deg, #e74c3c 72deg 78deg, #0000 78deg 90deg)", backgroundSize: "100% 100%", WebkitMaskImage: "radial-gradient(circle, #000 25%, #0000 70%)", maskImage: "radial-gradient(circle, #000 25%, #0000 70%)", animation: "burst 0.6s ease-out 0.4s both" }} />
+          <div key={phase === "result" ? `r${flash}` : "calm"} className={`duel-impact ${hitStop || combatPaused ? "duel-hit-stop" : ""}`} data-hit-stop={hitStop} style={{ position: "absolute", inset: 0, animation: phase === "result" && outcome && outcome !== "tie" ? "duelShake 0.24s linear" : "none" }}>
+          {phase === "result" && outcome && outcome !== "tie" && (
+            <div className="duel-impact-ink" aria-hidden="true" key={`fx${flash}`} style={{ position: "absolute", left: "50%", bottom: "46%", width: 0, height: 0, zIndex: 20, pointerEvents: "none" }}>
+              <div style={{ position: "absolute", left: 0, top: 0, width: 360, height: 360, background: "conic-gradient(from 0deg, #f1c40f 0 6deg, #0000 6deg 18deg, #f1c40f 18deg 24deg, #0000 24deg 36deg, #fff 36deg 42deg, #0000 42deg 54deg, #f1c40f 54deg 60deg, #0000 60deg 72deg, #e74c3c 72deg 78deg, #0000 78deg 90deg)", backgroundSize: "100% 100%", WebkitMaskImage: "radial-gradient(circle, #000 25%, #0000 70%)", maskImage: "radial-gradient(circle, #000 25%, #0000 70%)", animation: "burst 0.4s ease-out both" }} />
               {Array.from({ length: 16 }, (_, i) => {
                 const a = (i / 16) * Math.PI * 2;
                 const d = 120 + (i % 3) * 50;
-                return <div key={i} style={{ position: "absolute", left: 0, top: 0, width: 10, height: 10, borderRadius: i % 2 ? 5 : 1, background: i % 3 === 0 ? "#fff" : i % 3 === 1 ? "#f1c40f" : "#e67e22", ["--dx" as string]: `${Math.cos(a) * d}px`, ["--dy" as string]: `${Math.sin(a) * d}px`, animation: `spark 0.7s ease-out ${0.4 + (i % 4) * 0.03}s both` }} />;
+                return <div key={i} style={{ position: "absolute", left: 0, top: 0, width: 10, height: 10, borderRadius: i % 2 ? 5 : 1, background: i % 3 === 0 ? "#fff" : i % 3 === 1 ? "#f1c40f" : "#e67e22", ["--dx" as string]: `${Math.cos(a) * d}px`, ["--dy" as string]: `${Math.sin(a) * d}px`, animation: `spark 0.7s ease-out ${(i % 4) * 0.03}s both` }} />;
               })}
-              <div style={{ position: "absolute", left: 0, top: 10, transform: "translateX(-50%)", whiteSpace: "nowrap", fontSize: 64, fontWeight: 900, fontStyle: "italic", color: outcome === "win" ? "#f1c40f" : outcome === "tie" ? "#ecf0f1" : "#e74c3c", WebkitTextStroke: "3px #000", textShadow: "4px 4px 0 #000", animation: "slam 0.35s ease-out 0.4s both" }}>
-                {outcome === "tie" ? ["DOUBLE HIT!", "CLASH!", "BOTH DOWN!"][flash % 3] : outcome === "win" ? ["BAM!", "WHAM!", "POW!"][flash % 3] : ["OUCH!", "CRASH!", "THUD!"][flash % 3]}
+              <div style={{ position: "absolute", left: 0, top: 10, transform: "translateX(-50%)", whiteSpace: "nowrap", fontSize: 64, fontWeight: 900, fontStyle: "italic", color: outcome === "win" ? "#f1c40f" : "#e74c3c", WebkitTextStroke: "3px #000", textShadow: "4px 4px 0 #000", animation: "slam 0.25s ease-out both" }}>
+                {outcome === "win" ? ["BAM!", "WHAM!", "POW!"][flash % 3] : ["OUCH!", "CRASH!", "THUD!"][flash % 3]}
               </div>
             </div>
           )}
           <div style={{ position: "absolute", left: "50%", bottom: "26%", transform: "translateX(-50%)", display: "flex", gap: 360, alignItems: "flex-end" }}>
             {mode === "rescue" && <div style={{ position: "absolute", left: "2%", bottom: "26%", transform: "scale(0.6)", transformOrigin: "bottom left", opacity: 0.95 }}><Fighter look={(RESCUES[level] ?? RESCUES[0]!).allyLook} color={(RESCUES[level] ?? RESCUES[0]!).allyColor} belt="#ecf0f1" move={null} state="idle" /></div>}
+            <div className="victory-aura-fighter">{phase === "result" && score.p >= WINS_NEEDED && outcome === "win" && equipAura && <AuraArt item={equipAura}/>}
             <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={(prof.look.outfit >= 0 ? OUTFIT_COLORS[prof.look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={pick} fx={outcome === "lose" || outcome === "tie" ? rivalMove : null} state={pState} pump={phase === "choose"} />
+            </div>
             <Fighter look={rivalLook} color={rival.color} belt={rival.belt} move={rivalMove} flip fx={outcome === "win" || outcome === "tie" ? pick : null} pump={phase === "choose"} state={rState} />
           </div>
           </div>
           {peek && phase === "choose" && <div style={{ position: "absolute", left: "50%", top: "20%", transform: "translateX(-50%)", fontSize: 24, color: "#9be7ff", textShadow: "0 2px 0 #000" }}>👁 You peek: they will throw {MOVE_ICON[peek]}</div>}
           {emote && <div key={emote + String(flash)} style={{ position: "absolute", left: "calc(50% - 300px)", bottom: "calc(26% + 300px)", fontSize: 64, animation: "pop 0.3s ease-out", zIndex: 30 }}>{emote}</div>}
-          <div style={{ position: "absolute", left: 14, bottom: 24, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className={compact ? "compact-hidden" : "desktop-tools"} style={{ position: "absolute", left: 14, bottom: 24, display: "flex", flexDirection: "column", gap: 8 }}>
             <button type="button" disabled={!canPeek} className="dojo-save" style={{ opacity: canPeek ? 1 : 0.4 }} onClick={doPeek}>👁 {peek !== null ? "PEEK REVEALED" : peekUsed ? `PEEK — ${peekPrice} COINS` : "PEEK — FREE (1)"}</button>
-            <button type="button" disabled={guardUsed || (myLevel < 3 && prof.training.strength === 0)} className="dojo-save" style={{ opacity: guardUsed || (myLevel < 3 && prof.training.strength === 0) ? 0.4 : 1, background: guardArmed ? "#1e8449" : undefined }} onClick={doGuard}>{(myLevel < 3 && prof.training.strength === 0) ? "🛡 GUARD (Lv 3)" : guardArmed ? "🛡 GUARD ARMED" : `🛡 GUARD (${guardUsed ? 0 : 1})`}</button>
+            <button type="button" disabled={combatPaused || phase !== "choose" || guardUsed || (myLevel < 3 && prof.training.strength === 0)} className="dojo-save" style={{ opacity: guardUsed || (myLevel < 3 && prof.training.strength === 0) ? 0.4 : 1, background: guardArmed ? "#1e8449" : undefined }} onClick={doGuard}>{(myLevel < 3 && prof.training.strength === 0) ? "🛡 GUARD (Lv 3)" : guardArmed ? "🛡 GUARD ARMED" : `🛡 GUARD (${guardUsed ? 0 : 1})`}</button>
             <div style={{ display: "flex", gap: 6 }}>
               {EMOTES.map(([e, n]) => <button key={n} type="button" title={n} aria-label={n} className="dojo-save" onClick={() => doEmote(e)}>{e}</button>)}
             </div>
@@ -682,17 +734,18 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
               
             </div>
           )}
+          {clashStatus && <div className="duel-clash-status" role="status" aria-hidden={compact}>{clashStatus}</div>}
           {revealing && <div style={{ position: "absolute", left: "50%", top: "30%", transform: "translateX(-50%)", fontSize: 44, letterSpacing: 8, color: "#fff", textShadow: "0 3px 0 #000" }}>SHOOT!</div>}
           {phase === "result" && outcome && (
             <div style={{ position: "absolute", left: "50%", top: "26%", transform: "translateX(-50%)", fontSize: 72, fontWeight: 700, color: outcome === "win" ? "#2ecc71" : outcome === "lose" ? "#e74c3c" : "#f1c40f", textShadow: "0 4px 0 #000", animation: "pop 0.4s ease-out" }}>
-              {outcome === "win" ? "POINT!" : outcome === "lose" ? "STRUCK!" : "DRAW — YOU BOTH TAKE IT!"}
+              {outcome === "win" ? "POINT!" : outcome === "lose" ? "STRUCK!" : "DRAW — NO POINT"}
             </div>
           )}
-          {['choose','reveal','result'].includes(phase) && <div role="status" aria-label="Your chosen hand" style={{position:'absolute',left:'50%',bottom:142,transform:'translateX(-50%)',padding:'8px 16px',border:'2px solid #d6b260',borderRadius:8,background:'#100c09ee',color:pick?'#90efb6':'#ffdf90',fontSize:20,textAlign:'center',zIndex:35}}>{pick ? `${phase==='choose'?'SELECTED':'YOU THREW'}: ${pick.toUpperCase()} ${MOVE_ICON[pick]}` : phase==='choose'?'CHOOSE ROCK, PAPER OR SCISSORS':'NO HAND SELECTED'}</div>}
-          <div style={{ position: "absolute", left: 0, right: 0, bottom: 24, display: "flex", justifyContent: "center", gap: 20 }}>
+          {['choose','clash','reveal','result'].includes(phase) && <div role="status" aria-label="Your chosen hand" style={{position:'absolute',left:'50%',bottom:142,transform:'translateX(-50%)',padding:'8px 16px',border:'2px solid #d6b260',borderRadius:8,background:'#100c09ee',color:pick?'#90efb6':'#ffdf90',fontSize:20,textAlign:'center',zIndex:35}}>{pick ? `${selecting?'SELECTED':'YOU THREW'}: ${pick.toUpperCase()} ${MOVE_ICON[pick]}` : selecting?'CHOOSE ROCK, PAPER OR SCISSORS':'NO HAND SELECTED'}</div>}
+          <div className={compact ? "compact-hidden" : "desktop-moves"} style={{ position: "absolute", left: 0, right: 0, bottom: 24, display: "flex", justifyContent: "center", gap: 20 }}>
             {MOVES.map((m, i) => (
-              <button key={m} type="button" aria-pressed={pick === m} disabled={phase !== "choose" || (mode === "daily" && m === dailyBan())} onClick={() => selectMove(m)}
-                style={{ ...btn, opacity: phase === "choose" && !(mode === "daily" && m === dailyBan()) ? 1 : 0.35, background: pick === m ? "linear-gradient(#34d27b, #1e8449)" : btn.background, transform: pick === m ? "translateY(-8px) scale(1.06)" : "none", boxShadow: pick === m ? "0 0 22px #2ecc71aa, 0 4px 0 #0e4a28" : btn.boxShadow, transition: "transform 0.15s", width: 150 }}>
+              <button key={m} type="button" aria-pressed={pick === m} disabled={combatPaused || !selecting || (mode === "daily" && m === dailyBan())} onClick={() => selectMove(m)}
+                style={{ ...btn, opacity: selecting && !(mode === "daily" && m === dailyBan()) ? 1 : 0.35, background: pick === m ? "linear-gradient(#34d27b, #1e8449)" : btn.background, transform: pick === m ? "translateY(-8px) scale(1.06)" : "none", boxShadow: pick === m ? "0 0 22px #2ecc71aa, 0 4px 0 #0e4a28" : btn.boxShadow, transition: "transform 0.15s", width: 150 }}>
                 <div style={{ fontSize: 44 }}>{MOVE_ICON[m]}</div>
                 {m.toUpperCase()} <span style={{ opacity: 0.6, fontSize: 14 }}>[{i + 1}]</span>
               </button>
@@ -701,28 +754,33 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
         </>
       )}
 
+      {compact && activeRound && createPortal(<section className="unified-touch-controls" aria-label="Match controls">
+        <div className="unified-touch-status" role="status">{clashStatus ?? (phase === "choose" ? `${BEATS[Math.min(3,Math.floor(elapsed/beatMs))]} · ${pick ? `Selected ${pick}` : "Choose a hand"}` : phase === "result" ? outcome === "win" ? "POINT!" : outcome === "tie" ? "DRAW" : "STRUCK!" : "SHOOT!")}</div>
+        <div className="unified-touch-tools"><button disabled={!canPeek || combatPaused} onClick={doPeek}>{peek ? `CPU: ${peek.toUpperCase()}` : peekUsed ? `PEEK ${peekPrice} coins` : "PEEK FREE"}</button><button disabled={combatPaused || phase !== "choose" || guardUsed || (myLevel < 3 && prof.training.strength === 0)} onClick={doGuard}>{guardArmed ? "GUARD ARMED" : "GUARD"}</button></div>
+        <div className="unified-touch-moves">{MOVES.map(m=><button key={m} aria-label={`Choose ${m}`} aria-pressed={pick===m} disabled={combatPaused || !selecting || (mode==="daily" && m===dailyBan())} onClick={()=>selectMove(m)}>{MOVE_ICON[m]} {m.toUpperCase()}</button>)}</div>
+      </section>,document.body)}
       {phase === "title" && !academyOpen && !challengeOpen && !settingsOpen && !screen && !rescuePick && prof.lossTrainingPending === 0 && !trainingDue(prof) && prof.freeBoxes === 0 && createPortal(
         <section className="expansion-screen cinematic-main-menu" style={{zIndex:200}} aria-label="Dojo main menu"><div className="title-illustration"><CinematicDojo/></div><div className="native-title">
           <ThreeHandsCrest/>
           <p className="eyebrow">THE ORIGINAL THREE HANDS</p><h1>DOJO OF THE THREE HANDS</h1>
-          <p className="intro-copy">Defeat four masters, first to three points each. Rock beats Scissors, Scissors beats Paper, Paper beats Rock. Choose during the countdown with the buttons or 1 / 2 / 3 (R / P / S). Both throw on SHOOT! No selection means you lose that round.</p>
+          <p className="intro-copy">Defeat four masters, first to three points each. Rock beats Scissors, Scissors beats Paper, Paper beats Rock. Choose during the countdown with the buttons or 1 / 2 / 3 (R / P / S). The CPU hand locks on your first choice or Peek. You can change your own hand without rerolling theirs. Both throw on SHOOT! No selection means you lose that round. In Enter the Dojo, a tie awards no point and restarts the normal countdown. Tower, Classic Daily and rescue ties trigger a one-second Clash after a warning; repeated ties repeat the Clash. Peek and Guard are unavailable during a Clash.</p>
           <div className="saved-fighter-identity"><div className="saved-fighter-standing" aria-label="Your saved custom character standing in the dojo">{myFig.avatar}</div><div className="profile-summary">{prof.name || 'Your character'} · Level {myLevel} · {prof.xp} XP · <Coin/> {prof.coins} coins · {prof.gems} diamonds · {RANKS[rankIndex(prof.rp)]!.name} ({prof.rp} RP) · Strength {prof.training.strength}</div></div>
           <div className="title-profile"><ProfileBar p={prof}/></div>
           <MenuRow onOpen={setScreen} />
-          <div className="title-actions"><button onClick={() => setAcademyOpen(true)}>TRAINING HALL</button><button onClick={() => setChallengeOpen(true)}>CHALLENGES & EVENTS</button><button onClick={() => { sfx.gong(); begin("ladder", 0); }}>ENTER THE DOJO</button></div>
+          <div className="title-actions"><button onClick={() => setAcademyOpen(true)}>TRAINING HALL</button><button onClick={() => { sfx.gong(); begin("ladder", 0); }}>ENTER THE DOJO</button></div>
           <div className="title-actions">
             <button onClick={() => begin("tower",0)}>ENDLESS TOWER (best {prof.stats.tower})</button>
             <button onClick={() => setRescuePick(true)}>RESCUE DOJOS ({prof.stats.rescued}/{RESCUES.length})</button>
             <button disabled={prof.dailyDone === todayKey()} onClick={() => begin("daily",0)}>CLASSIC DAILY: NO {dailyBan().toUpperCase()}</button>
             <button onClick={() => setPhase("pots")}>TREE POT CHALLENGE — 3 MODES</button>
-            <button onClick={() => setSettingsOpen(true)}>AUDIO SETTINGS</button>{onSaveTools&&<button onClick={onSaveTools}>SAVE TOOLS</button>}
+            <button onClick={() => setSettingsOpen(true)}>AUDIO SETTINGS</button>
           </div><p className="expansion-note">Progress and records are on this device. One free Peek per match; extra Peeks cost coins. Original Guard, loss training, mystery boxes and all game modes remain available.</p>
         </div></section>, document.body)}
       {academyOpen && <Suspense fallback={createPortal(<section className="expansion-screen" role="status">Loading Training Hall…</section>,document.body)}><AcademyHall p={prof} dispatch={dispatch} onExit={()=>setAcademyOpen(false)} onShop={()=>{setAcademyOpen(false);setScreen("shop");}} onSound={()=>sfx.gong()} fighter={master=>master==='self'?myFig.avatar:<Fighter look={MASTER_LOOKS.find(m=>m.name.endsWith(master))?.look} color={master==='Bao'?'#a52b27':'#317e96'} belt="#202020" move={null} state="idle"/>}/></Suspense>}
       {challengeOpen && <Suspense fallback={createPortal(<section className="expansion-screen" role="status">Loading Challenge Dojo…</section>,document.body)}><ChallengeDojo p={prof} dispatch={dispatch} onExit={() => setChallengeOpen(false)} fighter={(r, state) => r ? <Fighter look={(MASTER_LOOKS.find(m=>m.name===r.name)?.look ?? seededLook([...TOWER_POOL,...NEW_RIVALS].findIndex(t=>t.name===r.name)+20))} color={r.color} belt={r.belt} move={null} state={state} flip /> : <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={myFig.color} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state={state}/>} /></Suspense>}
       {settingsOpen && createPortal(<section className="expansion-screen" aria-label="Audio settings"><header className="expansion-header"><h1>AUDIO SETTINGS</h1><button onClick={()=>setSettingsOpen(false)}>BACK TO DOJO</button></header><div className="audio-settings"><p>Saved on this device. Music and sound effects have separate controls.</p>{([['music','Music'],['sfx','Sound effects']] as const).map(([key,label])=><label key={key}>{label}: {Math.round(prof.audio[key]*100)}%<input aria-label={`${label} volume`} type="range" min="0" max="1" step="0.05" value={prof.audio[key]} onChange={e=>dispatch({type:'dojo.send',message:{send:emit=>emit('audio',{...prof.audio,[key]:Number(e.target.value)})}})}/></label>)}</div></section>,document.body)}
       {phase === "pots" && <Suspense fallback={<section className="expansion-screen" role="status">Loading pot challenges…</section>}><TreePots avatar={myFig.avatar} best={prof.potBest} onSave={(mode,hits)=>dispatch({type:"dojo.send",message:{send:send=>send("potDone",{mode,hits})}})} onExit={()=>setPhase("title")} /></Suspense>}
-      {phase === "finisher" && <FinisherScene item={findItem(prof.equip.finisher)!} avatar={myFig.avatar} onDone={() => setPhase(cut.kind === "lose" ? "loserTraining" : cut.next)} />}
+      {phase === "finisher" && createPortal(<FinisherScene item={findItem(prof.equip.finisher)!} avatar={myFig.avatar} onDone={() => setPhase(cut.kind === "lose" ? "loserTraining" : cut.next)} />, document.body)}
       <Suspense fallback={<section className="expansion-screen" role="status">Loading strength training…</section>}>
       {phase === "loserTraining" && <TrainingGame skinColor={myFig.skin} sleeveColor={myFig.color} strength={prof.training.strength} fighterName={prof.name || "Your fighter"} avatar={myFig.avatar} onDone={hits => {
         dispatch({ type: "dojo.send", message: { send: send => send("lossTrainingDone", { hits }) } });
@@ -731,12 +789,12 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
       {prof.lossTrainingPending > 0 && phase === "title" && <TrainingGame skinColor={myFig.skin} sleeveColor={myFig.color} key={`pending-${prof.lossTrainingPending}`} strength={prof.training.strength} avatar={myFig.avatar} fighterName={prof.name || "Your fighter"} onDone={hits => dispatch({ type: "dojo.send", message: { send: send => send("lossTrainingDone", { hits }) } })} />}
       {trainingDue(prof) && prof.lossTrainingPending === 0 && phase === "title" && <TrainingGame skinColor={myFig.skin} sleeveColor={myFig.color} strength={prof.training.strength} avatar={myFig.avatar} onDone={hits => dispatch({ type: "dojo.send", message: { send: send => send("trainingDone", { hits }) } })} />}
       </Suspense>
-      <Suspense fallback={<section className="expansion-screen" role="status">Loading cutscene…</section>}>
+      {(phase === "movie" || phase === "cutscene") && <CutsceneFrame key={`${phase}-${mode}-${level}-${cut.kind}`} onContinue={phase === "movie" ? () => beginIntro(level) : finishCutscene}>
       {phase === "cutscene" && mode === "rescue" && cut.kind !== "champion" && <RescueMovie k={level} kind={cut.kind} me={myFig} color={rival.color} belt={rival.belt} onDone={finishCutscene} />}
       {phase === "cutscene" && !(mode === "rescue" && cut.kind !== "champion") && <CutScene me={myFig} kind={cut.kind} dojo={mode==='ladder'?level:Math.max(0,cinematicOpponentIndex(rival.name))} color={rival.color} belt={rival.belt} onDone={finishCutscene} />}
       {phase === "movie" && mode === "rescue" && <RescueMovie k={level} kind="intro" me={myFig} color={rival.color} belt={rival.belt} onDone={() => beginIntro(level)} />}
       {phase === "movie" && mode !== "rescue" && <DojoMovie me={myFig} dojo={level} color={rival.color} belt={rival.belt} onDone={() => beginIntro(level)} />}
-      </Suspense>
+      </CutsceneFrame>}
       {phase === "intro" && (
         <div style={{ ...overlay, background: "#000a", pointerEvents: "none" }}>
           <div style={{ fontSize: 18, letterSpacing: 4, color: "#f1c40f" }}>{mode === "rescue" ? `SAVE THE ${(RESCUES[level] ?? RESCUES[0]!).dojo.toUpperCase()}` : mode === "tower" ? `FLOOR ${level + 1}` : mode === "daily" ? "DAILY CHALLENGE" : `MATCH ${level + 1}`}: {rival.title.toUpperCase()}</div>
@@ -746,10 +804,11 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
         </div>
       )}
       {phase === "matchEnd" && (
-        <div style={overlay}>
+        <div style={{...overlay,overflowY:"auto",justifyContent:"safe center",padding:24,boxSizing:"border-box"}}>
           <div style={{ fontSize: 56, color: lost ? "#e74c3c" : "#2ecc71" }}>{lost ? "DEFEATED" : "VICTORY"}</div>
+          {!lost && <div className="victory-aura-fighter" aria-label="Your victorious fighter and equipped aura">{equipAura && <AuraArt item={equipAura}/>}<div className="aura-preview-avatar">{myFig.avatar}</div></div>}
           <div style={{ fontSize: 22 }}>{lost ? `${rival.name} wins ${score.r}–${score.p}.` : `You defeated ${rival.name} ${score.p}–${score.r}!`}</div>
-          <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center" }}>
             {mode !== "ladder" ? (
               !lost && mode === "tower" ? (
                 <button type="button" style={btn} onClick={() => startMatch(level + 1)}>NEXT FLOOR ({level + 2})</button>
@@ -767,15 +826,18 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
               <button type="button" style={btn} onClick={() => startMatch(level + 1)}>NEXT CHALLENGER</button>
             )}
           </div>
+          <button type="button" style={btn} onClick={returnToDojo}>BACK TO DOJO</button>
         </div>
       )}
       {phase === "champion" && (
-        <div style={overlay}>
+        <div style={{...overlay,overflowY:"auto",justifyContent:"safe center",padding:24,boxSizing:"border-box"}}>
           <div style={{ fontSize: 70 }}>🏆</div>
           <div style={{ fontSize: 52, color: "#f1c40f" }}>DOJO CHAMPION</div>
+          <div className="victory-aura-fighter" aria-label="Your victorious fighter and equipped aura">{equipAura && <AuraArt item={equipAura}/>}<div className="aura-preview-avatar">{myFig.avatar}</div></div>
           <div style={{ fontSize: 22 }}>You mastered the Three Hands.</div>
           <div style={{ fontSize: 18 }}>Rounds played: {stats.rounds} · Rounds won: {stats.wins} · Win rate: {stats.rounds ? Math.round((100 * stats.wins) / stats.rounds) : 0}%</div>
           <button type="button" style={btn} onClick={() => begin("ladder", 0)}>PLAY AGAIN</button>
+          <button type="button" style={btn} onClick={returnToDojo}>BACK TO DOJO</button>
         </div>
       )}
       {rescuePick && phase === "title" && createPortal(
@@ -796,17 +858,16 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
           <button type="button" className="dojo-save" onClick={() => setRescuePick(false)}>BACK</button>
         </div>, document.body
       )}
-      {['intro','choose','reveal','result'].includes(phase)&&<button type="button" className="dojo-save" style={{position:'absolute',right:14,top:86,zIndex:80}} onClick={pauseCombat}>PAUSE MATCH</button>}
-      {combatPaused&&createPortal(<section className="expansion-screen" style={{zIndex:850}} aria-label="Match paused"><h1>MATCH PAUSED</h1><p>Your remaining choice time and pending round transitions are paused.</p><button onClick={resumeCombat}>RESUME MATCH</button></section>,document.body)}
+      {['intro','choose','clashIntro','clash','reveal','result'].includes(phase)&&createPortal(<button type="button" className="dojo-save match-pause-control" onClick={pauseCombat}>PAUSE MATCH</button>,document.body)}
+      {combatPaused&&createPortal(<section className="expansion-screen" style={{zIndex:850}} aria-label="Match paused"><h1>MATCH PAUSED</h1><p>Your remaining choice time and pending round transitions are paused.</p><button onClick={resumeCombat}>RESUME MATCH</button><p>Leaving forfeits this match with no victory rewards. A Daily attempt is used.</p><button disabled={score.p >= WINS_NEEDED || score.r >= WINS_NEEDED} onClick={forfeitMatch}>FORFEIT & RETURN</button></section>,document.body)}
       <button type="button" aria-label="Toggle music" className="dojo-save" style={{ position: "absolute", right: 14, bottom: 14, zIndex: 70 }} onClick={() => setMuted(m => !m)}>{muted ? "🔇" : "🔊"}</button>
       {screen === "create" && (
         <CreatorPanel p={prof} dispatch={dispatch} onClose={() => setScreen(null)} preview={(look) => (
           <Fighter gi={look.outfit === -1 ? equipGi : undefined} look={look.outfit === -1 && equipGi?.pattern !== undefined ? {...look,pattern:equipGi.pattern} : look} color={(look.outfit >= 0 ? OUTFIT_COLORS[look.outfit] : equipGi?.color) ?? "#2471a3"} belt="#ecf0f1" band={equipBand?.color} aura={equipAura?.color} skin={prof.equip.skin} move={null} state="idle" />
         )} />
       )}
-      {screen === "shop" && <ShopPanel avatar={myFig.avatar} p={prof} dispatch={dispatch} onClose={() => setScreen(null)} />}
+      {screen === "shop" && <ShopPanel auraPreview={color => <Fighter gi={prof.look.outfit === -1 ? equipGi : undefined} look={playerLook} color={myFig.color} belt="#ecf0f1" band={equipBand?.color} aura={color} skin={prof.equip.skin} move={null} state="idle" />} avatar={myFig.avatar} p={prof} dispatch={dispatch} onClose={() => setScreen(null)} />}
       {screen === "trophies" && <TrophiesPanel p={prof} onClose={() => setScreen(null)} />}
-      {screen === "ranks" && <RanksPanel avatar={myFig.avatar} p={prof} boardData={boardData} boardId={boardId} dispatch={dispatch} onClose={() => setScreen(null)} />}
       {prof.freeBoxes > 0 && !showNotice && !screen && (phase === "matchEnd" || phase === "champion" || phase === "title") && (
         <div role="dialog" aria-modal="true" aria-label="Free victory mystery box" style={{ position: "absolute", inset: 0, zIndex: 180, background: "#130c20ee", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, color: "#fff6dc", pointerEvents: "auto", fontFamily: "Georgia, serif" }}>
           <div style={{ fontSize: 80 }}>🎁</div><h2>Victory Mystery Box!</h2>
@@ -815,7 +876,7 @@ export function GameHud({ dispatch, profileData, boardData, boardId, onSaveTools
         </div>
       )}
       {showNotice && (!screen || (screen === "shop" && prof.last.box !== "")) && (phase === "title" || phase === "matchEnd" || phase === "champion") && (
-        <RewardPopup p={prof} onClose={() => setSeenNotice(prof.last.n)} />
+        <RewardPopup p={prof} onClose={() => dispatch({ type: "dojo.send", message: dismissNoticeMsg({ n: prof.last.n }) })} />
       )}
     </div>
     </div>
