@@ -18,8 +18,13 @@ export const FRIEND_ABILITIES:Record<Friend['id'],{name:string;detail:string}>={
  zhulong:{name:'Daybreak Gaze',detail:'Carries a sun and crescent moon above its torch-red coils.'},
 };
 
+// Bundle images so Vite gives every revision a new content-hashed URL.
+// Public paths were stable across cleanups and could keep stale screenshot pixels cached.
+const friendImages=import.meta.glob<string>('./assets/friends/*.png',{eager:true,query:'?url',import:'default'});
 export function friendImagePath(friend:Friend){
- return `${import.meta.env.BASE_URL}images/friends/${friend.id}.png`;
+ const image=friendImages[`./assets/friends/${friend.id}.png`];
+ if(!image)throw new Error(`Missing friend artwork: ${friend.id}`);
+ return image;
 }
 /** Direct lossless crops of the user-supplied reference. Never redraw or recolor faces. */
 export function FriendArt({friend,size=104,ability=false}:{friend:Friend;size?:number;ability?:boolean}){
