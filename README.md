@@ -268,5 +268,22 @@ and coiling bodies, swishing tails, fanning wings, head movement and planted-sta
 shifts rather than whole-image floating. A shared-vertex SVG mesh bends the source
 image without replacing/recoloring it or drawing extra faces. Animation uses CSS,
 not per-frame React updates; the covered gallery pauses during ability previews.
-Reduced motion shows the exact unwarped image and still ability effect. Equipped
-companions outside this section, unlocks, equipment and rewards are unchanged.
+Reduced motion shows the exact unwarped image and still ability effect. Unlocks,
+equipment and rewards are unchanged.
+
+
+### Behind-fighter companions and phone portrait layout
+
+Equipped, unlocked friends now appear as subtly animated companions behind the
+saved player in the dojo, creator/shop try-on, classic fights, challenges and
+victory poses. Opponents do not inherit the player's friend. Each friend preview
+pairs the saved fighter with the selected friend's live ability choreography
+(water splash/leap, ward, smoke, horn light, blooms, lanterns, feather sunrise,
+roar rings, bronze tracers, vortex current, rain, bubbles, tidal wave, sun/moon).
+Previewing never changes the equipped friend or spends currency; reduced motion
+keeps characters and effects still.
+
+Portrait phones use a narrower arena with visible fighters above native-size
+hand controls. Creator/shop panels have bounded native-height scrolling and
+compact headers; the creator try-on stays visible while browsing options. Aura
+and friend previews adapt to short/narrow viewports without requiring rotation.

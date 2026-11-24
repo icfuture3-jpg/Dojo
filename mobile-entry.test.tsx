@@ -70,3 +70,13 @@ it('keeps pause reachable at native phone size during the match intro and countd
  await click('PAUSE MATCH');expect(document.querySelector('[aria-label="Match paused"]')).not.toBeNull();
  await click('RESUME MATCH');expect(document.querySelector('[aria-label="Match paused"]')).toBeNull();
 });
+
+it('uses a portrait-fit arena and native scrollable creator controls on upright phones',async()=>{
+ await mount();
+ expect(document.querySelector('.cinematic-stage')?.getAttribute('data-portrait')).toBe('true');
+ await click('CREATE');
+ const model=document.querySelector('.creator-model');expect(model).not.toBeNull();
+ expect(model!.closest('.panel-content')?.closest('.cinematic-stage')).toBeNull();
+ expect(document.querySelector('.creator-options')).not.toBeNull();
+ expect(document.querySelector('.panel-header button')?.textContent).toContain('BACK');
+});

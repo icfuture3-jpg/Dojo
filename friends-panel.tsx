@@ -1,4 +1,4 @@
-import {useState,useEffect,useRef} from "react";
+import {useState,useEffect,useRef,type ReactNode} from "react";
 import {createPortal} from 'react-dom';
 import {FRIENDS} from './friends';
 import {FriendArt,FRIEND_ABILITIES} from './friend-art';
@@ -8,7 +8,7 @@ export function EquippedFriend({p,compact=false}:{p:Profile;compact?:boolean}){
  const friend=FRIENDS.find(f=>f.id===p.companion&&p.diamondWins>=f.wins);
  return friend?<div aria-label="Your equipped friend" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}><FriendArt friend={friend} size={compact?80:100}/>{!compact&&<span>{friend.name} · Cosmetic companion</span>}</div>:null;
 }
-export function FriendsPanel({p,dispatch,onClose}:{p:Profile;dispatch(e:DojoEvent):void;onClose():void}){
+export function FriendsPanel({p,dispatch,onClose,fighter}:{fighter?:ReactNode;p:Profile;dispatch(e:DojoEvent):void;onClose():void}){
  const [preview,setPreview]=useState<typeof FRIENDS[number]|null>(null);
  const previewButton=useRef<HTMLButtonElement|null>(null);
  const closePreview=()=>{setPreview(null);previewButton.current?.focus();};
@@ -21,7 +21,7 @@ export function FriendsPanel({p,dispatch,onClose}:{p:Profile;dispatch(e:DojoEven
  <p>Playful adaptations inspired by Chinese folklore, including the Dragon Gate, river dragons and legendary guardians; not a literal reconstruction of any one ancient text.</p>
  {preview&&<section role="dialog" aria-modal="true" aria-label={`${preview.name} ability preview`} style={{position:'fixed',inset:0,zIndex:550,overflowY:'auto',padding:16,boxSizing:'border-box',background:'#100c1def'}}>
  <div className="friend-preview-panel" key={preview.id}><button autoFocus onClick={closePreview}>BACK TO FRIENDS</button><h2>{preview.name}</h2>
- <div className="friend-preview-stage"><FriendArt friend={preview} size={208} ability/></div>
+ <div className={`friend-preview-stage${fighter?" with-fighter":""}`}><div className="friend-preview-creature"><FriendArt friend={preview} size={208} ability/></div>{fighter&&<div className="friend-preview-avatar">{fighter}</div>}</div>
  <h3>{FRIEND_ABILITIES[preview.id].name}</h3><p>{FRIEND_ABILITIES[preview.id].detail}</p>
  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{FRIENDS.map(f=><button key={f.id} aria-pressed={preview.id===f.id} onClick={()=>setPreview(f)}>{f.name}</button>)}</div>
  </div></section>}
