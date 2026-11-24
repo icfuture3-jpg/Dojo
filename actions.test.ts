@@ -73,13 +73,13 @@ it('rejects malformed actions and unknown messages without touching the profile'
   expect(applyAction(p, 'openBox', { currency: 'invalid' }, now)).toBe(p);
   expect(applyAction(p, 'buyPeek', { level: Infinity }, now)).toBe(p);
 });
-it('a supplied random draw produces repeatable paid-box transitions', () => {
-  const p = { ...fresh(), coins: 1000 };
-  const a = applyAction(p, 'openBox', { currency: 'coins' }, now, .5);
-  expect(applyAction(p, 'openBox', { currency: 'coins' }, now, .5)).toEqual(a);
+it('a supplied random draw produces repeatable earned-box transitions', () => {
+  const p = { ...fresh(), coins: 1000, freeBoxes: 1 };
+  const a = applyAction(p, 'openBox', { currency: 'free' }, now, .5);
+  expect(applyAction(p, 'openBox', { currency: 'free' }, now, .5)).toEqual(a);
   expect(a.stats.boxes).toBe(p.stats.boxes + 1);
   expect(p.stats.boxes).toBe(0);
-  expect(applyAction(p, 'openBox', { currency: 'coins' }, now, NaN)).toBe(p);
+  expect(applyAction(p, 'openBox', { currency: 'free' }, now, NaN)).toBe(p);
 });
 it('displays the exact weighted eligible-pool rarity probabilities without changing selection', () => {
   const weights = { common: 60, rare: 28, epic: 10, legendary: 2 };
@@ -101,4 +101,30 @@ it('only acknowledges the current notice, once, without changing rewards', () =>
   const next = applyAction(p, 'dismissNotice', { n: p.last.n }, now);
   expect(next).toEqual({ ...p, seenNotice: p.last.n });
   expect(applyAction(next, 'dismissNotice', { n: p.last.n }, now)).toBe(next);
+});
+
+it('rejects paid mystery-box requests at the action boundary',()=>{
+ const p={...fresh(),coins:10000,gems:1000,freeBoxes:1};
+ for(const currency of ['coins','gems'])expect(applyAction(p,'openBox',{currency},now,.5)).toBe(p);
+});
+
+it('records losses without awarding threshold trophies, missions, achievements or boxes', () => {
+ const p = fresh();
+ p.stats.played = 4; p.stats.rounds = 14; p.stats.won = 10;
+ p.matchStreak = 4;
+ const next = applyAction(p, 'matchDone', {...loss, roundsWon:2}, now);
+ expect([next.coins, next.gems, next.xp, next.trophies, next.done, next.expansionAchievements, next.freeBoxes]).toEqual(
+  [p.coins, p.gems, p.xp, p.trophies, p.done, p.expansionAchievements, p.freeBoxes]);
+ expect(next.matchStreak).toBe(0);
+ expect(next.stats.played).toBe(5);
+ expect(next.stats.rounds).toBe(16);
+ expect(next.completedResults).toContain(loss.completionId);
+ expect(applyAction(parseProfile(next), 'matchDone', loss, now)).toEqual(parseProfile(next));
+});
+it.each(['tower', 'rescue', 'daily'] as const)('does not collect pending trophies or achievements on a %s loss', mode => {
+ const p = fresh(); p.stats.played = 5; p.stats.won = 10;
+ const next = applyAction(p, 'modeDone', {completionId:`loss-${mode}`, mode, floor:0, won:false}, now);
+ expect([next.coins, next.gems, next.xp, next.trophies, next.expansionAchievements, next.freeBoxes]).toEqual(
+  [p.coins, p.gems, p.xp, p.trophies, p.expansionAchievements, p.freeBoxes]);
+ expect(next.lossTrainingPending).toBe(1);
 });

@@ -18,10 +18,21 @@ it('walk-up chop uses the original hand and reaches the lower pot at impact',()=
 });
 it('stone releases next to the actual attached hand and visibly travels to the pot',()=>{
  const release=potMotion('throw',.44),hand=rotate(153,182,153,112,release.rightArm);
- expect(release.rockVisible).toBe(true);expect(Math.abs(release.rockX-(90+.55*hand[0]!))).toBeLessThan(5);expect(Math.abs(release.rockY-(155+.55*hand[1]!))).toBeLessThan(5);
+ expect(release.rockVisible).toBe(true);expect(Math.abs(release.rockX-(90+release.x+.55*hand[0]!))).toBeLessThan(5);expect(Math.abs(release.rockY-(155+.55*hand[1]!))).toBeLessThan(5);
  const impact=potMotion('throw',CONTACT.throw);expect(impact.rockX).toBe(430);expect(impact.rockY).toBeCloseTo(150);expect(potMotion('throw',.2).rockVisible).toBe(false);
 });
 it('fighter keeps saved appearance and unique paint resources for multiple copies; no extra limb is inserted',()=>{
  const fighter=<Fighter color="#245a99" belt="#fff" look={{...DEFAULT_LOOK,hairColor:19,skin:5}} move={null} state="idle"/>;
  const html=renderToStaticMarkup(<>{fighter}{fighter}</>);const ids=[...html.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);expect(ids.length).toBeGreaterThan(0);expect(new Set(ids).size).toBe(ids.length);expect(html).toContain('#f59ac0');expect(html).toContain('#a86b3c');expect(html.match(/class="fighter-right-leg"/g)).toHaveLength(2);
+});
+
+it('steps toward the tree for the throw, walks for the chop, and returns home after every action',()=>{
+ for(const mode of ['throw','jump','chop'] as const){
+  expect(potMotion(mode,0).x).toBe(0);
+  expect(potMotion(mode,.2).x).toBeGreaterThan(0);
+  expect(potMotion(mode,1).x).toBe(0);
+  expect(potMotion(mode,1).y).toBeCloseTo(0);
+ }
+ expect(potMotion('throw',.1).leftLeg).not.toBe(potMotion('throw',.2).leftLeg);
+ expect(potMotion('throw',.44).x).toBe(80);
 });

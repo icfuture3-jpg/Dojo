@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { TROPHIES, collectTrophies, parseProfile, ITEMS, type Profile } from './economy';
 import { applyAction } from './actions';
-import { playableAcademyIds } from './academy-state';
+import { visibleAcademyIds } from './academy-state';
 import { TrophiesPanel } from './meta';
 const ids=['pot-triad','lightning-perfect','memory-clear','shadow-variety','academy-versatile','upgrade-toolkit','equipped-finish','rescue-lantern'];
 const fresh=()=>parseProfile({saveVersion:4});
@@ -19,7 +19,7 @@ it('each new trophy requires its own goal, rewards once and survives reload',()=
  ['pot-triad',p=>{p.potBest={throw:5,jump:5,chop:5};}],
  ['lightning-perfect',p=>{p.academy.clears.lightning=1;p.academy.records.lightningAccuracy=100;}],
  ['memory-clear',p=>{p.academy.clears.memory=1;}],
- ['academy-versatile',p=>{for(const id of playableAcademyIds)p.academy.clears[id]=1;}],
+ ['academy-versatile',p=>{for(const id of visibleAcademyIds)p.academy.clears[id]=1;}],
  ['upgrade-toolkit',p=>{p.up={coin:1,xp:1,eye:1};}],
  ['equipped-finish',p=>{for(const slot of ['gi','band','aura','finisher'] as const){const item=ITEMS.find(i=>i.slot===slot&&(i.coins>0||i.gems>0))!;p.owned.push(item.id);p.equip[slot]=item.id;}}],
  ['rescue-lantern',p=>{p.stats.rescued=1;}],
@@ -56,7 +56,7 @@ it('does not unlock new trophies for partial goals or unowned equipment',()=>{
  const byId=(id:string)=>TROPHIES.find(t=>t.id===id)!;
  let p=fresh();p.potBest={throw:5,jump:5,chop:4};expect(byId('pot-triad').test(p)).toBe(false);
  p=fresh();p.academy.clears.lightning=1;p.academy.records.lightningAccuracy=99;expect(byId('lightning-perfect').test(p)).toBe(false);p.academy.clears.lightning=0;p.academy.records.lightningAccuracy=100;expect(byId('lightning-perfect').test(p)).toBe(false);
- p=fresh();for(const id of playableAcademyIds.slice(0,-1))p.academy.clears[id]=1;p.academy.clears.dummy=10;p.academy.clears.sensei=10;expect(byId('academy-versatile').test(p)).toBe(false);
+ p=fresh();for(const id of visibleAcademyIds.slice(0,-1))p.academy.clears[id]=1;p.academy.clears.dummy=10;p.academy.clears.sensei=10;expect(byId('academy-versatile').test(p)).toBe(false);
  p=fresh();p.up={coin:3,xp:0,eye:3};expect(byId('upgrade-toolkit').test(p)).toBe(false);
  p=fresh();for(const slot of ['gi','band','aura','finisher'] as const)p.equip[slot]=ITEMS.find(i=>i.slot===slot&&(i.coins>0||i.gems>0))!.id;expect(byId('equipped-finish').test(p)).toBe(false);
 });

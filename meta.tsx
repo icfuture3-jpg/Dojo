@@ -1,3 +1,5 @@
+import { AuraArt, AURA_THEMES } from './aura-art';
+import { CONTENT } from "./content-catalog";
 import { Coin, OutfitArt } from "./catalog-art";
 import { Pattern } from "./lookart";
 import { ShopUpgrades } from "./shop-upgrades";
@@ -9,8 +11,7 @@ import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import {
   boxOdds,
-  BOX_COST,
-  BOX_GEM_COST,
+  cleanName,
   ITEMS,
   RANKS,
   TROPHIES,
@@ -24,7 +25,7 @@ import {
 import { MASTER_LOOKS, BODY_NAMES, EYE_COLORS, EYE_NAMES, HAIR_COLORS, HAIR_COLOR_NAMES, HAIR_NAMES, HEAD_NAMES, LOOK_COUNTS, OUTFIT_COLORS, OUTFIT_COLOR_NAMES, OUTFIT_COUNT, PATTERN_NAMES, SKINS, patternMinLevel, type Look } from "./look";
 import { type DojoEvent, setLookMsg, buyItemMsg, equipItemMsg, openBoxMsg, refreshBoardMsg, setNameMsg } from "./net";
 
-export type Screen = "create" | "shop" | "trophies" | "ranks";
+export type Screen = "create" | "shop" | "trophies";
 
 const GOLD = "#f1c40f";
 const RARITY_COLOR = { common: "#bdc3c7", rare: "#5dade2", epic: "#a569bd", legendary: "#f39c12" };
@@ -57,12 +58,13 @@ export function ProfileBar({ p }: { p: Profile }) {
   const lv = levelInfo(p.xp);
   const rank = RANKS[rankIndex(p.rp)] ?? RANKS[0];
   return (
-    <div style={{ display: "flex", gap: 18, alignItems: "center", background: "#000a", border: `2px solid ${GOLD}`, borderRadius: 10, padding: "8px 16px", fontFamily: serif, color: "#fff6dc" }}>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 18, alignItems: "center", background: "#000a", border: `2px solid ${GOLD}`, borderRadius: 10, padding: "8px 16px", fontFamily: serif, color: "#fff6dc" }}>
       <div style={{ width: 150 }}>
         <div style={{ fontSize: 15 }}>LEVEL {lv.level}</div>
         <Bar value={lv.into} max={lv.need} color="#2ecc71" />
         <div style={{ fontSize: 11, opacity: 0.7 }}>{lv.into}/{lv.need} XP</div>
       </div>
+      <div aria-label="Tournament record" style={{ fontSize: 16 }}>{`Wins: ${p.stats.won} · Losses: ${Math.max(0, p.stats.played - p.stats.won)}`}<div style={{ fontSize: 11, opacity: 0.7 }}>Tournament record · this device</div></div>
       <div style={{ fontSize: 20 }}><Coin/> {p.coins}</div>
       <div style={{ fontSize: 20 }}>💎 {p.gems}</div>
       <div style={{ fontSize: 16, color: rank?.color }}>◆ {rank?.name} <span style={{ opacity: 0.7, fontSize: 13 }}>({p.rp} RP)</span></div>
@@ -75,7 +77,6 @@ export function MenuRow({ onOpen }: { onOpen(screen: Screen): void }) {
     ["create", "🎨 CREATE"],
     ["shop", "🛍 SHOP"],
     ["trophies", "🏆 TROPHIES"],
-    ["ranks", "◆ RANKS"],
   ];
   return (
     <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -84,6 +85,9 @@ export function MenuRow({ onOpen }: { onOpen(screen: Screen): void }) {
           {label}
         </button>
       ))}
+      <a href="https://buy.stripe.com/3cI7sL3oP74rbtf1vG2wU00" target="_blank" rel="noopener noreferrer" aria-label="Support the Dojo — opens Stripe checkout in a new tab" title="Optional support via Stripe. Opens in a new tab; no in-game rewards." style={{ ...menuButton, display: "inline-block", boxSizing: "border-box", maxWidth: "100%", textAlign: "center", textDecoration: "none", lineHeight: 1.5 }}>
+        SUPPORT THE DOJO
+      </a>
     </div>
   );
 }
@@ -128,6 +132,12 @@ export function OniWarriorArt() {
   </svg>;
 }
 
+// Retired from the shop only: keep catalog entries for existing ownership/equipment.
+const HIDDEN_SHOP_AURAS = new Set([
+  'aura-sakura', 'aura-storm', 'aura-new-14', 'aura-new-12',
+  'aura-new-18', 'aura-new-13', 'aura-new-6', 'aura-new-19',
+]);
+
 function ItemCard({ it, p, dispatch, onPreview }: { it: Item; p: Profile; dispatch(e: DojoEvent): void; onPreview?(it: Item): void }) {
   const owned = p.owned.includes(it.id);
   const equipped = p.equip[it.slot] === it.id;
@@ -144,11 +154,14 @@ function ItemCard({ it, p, dispatch, onPreview }: { it: Item; p: Profile; dispat
       </div>
       <div style={{ fontSize: 15, textAlign: "center" }}>{it.name}</div>
       <div style={{ fontSize: 11, letterSpacing: 2, color: RARITY_COLOR[it.rarity] }}>{it.rarity.toUpperCase()}</div>
+      {it.slot === "aura" && <button type="button" style={small} aria-label={`Preview ${it.name}`} onClick={() => onPreview?.(it)}>PREVIEW AURA</button>}
       {it.slot === "finisher" && <button type="button" style={small} onClick={() => onPreview?.(it)}>PREVIEW MOVE</button>}
       {owned ? (
         <button type="button" disabled={equipped} style={equipped ? { ...small, background: "#1e8449" } : small} onClick={() => dispatch({ type: "dojo.send", message: equipItemMsg({ id: it.id }) })}>
           {equipped ? "EQUIPPED" : "EQUIP"}
         </button>
+      ) : it.tournament ? (
+        <div style={{fontSize:12,textAlign:"center"}}>TOURNAMENT EXCLUSIVE · Win {CONTENT[it.tournament].name} to earn</div>
       ) : locked ? (
         <div style={{ ...disabledBtn, background: "#333", border: "2px solid #666" }}>{rankLocked ? `🔒 ${RANKS[it.minRank]?.name} rank` : `🔒 Level ${it.minLevel}`}</div>
       ) : (
@@ -160,13 +173,20 @@ function ItemCard({ it, p, dispatch, onPreview }: { it: Item; p: Profile; dispat
   );
 }
 
-export function ShopPanel({ p, dispatch, onClose, avatar }: { p: Profile; dispatch(e: DojoEvent): void; onClose(): void; avatar?: React.ReactNode }) {
+export function ShopPanel({ p, dispatch, onClose, avatar, auraPreview }: { p: Profile; dispatch(e: DojoEvent): void; onClose(): void; avatar?: React.ReactNode; auraPreview?(color: string): React.ReactNode }) {
   const [preview, setPreview] = useState<Item | null>(null);
   const [tab, setTab] = useState<(typeof SLOT_TABS)[number]["id"]>("gi");
   return (
     <Frame title="Dojo Shop" onClose={onClose} p={p}>
       {avatar && <div className="saved-fighter-shop" aria-label="Your saved character wearing the equipped outfit"><div className="saved-fighter-mini">{avatar}</div><p>Your saved character · Equipped appearance</p></div>}
-      {preview && <FinisherScene item={preview} avatar={avatar} onDone={() => setPreview(null)} />}
+      {preview?.slot === "finisher" && <FinisherScene item={preview} avatar={avatar} onDone={() => setPreview(null)} />}
+      {preview?.slot === "aura" && <section className="aura-preview" role="dialog" aria-label={`${preview.name} preview`}>
+        <h2>{preview.name}</h2>
+        <div className="aura-preview-fighter" aria-label="Your saved fighter with the preview aura"><AuraArt key={preview.id} item={preview}/><div className="aura-preview-avatar">{auraPreview?.(preview.color) ?? avatar}</div></div>
+        <p className="aura-preview-description">{AURA_THEMES[preview.id]?.detail}</p>
+        <p>Preview only — your equipped aura and coins are unchanged. Equip this aura to see its themed effect when you win a match.</p>
+        <button type="button" autoFocus style={small} onClick={() => setPreview(null)}>BACK TO AURAS</button>
+      </section>}
       <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
         {SLOT_TABS.map((t) => (
           <button key={t.id} type="button" style={{ ...small, background: tab === t.id ? "#c0392b" : "#3a2210" }} onClick={() => setTab(t.id)}>
@@ -181,22 +201,19 @@ export function ShopPanel({ p, dispatch, onClose, avatar }: { p: Profile; dispat
           <div style={{ width: 240, textAlign: "center", background: "#2a1a0e", padding: 18, borderRadius: 10, border: "2px solid #a569bd" }}>
             <div style={{ fontSize: 72 }}>🎁</div>
             <div style={{ fontSize: 20 }}>Mystery Box</div>
-            <div style={{ fontSize: 13, opacity: 0.75, margin: "6px 0 10px" }}>A random outfit, headband, aura or finisher. Duplicates refund coins.</div>
+            <div style={{ fontSize: 13, opacity: 0.75, margin: "6px 0 10px" }}>A random outfit, headband, aura or finisher. Duplicates award bonus coins.</div>
             {p.freeBoxes > 0 && <button type="button" style={small} onClick={() => dispatch({ type: "dojo.send", message: openBoxMsg({ currency: "free" }) })}>OPEN FREE BOX ({p.freeBoxes})</button>}
-            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-              <button type="button" disabled={p.coins < BOX_COST} style={p.coins >= BOX_COST ? small : disabledBtn} onClick={() => dispatch({ type: "dojo.send", message: openBoxMsg({ currency: "coins" }) })}><Coin/> {BOX_COST}</button>
-              <button type="button" disabled={p.gems < BOX_GEM_COST} style={p.gems >= BOX_GEM_COST ? small : disabledBtn} onClick={() => dispatch({ type: "dojo.send", message: openBoxMsg({ currency: "gems" }) })}>💎 {BOX_GEM_COST}</button>
-            </div>
+            <p>Earn a mystery box by winning a match or game mode. Boxes cannot be bought with coins or gems.</p>
           </div>
           <div style={{ fontSize: 14, lineHeight: 1.8 }}>
             Current rank odds: {Object.entries(boxOdds(p.rp)).map(([rarity, chance]) => `${rarity}: ${chance.toFixed(1)}%`).join(" · ")}. Items above your rank cannot drop.
             <br />
-            You have opened {p.stats.boxes} boxes. Free victory boxes: {p.freeBoxes}.
+            You have opened {p.stats.boxes} boxes. Earned victory boxes: {p.freeBoxes}.
           </div>
         </div>
       ) : (
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-          {ITEMS.filter((i) => i.slot === tab).map((it) => (
+          {ITEMS.filter((i) => i.slot === tab && !HIDDEN_SHOP_AURAS.has(i.id)).map((it) => (
             <ItemCard key={it.id} it={it} p={p} dispatch={dispatch} onPreview={setPreview} />
           ))}
         </div>
@@ -228,7 +245,7 @@ export function TrophiesPanel({ p, onClose }: { p: Profile; onClose(): void }) {
   );
 }
 
-interface BoardRow { id: string; name: string; rp: number; wins: number }
+interface BoardRow { id: string; name: string; rp: number; wins: number; losses: number }
 export function RanksPanel({ p, boardData, boardId, dispatch, onClose, avatar }: { avatar?: React.ReactNode; p: Profile; boardData: string; boardId: string; dispatch(e: DojoEvent): void; onClose(): void }) {
   const [draft, setDraft] = useState(p.name);
   useEffect(() => { dispatch({ type: "dojo.send", message: refreshBoardMsg({ at: Date.now() }) }); }, [dispatch]);
@@ -259,11 +276,11 @@ export function RanksPanel({ p, boardData, boardId, dispatch, onClose, avatar }:
           <div style={{ fontSize: 22, color: GOLD, marginBottom: 8 }}>Top fighters</div>
           {standings.length === 0 && <div style={{ opacity: 0.7 }}>No one on the board yet. Win a match to claim the first spot.</div>}
           {standings.map((s, i) => (
-            <div key={s.id} style={{ display: "flex", gap: 12, padding: "6px 12px", marginBottom: 4, borderRadius: 6, background: s.id === boardId ? "#3a2a08" : "#2a1a0e", border: `2px solid ${s.id === boardId ? GOLD : "#4a3a2a"}` }}>
+            <div key={s.id} style={{ display: "flex", flexWrap: "wrap", gap: 12, padding: "6px 12px", marginBottom: 4, borderRadius: 6, background: s.id === boardId ? "#3a2a08" : "#2a1a0e", border: `2px solid ${s.id === boardId ? GOLD : "#4a3a2a"}` }}>
               <span style={{ width: 28 }}>#{i + 1}</span>
               <span style={{ flex: 1 }}>{s.name}{s.id === boardId ? " (you)" : ""}</span>
               <span style={{ color: RANKS[rankIndex(s.rp)]?.color }}>{s.rp} RP</span>
-              <span style={{ opacity: 0.7 }}>{s.wins} wins</span>
+              <span style={{ opacity: 0.7 }}>{`Wins: ${s.wins} · Losses: ${s.losses}`}</span>
             </div>
           ))}
           <div style={{ marginTop: 12 }}>
@@ -281,6 +298,7 @@ export function RanksPanel({ p, boardData, boardId, dispatch, onClose, avatar }:
 }
 
 export function RewardPopup({ p, onClose }: { p: Profile; onClose(): void }) {
+  const lost = ['Match lost', 'Tower run over', 'Dojo in danger', 'Daily challenge'].includes(p.last.title);
   const box = p.last.box ? findItem(p.last.box) : undefined;
   const content = (
     <div style={{ position: "fixed", inset: 0, zIndex: 600, overflowY: "auto", padding: 12, background: "#000b", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "auto", fontFamily: serif, color: "#fff6dc" }}>
@@ -300,11 +318,11 @@ export function RewardPopup({ p, onClose }: { p: Profile; onClose(): void }) {
           </div>
         ))}
         <div aria-label="Current balance" style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${GOLD}`, fontSize: 16 }}>
-          <div>Already added to your balance</div>
+          <div>{lost ? 'No rewards for this loss. Current balance:' : 'Already added to your balance'}</div>
           <strong>{`${p.coins} coins · ${p.gems} gems · ${p.xp} XP`}</strong>
-          <div style={{ fontSize: 13, marginTop: 6 }}>NICE! closes this notice; it does not claim another reward.</div>
+          {!lost && <div style={{ fontSize: 13, marginTop: 6 }}>NICE! closes this notice; it does not claim another reward.</div>}
         </div>
-        <button type="button" style={{ ...menuButton, marginTop: 10 }} onClick={onClose}>NICE!</button>
+        <button type="button" style={{ ...menuButton, marginTop: 10 }} onClick={onClose}>{lost ? 'CLOSE' : 'NICE!'}</button>
       </div>
     </div>
   );
@@ -327,6 +345,8 @@ const NAMES: Partial<Record<keyof Look, string[]>> = { body: BODY_NAMES, head: H
 const SWATCHES: Partial<Record<keyof Look, string[]>> = { hairColor: HAIR_COLORS, eyeColor: EYE_COLORS, skin: SKINS, outfit: OUTFIT_COLORS };
 
 export function CreatorPanel({ p, dispatch, onClose, preview }: { p: Profile; dispatch(e: DojoEvent): void; onClose(): void; preview(look: Look): React.ReactNode }) {
+  const [name, setName] = useState(p.name);
+  const [nameSaved, setNameSaved] = useState(false);
   const [tab, setTab] = useState<keyof Look>("body");
   const [look, setLook] = useState<Look>(p.look);
   const level = levelInfo(p.xp).level;
@@ -352,6 +372,18 @@ export function CreatorPanel({ p, dispatch, onClose, preview }: { p: Profile; di
   const total = LOOK_COUNTS.head * LOOK_COUNTS.hair * LOOK_COUNTS.eye;
   return (
     <Frame title="Create your fighter" onClose={onClose} p={p}>
+      <form onSubmit={event => {
+        event.preventDefault();
+        const cleaned = cleanName(name);
+        if (cleaned.length < 2) return;
+        dispatch({ type: "dojo.send", message: setNameMsg({ name: cleaned }) });
+        setName(cleaned);
+        setNameSaved(true);
+      }} style={{display:'flex',flexWrap:'wrap',gap:10,alignItems:'center',marginBottom:18}}>
+        <label>Fighter name <input aria-label="Fighter name" value={name} maxLength={14} onChange={event=>{setName(event.target.value);setNameSaved(false);}} onKeyDown={event=>event.stopPropagation()} style={{maxWidth:'100%',boxSizing:'border-box',minHeight:44,font:'18px Georgia,serif',padding:8}}/></label>
+        <button type="submit" disabled={cleanName(name).length < 2} style={small}>SAVE NAME</button>
+        <span role="status">{nameSaved ? 'Name saved on this device.' : 'Use 2–14 letters, numbers, spaces, dots, underscores or hyphens.'}</span>
+      </form>
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
         <div className="creator-try-on" style={{ width: 230, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
           <div style={{ transform: "scale(0.85)", transformOrigin: "top center", height: 270 }}>{preview(look)}</div>
