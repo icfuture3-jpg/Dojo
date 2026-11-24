@@ -22,7 +22,7 @@ export function FriendsPanel({p,dispatch,onClose}:{p:Profile;dispatch(e:DojoEven
  {preview&&<section role="dialog" aria-modal="true" aria-label={`${preview.name} ability preview`} style={{position:'fixed',inset:0,zIndex:550,overflowY:'auto',padding:16,boxSizing:'border-box',background:'#100c1def'}}>
  <div className="friend-preview-panel" key={preview.id}><button autoFocus onClick={closePreview}>BACK TO FRIENDS</button><h2>{preview.name}</h2>
  <div className="friend-preview-stage"><FriendArt friend={preview} size={208} ability/></div>
- <h3>{FRIEND_ABILITIES[preview.id].name}</h3><p>{FRIEND_ABILITIES[preview.id].detail}</p><p>Cosmetic ability showcase only — no damage, buffs, purchases or changes to your equipped friend. Reduced motion displays a still pose and effect.</p>
+ <h3>{FRIEND_ABILITIES[preview.id].name}</h3><p>{FRIEND_ABILITIES[preview.id].detail}</p>
  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{FRIENDS.map(f=><button key={f.id} aria-pressed={preview.id===f.id} onClick={()=>setPreview(f)}>{f.name}</button>)}</div>
  </div></section>}
  <div inert={preview?true:undefined}>

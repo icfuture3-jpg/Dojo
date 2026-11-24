@@ -40,7 +40,9 @@ it('previews every friend including locked ones without equipping, charging or e
   const dialog=document.querySelector(`[aria-label="${f.name} ability preview"]`)!;
   expect(dialog).not.toBeNull();expect(dialog.textContent).toContain(FRIEND_ABILITIES[f.id].name);
   expect(dialog.querySelector('[data-ability]')?.getAttribute('data-ability')).toBe(f.id);
-  expect(dialog.textContent).toContain('no damage, buffs, purchases');
+  expect(dialog.textContent).toContain(FRIEND_ABILITIES[f.id].detail);
+  expect(dialog.textContent).not.toContain('Cosmetic ability showcase only');
+  expect(dialog.textContent).not.toContain('Reduced motion displays a still pose and effect.');
   expect(document.querySelector('[inert]')).not.toBeNull();
   await act(()=>[...dialog.querySelectorAll('button')].find(b=>b.textContent==='BACK TO FRIENDS')!.click());
   expect(document.querySelector('[role="dialog"]')).toBeNull();
