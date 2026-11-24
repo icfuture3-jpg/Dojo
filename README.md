@@ -244,3 +244,11 @@ card lines/captions while preserving retained RGB colors. No recoloring, fading,
 face overlays or AI upscaling. This preserves the actual reference artwork but cannot add resolution;
 large previews can appear soft. Ability effects remain separate from the still image.
 Unlock thresholds, saved progress, equipment, rewards and currencies are unchanged.
+
+
+Suanni, Xiezhi and Qilin have individual crop bounds below the captured player
+status overlay, removing embedded words rather than treating them as creature
+detail. The fox uses a wider crop for the tail fan. These four have transparent
+12-pixel safety padding on every side to prevent touching/cutting the display edge.
+Screenshot-occluded details cannot be recovered from the source. Other ten images
+and all collection/equipment/reward behavior are unchanged.
