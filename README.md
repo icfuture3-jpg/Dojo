@@ -230,3 +230,16 @@ River dragons retain individual silhouettes but use long bodies, horns and whisk
 rather than a Western winged-dragon or seahorse design. Original game-style SVG
 adaptations, not exact copies of any image; no image files accompanied these refs.
 Names, IDs, unlocks, ability previews, equipment and currency rules are unchanged.
+
+
+## Exact screenshot friend artwork
+
+Friends now use direct PNG crops of the latest user-supplied full collection image,
+not the SVG redraws. All fourteen characters share the same respective PNG across
+cards, ability previews and equipped companions. Only creature regions are included;
+browser chrome, player details and captions are excluded. `friend-image-manifest.json`
+records crop bounds and SHA-256 hashes. Crops are lossless, 104×106 pixels, with the
+original burgundy background retained. No recoloring, fading, face overlays or AI
+upscaling. This preserves the actual reference artwork but cannot add resolution;
+large previews can appear soft. Ability effects remain separate from the still image.
+Unlock thresholds, saved progress, equipment, rewards and currencies are unchanged.

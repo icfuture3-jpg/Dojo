@@ -11,29 +11,24 @@ import {readFileSync} from 'node:fs';
 let root:Root|undefined;
 (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 afterEach(async()=>{if(root)await act(()=>root!.unmount());root=undefined;document.body.innerHTML='';});
-function geometry(friend:typeof FRIENDS[number]){
- const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<FriendArt friend={friend}/>);
- return [...el.querySelector('[data-silhouette]')!.querySelectorAll('path,ellipse,circle,rect')].map(e=>[e.tagName,...['d','cx','cy','rx','ry','r','x','y','width','height','transform'].map(a=>e.getAttribute(a)??'')].join(':')).join('|');
-}
-it('all fourteen silhouettes differ even when color, labels and SVG resource IDs are ignored',()=>{
- expect(new Set(FRIENDS.map(geometry)).size).toBe(14);
- const dragons=FRIENDS.filter(f=>f.kind==='dragon');expect(new Set(dragons.map(geometry)).size).toBe(4);
-});
-it('all friends share identical character geometry between cards and showcases, with distinct effects',()=>{
- const effects:string[]=[];
+it('uses a different supplied PNG for every friend, identical across cards and previews',()=>{
+ const paths:string[]=[];
  for(const f of FRIENDS){
-  const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<FriendArt friend={f} ability/>);
-  expect(el.querySelector(`[data-silhouette="${f.id}"]`)).not.toBeNull();
-  expect(el.querySelector(`[data-ability="${f.id}"]`)?.children.length).toBeGreaterThan(0);
-  effects.push(el.querySelector('[data-ability]')!.innerHTML);
-  const card=document.createElement('div');card.innerHTML=renderToStaticMarkup(<FriendArt friend={f}/>);
-  const normalize=(html:string)=>html.replace(/url\(#[^)]+\)/g,'PAINT');
-  expect(normalize(el.querySelector('[data-silhouette]')!.innerHTML)).toBe(normalize(card.querySelector('[data-silhouette]')!.innerHTML));
-  expect(FRIEND_ABILITIES[f.id].name.length).toBeGreaterThan(4);
+  const el=document.createElement('div'),card=document.createElement('div');
+  el.innerHTML=renderToStaticMarkup(<FriendArt friend={f} ability/>);
+  card.innerHTML=renderToStaticMarkup(<FriendArt friend={f}/>);
+  const image=el.querySelector('image')!;expect(image).not.toBeNull();
+  expect(image.getAttribute('href')).toBe(card.querySelector('image')!.getAttribute('href'));
+  expect(image.getAttribute('href')).toContain(`images/friends/${f.id}.png`);
+  expect(el.querySelector('[data-reference-art]')!.children).toHaveLength(1);
+  expect(el.querySelector('[data-reference-art] path')).toBeNull(); // no second drawn face
+  paths.push(image.getAttribute('href')!);
+  expect(el.querySelector(`[data-ability="${f.id}"]`)).not.toBeNull();
  }
- expect(new Set(effects).size).toBe(14);
+ expect(new Set(paths).size).toBe(14);
  const css=readFileSync('friend-art.css','utf8');
  expect(css).toContain('prefers-reduced-motion:reduce');expect(css).toContain('animation:none!important');
+ expect(css).toContain('.friend-art image{opacity:1;filter:none');
 });
 it('previews every friend including locked ones without equipping, charging or emitting actions',async()=>{
  const p=parseProfile({diamondWins:3,companion:'carp',coins:777,gems:12}),before=JSON.stringify(p),dispatch=vi.fn();
@@ -59,20 +54,4 @@ it('switches the showcase to another friend without leaving an old ability behin
  await act(()=>[...dialog.querySelectorAll('button')].find(b=>b.textContent==='Azure River Dragon')!.click());
  expect(document.querySelectorAll('[data-ability]')).toHaveLength(1);
  expect(document.querySelector('[data-ability]')?.getAttribute('data-ability')).toBe('azure-dragon');
-});
-
-it('retains the defining features from the supplied written folklore references',()=>{
- const parts:Partial<Record<typeof FRIENDS[number]['id'],string[]>>={
- bixi:['shell','stone-tablet','dragon-whiskers'],xiezhi:['single-horn','dark-shaggy-fur','cloven-hooves'],
- qilin:['antlers','qilin-hooves','scales'],fenghuang:['feather-fan','long-necked-bird','crest-and-beak'],
- yazi:['leopard-body','yazi-dragon-horns','tiger-fangs'],taotie:['goat-bodied-taotie','underarm-eyes','tiger-teeth','raised-arms'],
- zhulong:['torch-coils','human-face','human-nose-mouth'],
- 'black-dragon':['coiled-serpent','whiskers'],'yellow-dragon':['cloud-dragon','whiskers'],
- 'pearl-dragon':['pearl-serpent','long-dragon-snout','whiskers'],'azure-dragon':['wave-riding-dragon','four-claws','dragon-scales','whiskers'],
- };
- for(const friend of FRIENDS){
-  const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<FriendArt friend={friend} ability/>);
-  for(const part of parts[friend.id]??[])expect(el.querySelector(`[data-part="${part}"]`),`${friend.name}: ${part}`).not.toBeNull();
-  expect(el.querySelector('[data-part="winged-dragon"],[data-part="seahorse-dragon"],[data-part="bronze-mask"]')).toBeNull();
- }
 });

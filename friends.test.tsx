@@ -58,10 +58,11 @@ it('fight coins are preserved but board-training trophies cannot add coins',()=>
   expect(applyAction(board,kind,{hits:5},now)).toBe(board);
  }
 });
-it('all friends have unique artwork, including nine fox tails and visible equipped companions',()=>{
+it('all friends have separate reference PNGs and visible equipped companions',()=>{
  const html=FRIENDS.map(friend=>renderToStaticMarkup(<FriendArt friend={friend}/>));expect(new Set(html).size).toBe(14);
  const el=document.createElement('div');el.innerHTML=renderToStaticMarkup(<>{FRIENDS.map(friend=><FriendArt key={friend.id} friend={friend}/>)}</>);
- expect(el.querySelector('[data-part="nine-tails"]')?.children.length).toBe(9);
+ expect(el.querySelectorAll('image')).toHaveLength(14);
+ expect(new Set([...el.querySelectorAll('image')].map(i=>i.getAttribute('href'))).size).toBe(14);
  const ids=[...el.querySelectorAll('[id]')].map(e=>e.id);expect(new Set(ids).size).toBe(ids.length);
  expect(renderToStaticMarkup(<EquippedFriend p={parseProfile({companion:'carp',diamondWins:3})}/>)).toContain('Dragon-Gate Carp');
  expect(renderToStaticMarkup(<EquippedFriend p={parseProfile({companion:'zhulong',diamondWins:3})}/>)).toBe('');
