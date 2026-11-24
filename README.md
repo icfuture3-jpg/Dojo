@@ -169,7 +169,7 @@ in classic arenas. Equipment persists per browser; this remains local-only savin
 
 ## Treasures collection
 
-Trophies & Treasures now includes six illustrated display-only collectibles earned
+Shop → Upgrades → Dojo Treasures includes six illustrated display-only collectibles earned
 at qualifying fight-win milestones: Dragon’s Flaming Pearl (5), Ruyi Jingu Bang
 (20), Gold-Sewn Jade Burial Suit (45), Sanxingdui Protruding-Eye Mask (80), Bronze
 Tiger Tally/Hufu (125), and Jade Ruyi Scepter (180). The collection uses the saved
@@ -199,3 +199,6 @@ lights, feather glow, roar, bronze light, vortex, rain, bubbles, wave or daybrea
 These are cosmetic demonstrations only: no combat powers, purchases, currency
 costs, reward changes or automatic equipping. Back to Friends or Escape closes the
 preview. Reduced motion disables movement and retains the static character/effect.
+
+Treasures live alongside Coin Purse and Scholar’s Scroll in the existing Dojo
+Treasures shop section. Trophies is a separate menu/panel again, without collectibles.

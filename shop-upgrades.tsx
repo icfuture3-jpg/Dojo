@@ -1,3 +1,4 @@
+import { TreasuresCollection } from "./treasures-panel";
 import { Coin } from "./catalog-art";
 import { useId } from 'react';
 import { UPGRADES, type Profile } from './economy';
@@ -56,6 +57,7 @@ export function ShopUpgrades({ p, dispatch }: { p: Profile; dispatch(event: Dojo
         <div className="upgrade-purchase">{maxed ? <strong className="upgrade-maxed">MAX UPGRADE</strong> : <><button type="button" disabled={p.coins < cost} aria-label={`Upgrade ${u.name} for ${cost} coins`} onClick={()=>dispatch({type:'dojo.send',message:buyUpgradeMsg({id:u.id})})}>UPGRADE <span><Coin size={18}/> {cost} coins</span></button><small>{p.coins < cost ? `${cost-p.coins} more coins needed` : 'Purchase next level'}</small></>}</div>
       </article>;
     })}</div>
+    <div style={{padding:16}}><TreasuresCollection wins={p.diamondWins}/></div>
     <div className="upgrade-parchment"><ParchmentLandscape/><div className="upgrade-seal"><span>THREE HANDS</span><strong>Train with purpose.</strong><p>Build your fortune.<br/>Deepen your knowledge.</p><span className="seal-mark" aria-hidden="true">III</span></div></div>
   </section>;
 }
