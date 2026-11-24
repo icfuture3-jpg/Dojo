@@ -86,7 +86,7 @@ All twelve shop previews and equipped finishing scenes now animate the saved
 fighter's waist, arms and legs, not just the outer avatar. Respectful Bow folds
 at the waist with planted feet; Lotus Pose sits cross-legged; Crane Balance lifts
 one leg; Cyclone Kick extends a leg; Meteor Punch extends a fist; Victory Salute
-raises both arms; Jade Wave uses an open palm and outgoing energy. Dragon Spin,
+performs a right-hand military-style salute; Jade Wave uses an open palm and outgoing energy. Dragon Spin,
 Thunder Stomp, Phoenix Leap, Shadow Dash and Starburst each have their own windup,
 action, held pose and recovery, with matching vector trails or impact motifs.
 

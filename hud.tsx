@@ -200,6 +200,18 @@ export function Fighter({ color, belt, move, flip, state, hint, pump, fx, band, 
         <rect className="fighter-right-arm" x="141" y="108" width="24" height="70" rx="12" fill={`url(#${artId}-shade)`} transform={state === "throw" ? "rotate(-75 153 112)" : state === "win" ? "rotate(-30 153 112)" : ""} />
         <g className="fighter-left-arm" transform={state === "throw" || state === "win" ? "rotate(30 47 112)" : ""}><rect x="35" y="150" width="24" height="7" rx="3" fill="#fff4" /><circle cx="47" cy="182" r="9" fill={skinTone} stroke="#0003" strokeWidth="1.5" /></g>
         <g className="fighter-right-arm" transform={state === "throw" ? "rotate(-75 153 112)" : state === "win" ? "rotate(-30 153 112)" : ""}><rect x="141" y="150" width="24" height="7" rx="3" fill="#fff4" /><circle className="fighter-right-fist" cx="153" cy="182" r="9" fill={skinTone} stroke="#0003" strokeWidth="1.5" /><path className="fighter-open-palm" style={{display:"none"}} d="M145 188L141 174Q140 170 143 169L147 175L145 158Q145 154 148 155L151 169L151 153Q153 150 155 154L157 169L159 157Q162 155 162 160L162 175L166 166Q170 165 169 170L163 188Q154 196 145 188Z" fill={skinTone} stroke="#0003" strokeWidth="1.5" /></g>
+        <g className="fighter-salute-arm" aria-hidden="true" style={{display:'none'}} transform="translate(153 112)">
+          <g className="salute-upper-arm">
+            <rect x="-12" y="-4" width="24" height="43" rx="11" fill={color}/>
+            <rect x="-12" y="-4" width="24" height="43" rx="11" fill={`url(#${artId}-shade)`}/>
+            <g transform="translate(0 34)"><g className="salute-forearm">
+              <rect x="-10" y="-5" width="20" height="59" rx="8" fill={color}/>
+              <path d="M-10 45H10V53H-10Z" fill="#fff3"/>
+              <path className="salute-flat-hand" d="M-8 52H8L7 67L4 77H-4L-8 67Z" fill={skinTone} stroke="#553a3066" strokeWidth="1"/>
+              <path d="M-3 60V73M1 60V73M5 59L4 71" stroke="#553a3044" strokeWidth="1" fill="none"/>
+            </g></g>
+          </g>
+        </g>
         {skin === "skin-oni" && <path d="M68 40 L62 6 L88 32 M132 40 L138 6 L112 32" fill="#f4ecd8" />}
         {skin === "skin-panda" && <><circle cx="68" cy="36" r="13" fill="#111" /><circle cx="132" cy="36" r="13" fill="#111" /></>}
         <HairBack i={look?.hair ?? 0} c={hairCol} />

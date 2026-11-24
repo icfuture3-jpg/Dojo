@@ -53,3 +53,15 @@
 .thunder-ground{fill:none;stroke:#b8efff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
 @keyframes stompThunder{0%,16%{opacity:1}100%{opacity:0}}
 @media(prefers-reduced-motion:reduce){.finisher-thunder{animation:none!important;opacity:.65}.thunder-bolts{filter:none}}
+
+/* Right-hand military salute: bent elbow, joined fingers at the brow, left arm at attention. */
+.finisher-choreography[data-finisher="finisher-9"] .fighter-right-arm{display:none}
+.finisher-choreography[data-finisher="finisher-9"] .fighter-salute-arm{display:block!important}
+.finisher-choreography[data-finisher="finisher-9"] .salute-upper-arm{transform-origin:0 0;animation:militarySaluteUpper 5.2s ease-in-out both}
+.finisher-choreography[data-finisher="finisher-9"] .salute-forearm{transform-origin:0 0;animation:militarySaluteForearm 5.2s ease-in-out both}
+@keyframes militarySaluteUpper{0%,22%,100%{transform:rotate(0deg)}44%,72%{transform:rotate(-80deg)}}
+@keyframes militarySaluteForearm{0%,22%,100%{transform:rotate(0deg)}44%,72%{transform:rotate(-140deg)}}
+@media(prefers-reduced-motion:reduce){
+ .finisher-choreography[data-finisher="finisher-9"] .salute-upper-arm{animation:none!important;transform:rotate(-80deg)}
+ .finisher-choreography[data-finisher="finisher-9"] .salute-forearm{animation:none!important;transform:rotate(-140deg)}
+}
