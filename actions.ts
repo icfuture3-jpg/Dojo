@@ -37,7 +37,7 @@ function applyActionResult(previous: Profile, kind: string, raw: unknown, now: n
       completedResults: [...previous.completedResults, id.data.completionId],
       training: { ...next.training, matches: next.training.matches + Number(eligible) },
       freeBoxes: next.freeBoxes + Number(eligible && result.data.won),
-      lossTrainingPending: next.lossTrainingPending + Number(eligible && !result.data.won),
+      lossTrainingPending: eligible && !result.data.won ? 1 : next.lossTrainingPending,
     };
     return eligible && !result.data.won ? completed : checkExpansionAchievements(completed);
   }

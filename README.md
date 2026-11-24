@@ -135,3 +135,13 @@ bonuses now pay coins/XP only. Academy drills, pots and spectating do not count.
 Shop → Skins shows progress to the next diamond. From zero, the 20-diamond tier
 takes 200 wins and the 650-diamond tier takes 6,500 wins (before other purchases).
 Saves remain device-local, not server-verified or cheat-proof.
+
+
+## One board-training session per visit
+
+After a loss or a return to the dojo with training due, finish board-breaking once.
+That session clears queued loss practice and all currently due three-match training
+milestones, paying strength/XP once for the five attempts actually played. Old saved
+backlogs no longer force consecutive sessions. New losses can trigger a new session;
+new three-match milestones can still offer normal practice. A loss practice session
+also covers a scheduled milestone, so returning to the dojo does not repeat it.

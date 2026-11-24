@@ -787,7 +787,7 @@ export function buyPeek(input: Profile, level: number): Profile | null {
   return { ...input, coins: input.coins - cost };
 }
 
-/** A session is owed for each three completed, non-spectator matches. */
+/** Offer one session when a three-match milestone has not been covered by training. */
 export function trainingDue(p: Profile): boolean {
   return Math.floor(p.training.matches / 3) > p.training.completed;
 }
@@ -795,7 +795,9 @@ export function completeTraining(input: Profile, hits: number): Profile | null {
   if (!trainingDue(input) || !Number.isInteger(hits) || hits < 0 || hits > 5) return null;
   const p = clone(input);
   const gain = 1 + Math.floor(hits / 2);
-  p.training.completed++;
+  // One completed visit covers every currently due milestone, not a replay queue.
+  p.training.completed = Math.max(p.training.completed, Math.floor(p.training.matches / 3));
+  p.lossTrainingPending = 0;
   p.training.strength += gain;
   p.xp += 20 + hits * 5;
   return p;
@@ -804,7 +806,9 @@ export function completeTraining(input: Profile, hits: number): Profile | null {
 export function completeLossTraining(input: Profile, hits: number): Profile | null {
   if (input.lossTrainingPending < 1 || !Number.isInteger(hits) || hits < 0 || hits > 5) return null;
   const p = clone(input);
-  p.lossTrainingPending--;
+  // Loss practice also satisfies scheduled training; never chain another session.
+  p.lossTrainingPending = 0;
+  p.training.completed = Math.max(p.training.completed, Math.floor(p.training.matches / 3));
   p.training.strength += 1 + Math.floor(hits / 2);
   p.xp += 20 + hits * 5;
   return p;
